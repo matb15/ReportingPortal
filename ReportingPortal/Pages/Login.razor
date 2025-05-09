@@ -1,0 +1,11 @@
+@page "/login"
+<LoginForm OnLogin="HandleLogin" />
+
+@code {
+    private async Task HandleLogin(LoginModel model)
+    {
+        // Handle login logic here (call API, authenticate, etc.)
+        Console.WriteLine($"Email: {model.Email}, Password: {model.Password}");
+        await Task.CompletedTask;
+    }
+}
