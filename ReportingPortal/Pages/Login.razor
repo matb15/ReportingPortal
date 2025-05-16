@@ -1,11 +1,30 @@
 @page "/login"
+
+@using Models.http
+
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject AuthService authService
+
 <LoginForm OnLogin="HandleLogin" />
 
 @code {
     private async Task HandleLogin(LoginModel model)
     {
-        // Handle login logic here (call API, authenticate, etc.)
         Console.WriteLine($"Email: {model.Email}, Password: {model.Password}");
+
+        LoginResponse result = await authService.LoginAsync(model.Email, model.Password);
+
+        if (result != null)
+        {
+            await localStorage.SetItemAsync("token", result.Token);
+            await localStorage.SetItemAsync("user", result.User);
+            Console.WriteLine("Login successful!");
+        }
+        else
+        {
+            Console.WriteLine("Login failed.");
+        }
+
         await Task.CompletedTask;
     }
-}
+} 
