@@ -1,0 +1,10 @@
+@page "/Register"
+<RegisterForm OnRegister="HandleRegister" />
+
+@code {
+    private async Task HandleRegister(RegisterModel model)
+    {
+        Console.WriteLine($"Email: {model.Email}, Password: {model.Password}");
+        await Task.CompletedTask;
+    }
+}
