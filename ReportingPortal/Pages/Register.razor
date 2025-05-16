@@ -1,5 +1,8 @@
-@page "/Register"
-<RegisterForm OnRegister="HandleRegister" />
+@page "/register"
+
+<div>
+    <RegisterForm OnRegister="HandleRegister" />
+</div>
 
 @code {
     private async Task HandleRegister(RegisterModel model)

@@ -22,6 +22,8 @@ namespace Models
         [StringLength(100, ErrorMessage = "Surname cannot be longer than 100 characters.")]
         public string Surname { get; set; } = default!;
 
+        public string Role { get; set; } = default!;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

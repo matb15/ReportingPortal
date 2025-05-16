@@ -5,7 +5,9 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject AuthService authService
 
-<LoginForm OnLogin="HandleLogin" />
+<div>
+    <LoginForm OnLogin="HandleLogin" />
+</div>
 
 @code {
     private async Task HandleLogin(LoginModel model)
