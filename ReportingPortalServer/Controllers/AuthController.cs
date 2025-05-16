@@ -1,0 +1,30 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Models.http;
+using ReportingPortalServer.Services;
+
+namespace ReportingPortalServer.Controllers
+{               
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
+    {
+        private readonly ILogger<AuthController> _logger;
+        private readonly AuthService _authService;
+        private readonly ApplicationDbContext context;
+
+        public AuthController(ILogger<AuthController> logger, AuthService authService, ApplicationDbContext context)
+        {
+            _logger = logger;
+            _authService = authService;
+            this.context = context;
+        }
+
+        [HttpPost("login")]
+        public LoginResponse Login(LoginRequest request)
+        {
+            _logger.LogInformation("Login request received for user: {Username}", request.Username);
+            var user = _authService.LoginAsync(request.Username, request.Password, context); //attualmente restituisce una lista di utenti
+            return null;
+        }
+    }
+}
