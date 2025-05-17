@@ -1,0 +1,116 @@
+﻿<style>
+    .text-link {
+        color: #66c61c;
+        text-decoration: none;
+    }
+
+    .active-text-link {
+        color: white !important;
+        background-color: #111827 !important;
+    }
+
+</style>
+
+<nav class="bg-[#26272b]">
+    <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+        <div class="relative flex h-16 items-center justify-between">
+            <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                <button @onclick="ToggleMobileMenu" type="button"
+                        class="relative inline-flex items-center justify-center rounded-md p-2 text-[#66c61c] hover:bg-[#66c61c] hover:text-white focus:ring-2 focus:ring-white focus:outline-hidden focus:ring-inset"
+                        aria-controls="mobile-menu" aria-expanded="@_mobileMenuOpen">
+                    <span class="absolute -inset-0.5"></span>
+                    <span class="sr-only">Open main menu</span>
+
+                    <svg class="@(!_mobileMenuOpen ? "block" : "hidden") size-6" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+
+                    <svg class="@(_mobileMenuOpen ? "block" : "hidden") size-6" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+                <div class="flex shrink-0 items-center">
+                    <img class="h-8 w-auto text-[#66c61c]"
+                         src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
+                         alt="Reporting Portal">
+                </div>
+                <div class="hidden sm:ml-6 sm:block">
+                    <div class="flex space-x-4">
+                        <NavLink href="/home"
+                                 class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                                 activeClass="active-text-link">
+                            <i class="fa-solid fa-house"></i>
+                            Home
+                        </NavLink>
+                        <NavLink href="/register"
+                                 class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                                 activeClass="active-text-link">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            Register
+                        </NavLink>
+                        <NavLink href="/login"
+                                 class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                                 activeClass="active-text-link">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            Login
+                        </NavLink>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                <NavLink href="/notifications"
+                         class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                         activeClass="active-text-link">
+                    <i class="fa-solid fa-bell"></i>
+                    Notifications
+                </NavLink>
+
+                <NavLink href="/"
+                         class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                         activeClass="active-text-link" Match=NavLinkMatch.All>
+                    <i class="fa-solid fa-backward"></i>
+                    Go Back
+                </NavLink>
+
+                <NavLink href="/profile"
+                         class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                         activeClass="active-text-link">
+                    <i class="fa-solid fa-user"></i>
+                    Profile
+                </NavLink>
+            </div>
+        </div>
+    </div>
+
+    <div class="@(_mobileMenuOpen ? "block" : "hidden") sm:hidden" id="mobile-menu">
+        <div class="space-y-1 px-2 pt-2 pb-3">
+            <NavLink href="/home"
+                     class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                     activeClass="active-text-link">Home</NavLink>
+            <NavLink href="/register"
+                     class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                     activeClass="active-text-link">Register</NavLink>
+            <NavLink href="/login"
+                     class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                     activeClass="active-text-link">Login</NavLink>
+        </div>
+    </div>
+</nav>
+
+
+
+@code {
+    private bool _mobileMenuOpen = false;
+
+    private void ToggleMobileMenu()
+    {
+        _mobileMenuOpen = !_mobileMenuOpen;
+    }
+}

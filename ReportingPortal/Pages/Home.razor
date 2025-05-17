@@ -1,11 +1,29 @@
 ﻿@page "/home"
-@using Models
+@using LeafletForBlazor
 
-<PageTitle>Home</PageTitle>
+<div class="flex justify-center">
+    <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="450px" width="1000px"></RealTimeMap>
+</div>
 
-<h1>Hello, world!</h1>
+@code {
+    RealTimeMap realTimeMap = new RealTimeMap();
 
-Welcome to your new app.
+    RealTimeMap.LoadParameters parameters = new RealTimeMap.LoadParameters()
+    {
+        location = new RealTimeMap.Location()
+        {
+            latitude = 45.6982642,
+            longitude = 9.6772698,
+        },
+        zoomLevel = 18
+    };
 
-@code{
+    RealTimeMap.MapOptions options = new RealTimeMap.MapOptions()
+    {
+        interactionOptions = new RealTimeMap.InteractionOptions()
+        {
+            doubleClickZoom = true,
+            shiftBoxZoom = false,
+        },
+    };
 }
