@@ -1,55 +1,41 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Forms
 
-<div class="min-h-screen flex flex-col bg-gray-100 text-gray-900 flex justify-center">
-    <div class="m-0 sm:m-5 bg-white shadow sm:rounded-lg flex justify-center flex-1">
-        <div class="lg:w-1/2 xl:w-5/12 p-6 sm:p-12">
-            <div class="mt-12 flex flex-col items-center">
-                <h1 class="text-2xl xl:text-3xl font-extrabold">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white">
+    <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-md">
+        <div class="flex justify-center">
+            <div class="bg-green-500 rounded-full p-2 shadow-md">
+                <img src="/logo.png" alt="Fixaroo Logo" class="w-20 h-20" />
+            </div>
+        </div>
+
+        <h2 class="text-center text-xl font-semibold text-gray-900">
+            Enter your email and we’ll send you a login link.
+        </h2>
+
+        <EditForm Model="@loginModel" OnValidSubmit="OnSubmit">
+            <DataAnnotationsValidator />
+            <div class="space-y-4">
+                <InputText @bind-Value="loginModel.Email"
+                           class="w-full px-4 py-3 rounded-lg border border-gray-300 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           type="email" placeholder="Email" />
+                <ValidationMessage For="@(() => loginModel.Email)" />
+
+                <InputText @bind-Value="loginModel.Password"
+                           class="w-full px-4 py-3 rounded-lg border border-gray-300 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           type="password" placeholder="Password" />
+                <ValidationMessage For="@(() => loginModel.Password)" />
+
+                <button class="w-full py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold transition duration-300">
                     Login
-                </h1>
-                <p class="text-sm text-gray-500 tracking-wide mt-4">
-                    Don't have an account?
-                    <a href="/register" class="text-indigo-500 hover:text-indigo-700 font-semibold">Sign up</a>
-                </p>
-                <div class="w-full flex-1 mt-8">
-                    <EditForm Model="@loginModel" OnValidSubmit="OnSubmit">
-                        <DataAnnotationsValidator />
-                        <div class="mx-auto max-w-xs">
-                            <div class="mb-4">
-                                <InputText @bind-Value="loginModel.Email"
-                                    class="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white"
-                                    type="email" placeholder="Email" />
-                                <ValidationMessage For="@(() => loginModel.Email)" />
-                            </div>
-                            <div class="mb-6">
-                                <InputText @bind-Value="loginModel.Password"
-                                    class="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white"
-                                    type="password" placeholder="Password" />
-                                <ValidationMessage For="@(() => loginModel.Password)" />
-                            </div>
-                            <button
-                                class="mt-5 tracking-wide font-semibold bg-indigo-500 text-gray-100 w-full py-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
-                                <svg class="w-6 h-6 -ml-2" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                                    <circle cx="8.5" cy="7" r="4" />
-                                    <path d="M20 8v6M23 11h-6" />
-                                </svg>
-                                <span class="ml-3">
-                                    Log In
-                                </span>
-                            </button>
-                        </div>
-                    </EditForm>
-                </div>
+                </button>
             </div>
-        </div>
-        <div class="flex-1 bg-indigo-100 text-center hidden lg:flex">
-            <div class="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
-                style="background-image: url('https://storage.googleapis.com/devitary-image-host.appspot.com/15848031292911696601-undraw_designer_life_w96d.svg');">
-            </div>
-        </div>
+        </EditForm>
+
+        <p class="text-center text-sm text-gray-500">
+            Proceeding means you’re ok with our
+            <a href="/terms" class="text-green-600 font-semibold hover:underline">terms & conditions</a>
+        </p>
     </div>
 </div>
 
