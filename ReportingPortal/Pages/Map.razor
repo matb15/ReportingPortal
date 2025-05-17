@@ -1,0 +1,55 @@
+﻿@page "/map"
+
+@using LeafletForBlazor
+
+<style>
+    .map-link {
+        background-color: #22c55e;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: white;
+        position: absolute;
+        bottom: 1.5rem;
+        right: 1rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        z-index: 5000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+    }
+</style>
+
+<div class="w-full relative">
+    <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="92vh" width="100%"></RealTimeMap>
+
+    <NavLink href="/home" class="map-link">
+        <i class="fa-solid fa-arrow-left"></i>
+    </NavLink>
+</div>
+
+
+@code {
+    RealTimeMap realTimeMap = new RealTimeMap();
+
+    RealTimeMap.LoadParameters parameters = new RealTimeMap.LoadParameters()
+        {
+            location = new RealTimeMap.Location()
+            {
+                latitude = 45.6982642,
+                longitude = 9.6772698,
+            },
+            zoomLevel = 18
+        };
+
+    RealTimeMap.MapOptions options = new RealTimeMap.MapOptions()
+        {
+            interactionOptions = new RealTimeMap.InteractionOptions()
+            {
+                doubleClickZoom = true,
+                shiftBoxZoom = false,
+            },
+        };
+}

@@ -8,7 +8,6 @@
         color: white !important;
         background-color: #111827 !important;
     }
-
 </style>
 
 <nav class="bg-[#26272b]">
@@ -34,77 +33,86 @@
                 </button>
             </div>
 
-            <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-                <div class="flex shrink-0 items-center">
-                    <img class="h-8 w-auto text-[#66c61c]"
-                         src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                         alt="Reporting Portal">
-                </div>
-                <div class="hidden sm:ml-6 sm:block">
-                    <div class="flex space-x-4">
-                        <NavLink href="/home"
-                                 class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                                 activeClass="active-text-link">
-                            <i class="fa-solid fa-house"></i>
-                            Home
-                        </NavLink>
-                        <NavLink href="/register"
-                                 class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                                 activeClass="active-text-link">
-                            <i class="fa-solid fa-right-to-bracket"></i>
-                            Register
-                        </NavLink>
-                        <NavLink href="/login"
-                                 class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                                 activeClass="active-text-link">
-                            <i class="fa-solid fa-right-to-bracket"></i>
-                            Login
-                        </NavLink>
+            <div class="hidden sm:flex sm:ml-6 sm:items-center sm:justify-between w-full max-w-7xl mx-auto px-2">
+                <!-- Left: logo + first 3 links -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex shrink-0 items-center">
+                        <img class="h-8 w-auto text-[#66c61c]"
+                             src="/logo.png"
+                             alt="Reporting Portal" />
                     </div>
+                    <NavLink href="/home"
+                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                             activeClass="active-text-link">
+                        <i class="fa-solid fa-house"></i>
+                        Home
+                    </NavLink>
+                    <NavLink href="/register"
+                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                             activeClass="active-text-link">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        Register
+                    </NavLink>
+                    <NavLink href="/login"
+                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                             activeClass="active-text-link">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        Login
+                    </NavLink>
                 </div>
-            </div>
 
-            <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                <NavLink href="/notifications"
-                         class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                         activeClass="active-text-link">
-                    <i class="fa-solid fa-bell"></i>
-                    Notifications
-                </NavLink>
+                <!-- Right: other 3 links -->
+                <div class="flex items-center space-x-4">
+                    <NavLink href="/notifications"
+                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                             activeClass="active-text-link">
+                        <i class="fa-solid fa-bell"></i>
+                        Notifications
+                    </NavLink>
 
-                <NavLink href="/"
-                         class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                         activeClass="active-text-link" Match=NavLinkMatch.All>
-                    <i class="fa-solid fa-backward"></i>
-                    Go Back
-                </NavLink>
+                    <NavLink href="/"
+                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                             activeClass="active-text-link" Match=NavLinkMatch.All>
+                        <i class="fa-solid fa-backward"></i>
+                        Go Back
+                    </NavLink>
 
-                <NavLink href="/profile"
-                         class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                         activeClass="active-text-link">
-                    <i class="fa-solid fa-user"></i>
-                    Profile
-                </NavLink>
+                    <NavLink href="/profile"
+                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                             activeClass="active-text-link">
+                        <i class="fa-solid fa-user"></i>
+                        Profile
+                    </NavLink>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="@(_mobileMenuOpen ? "block" : "hidden") sm:hidden" id="mobile-menu">
-        <div class="space-y-1 px-2 pt-2 pb-3">
-            <NavLink href="/home"
-                     class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
-                     activeClass="active-text-link">Home</NavLink>
-            <NavLink href="/register"
-                     class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
-                     activeClass="active-text-link">Register</NavLink>
-            <NavLink href="/login"
-                     class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
-                     activeClass="active-text-link">Login</NavLink>
+    <div class="@(_mobileMenuOpen ? "flex" : "hidden") sm:hidden" id="mobile-menu">
+        <div class="flex w-full px-2 pt-2 pb-3 gap-4">
+            <div class="flex flex-col w-1/2 space-y-1 order-2">
+                <NavLink href="/home"
+                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                         activeClass="active-text-link">Home</NavLink>
+                <NavLink href="/register"
+                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                         activeClass="active-text-link">Register</NavLink>
+                <NavLink href="/login"
+                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                         activeClass="active-text-link">Login</NavLink>
+            </div>
+
+            <div class="flex flex-col w-1/2 space-y-1 order-1">
+                <NavLink href="/notifications"
+                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                         activeClass="active-text-link">Notifications</NavLink>
+                <NavLink href="/profile"
+                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                         activeClass="active-text-link">Profile</NavLink>
+            </div>
         </div>
     </div>
 </nav>
-
-
 
 @code {
     private bool _mobileMenuOpen = false;
