@@ -1,7 +1,6 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Forms
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white">
     <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-md">
         <div class="flex justify-center">
             <div class="bg-green-500 rounded-full p-2 shadow-md">
@@ -10,7 +9,7 @@
         </div>
 
         <h2 class="text-center text-xl font-semibold text-gray-900">
-            Enter your email and we’ll send you a login link.
+            Enter your credentials to login.
         </h2>
 
         <EditForm Model="@loginModel" OnValidSubmit="OnSubmit">
@@ -37,7 +36,6 @@
             <a href="/terms" class="text-green-600 font-semibold hover:underline">terms & conditions</a>
         </p>
     </div>
-</div>
 
 @code {
     private LoginModel loginModel = new();
