@@ -7,10 +7,22 @@ namespace Models.http
 
     }
 
+    public class PagedRequest
+    {
+        [Range(1, int.MaxValue)]
+        public int Page { get; set; } = 1;
+
+        [Range(1, 100)]
+        public int PageSize { get; set; } = 10;
+    }
+
     public class LoginRequest : Request
     {
-        public required string Username { get; set; }
-        public required string Password { get; set; }
+        [Required]
+        public string Username { get; set; } = default!;
+
+        [Required]
+        public string Password { get; set; } = default!;
     }
 
     public class RegisterRequest : Request
@@ -32,5 +44,23 @@ namespace Models.http
         [Required]
         [StringLength(100, ErrorMessage = "Surname cannot be longer than 100 characters.")]
         public string Surname { get; set; } = default!;
+    }
+
+    public class ReportRequest : Request
+    {
+        [Required]
+        public string Title { get; set; } = default!;
+        [Required]
+        public string Description { get; set; } = default!;
+        [Required]
+        public Guid CategoryId { get; set; } = default!;
+        [Required]
+        public string Location { get; set; } = default!;
+        public string LocationDetail { get; set; } = default!;
+    }
+
+    public class ReportsPaginatedRequest : PagedRequest
+    {
+
     }
 }

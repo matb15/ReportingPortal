@@ -112,3 +112,55 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.status-Pending {
+    color: #FFA500;
+    background-color: #FFF5E5;
+    border: 1px solid #FFA500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-InProgress {
+    color: #007BFF;
+    background-color: #E6F0FF;
+    border: 1px solid #007BFF;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-Resolved {
+    color: #28A745;
+    background-color: #E6F9E8;
+    border: 1px solid #28A745;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-Rejected {
+    color: #DC3545;
+    background-color: #FDECEA;
+    border: 1px solid #DC3545;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.bg-User {
+    background-color: #6c757d; /* Gray */
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.bg-Admin {
+    background-color: #dc3545; /* Red */
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}

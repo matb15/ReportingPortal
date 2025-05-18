@@ -5,13 +5,31 @@ namespace Models.http
         public required string Message { get; set; }
     }
 
+    public class PagedResponse<T> : Response
+    {
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalCount { get; set; }
+        public List<T> Items { get; set; } = [];
+    }
+
     public class RegisterResponse : Response
     {
     }
 
     public class LoginResponse : Response
     {
-        public string Token { get; set; }
-        public User User { get; set; }
+        public string Token { get; set; } = default!;
+        public User User { get; set; } = default!;
+    }
+
+    public class ReportsPaginatedResponse : PagedResponse<Report>
+    {
+
+    }
+
+    public class ReportResponse : Response
+    {
+        public Report Report { get; set; } = default!;
     }
 }
