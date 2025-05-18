@@ -32,4 +32,8 @@ namespace Models.http
     {
         public Report Report { get; set; } = default!;
     }
+
+    public class NotificationsPaginatedResponse : PagedResponse<Notification>
+    {
+    }
 }

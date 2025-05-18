@@ -13,5 +13,11 @@
         Resolved,
         Rejected
     }
+
+    public enum NotificationStatusEnum
+    {
+        Unread,
+        Read
+    }
 }
 

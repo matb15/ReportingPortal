@@ -18,6 +18,7 @@ namespace ReportingPortal
 
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<ReportsService>();
+            builder.Services.AddScoped<NotificationsService>();
 
             builder.Services.AddBlazoredLocalStorage();
 

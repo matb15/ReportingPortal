@@ -63,4 +63,9 @@ namespace Models.http
     {
 
     }
+
+    public class NotificationsPaginatedRequest : PagedRequest
+    {
+        public Guid? UserId { get; set; }
+    }
 }
