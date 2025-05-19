@@ -38,6 +38,8 @@ namespace Models
 
         [Required]
         public ReportStatusEnum Status { get; set; } = ReportStatusEnum.Pending;
+
+        public List<ReportReply> Replies { get; set; } = new();
     }
 
 }

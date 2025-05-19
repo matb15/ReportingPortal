@@ -1,5 +1,7 @@
 ﻿@page "/dashboard"
 @using LeafletForBlazor
+
+@inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
 <style>
@@ -79,10 +81,35 @@
                     @foreach (var report in reports.Take(5))
                     {
                         <tr class="border-b">
-                            <td class="py-2">@("(Report type)")</td>
-                            <td class="py-2 text-right">
-                                <button class="text-[#66c61c] hover:underline cursor-pointer">
-                                    <i class="fa-solid fa-right-to-bracket"></i>
+                            <td class="py-4 align-top">
+                                <div class="text-sm text-gray-800 space-y-1">
+                                    <div class="grid grid-cols-2">
+                                        <div>
+                                            <span class="font-semibold text-gray-900">Type:</span>
+                                            <span class="ml-1 text-gray-600">Infrastructure</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="font-semibold text-gray-900">Date:</span>
+                                            <span class="ml-1 text-gray-600">2025-05-17</span>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2">
+                                        <div>
+                                            <span class="font-semibold text-gray-900">Location:</span>
+                                            <span class="ml-1 text-gray-600">Milan, Italy</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="font-semibold text-gray-900">Status:</span>
+                                            <span class="ml-1 inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                                                Resolved
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 text-center align-middle pl-3">
+                                <button class="text-[#66c61c] hover:text-green-700 transition-colors duration-150 cursor-pointer" @onclick="@(_ => GoToReportDetail(report.Id))">
+                                    <i class="fa-solid fa-right-to-bracket text-lg"></i>
                                 </button>
                             </td>
                         </tr>
@@ -164,8 +191,8 @@
             },
         };
 
-    private List<object> reports = new List<object>();
-    private List<object> users = new List<object>();
+    private List<Report> reports = new List<Report>();
+    private List<User> users = new List<User>();
     private bool showDemo = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -185,7 +212,7 @@
     {
         for (int i = 0; i < 7; i++)
         {
-            reports.Add(new { });
+            reports.Add(new Report { });
         }
     }
 
@@ -193,13 +220,13 @@
     {
         for (int i = 0; i < 5; i++)
         {
-            users.Add(new { });
+            users.Add(new User{ });
         }
     }
 
     private void AddReport()
     {
-        reports.Add(new { });
+        reports.Add(new Report { });
         StateHasChanged();
     }
 
@@ -210,4 +237,8 @@
         // You can filter `reports` list here if it contains real data
     }
 
+    private async void GoToReportDetail(int reportId)
+    {
+        NavigationManager.NavigateTo($"/report/{reportId}");
+    }
 }

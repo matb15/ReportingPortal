@@ -1,5 +1,6 @@
 ﻿@page "/reports"
 @inject ReportsService ReportsService
+@inject NavigationManager NavigationManager
 
 <div class="p-6">
     <div class="flex justify-between items-center mb-4">
@@ -48,7 +49,7 @@
                             <td class="px-4 py-3">
                                 <span class="font-semibold text-sm text-@report.Status">@report.Status</span>
                             </td>
-                            <td class="px-2 py-3 text-right text-gray-400">
+                            <td class="px-2 py-3 text-right text-gray-400" @onclick="@(_ => GoToReportDetail(report.Id))">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </td>
                         </tr>
@@ -118,5 +119,10 @@
             CurrentPage++;
             await LoadReports();
         }
+    }
+
+    private async void GoToReportDetail(int reportId)
+    {
+        NavigationManager.NavigateTo($"/report/{reportId}");
     }
 }
