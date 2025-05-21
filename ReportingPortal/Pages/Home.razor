@@ -88,7 +88,7 @@
                             </div>
                         </td>
                         <td class="py-4 text-center align-middle pl-3">
-                            <button class="text-[#66c61c] hover:text-green-700 transition-colors duration-150 cursor-pointer">
+                            <button class="text-[#66c61c] hover:text-green-700 transition-colors duration-150 cursor-pointer" @onclick="@(_ => GoToReportDetail(report.Id))">
                                 <i class="fa-solid fa-right-to-bracket text-lg"></i>
                             </button>
                         </td>
@@ -131,11 +131,11 @@
             },
         };
 
-    private List<object> reports = new List<object>();
-    private List<object> users = new List<object>();
+    private List<Report> reports = new List<Report>();
+    private List<User> users = new List<User>();
     private bool showDemo = true;
 
-    private void GoToAdmin() => Navigation.NavigateTo("/dashboard");
+    private void GoToReportDetail(int reportId) => Navigation.NavigateTo($"/report/{reportId}");
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -154,7 +154,7 @@
     {
         for (int i = 0; i < 7; i++)
         {
-            reports.Add(new { });
+            reports.Add(new Report{ });
         }
     }
 
@@ -162,13 +162,13 @@
     {
         for (int i = 0; i < 5; i++)
         {
-            users.Add(new { });
+            users.Add(new User{ });
         }
     }
 
     private void AddReport()
     {
-        reports.Add(new { });
+        reports.Add(new Report{ });
         StateHasChanged();
     }
 }
