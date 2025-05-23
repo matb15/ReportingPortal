@@ -14,6 +14,7 @@ namespace ReportingPortalServer.Services
         public User GetMeAsync(string JWT, ApplicationDbContext context);
         public User UpdateMeAsync(string JWT, User updatedUser, ApplicationDbContext context);
         public GenericResponse UpdateMePasswordAsync(string JWT, string oldPassword, string newPassword, ApplicationDbContext context);
+        public GenericResponse DeleteMeAsync(string JWT, ApplicationDbContext context);
     }
 
     public class AuthService : IAuthService
@@ -162,6 +163,33 @@ namespace ReportingPortalServer.Services
             {
                 StatusCode = (int)System.Net.HttpStatusCode.OK,
                 Message = "Password aggiornata con successo."
+            };
+        }
+
+
+
+        public GenericResponse DeleteMeAsync(string JWT, ApplicationDbContext context)
+        {
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            if (!handler.CanReadToken(JWT))
+                throw new ArgumentException("Token JWT non valido.");
+
+            var token = handler.ReadJwtToken(JWT);
+            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                throw new ArgumentException("Impossibile estrarre l'ID utente dal token JWT.");
+
+            var user = context.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null)
+                throw new InvalidOperationException("Utente non trovato.");
+
+            context.Users.Remove(user);
+            context.SaveChanges();
+
+            return new GenericResponse
+            {
+                StatusCode = (int)System.Net.HttpStatusCode.OK,
+                Message = "Account eliminato con successo."
             };
         }
 

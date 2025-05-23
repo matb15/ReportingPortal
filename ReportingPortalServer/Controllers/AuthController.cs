@@ -117,10 +117,18 @@ namespace ReportingPortalServer.Controllers
 
 
         [HttpDelete("me")]
-        public GenericResponse DeleteMe(string JWT)
+        public GenericResponse DeleteMe()
         {
             _logger.LogInformation("DeleteMe request received");
-            var response = _authService.DeleteMeAsync(JWT, context);
+
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return null;
+            }
+            var jwt = authHeader.Substring("Bearer ".Length).Trim();
+
+            var response = _authService.DeleteMeAsync(jwt, context);
             if (response == null) return null;
             else return response;
         }
