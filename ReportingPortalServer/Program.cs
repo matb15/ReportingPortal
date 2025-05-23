@@ -9,7 +9,21 @@ namespace ReportingPortalServer
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.           
+            string? origins = "origins";
+            var frontAddress = builder.Configuration["FrontAddress"];
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(origins,
+                    policy =>
+                    {
+                        if (!string.IsNullOrEmpty(frontAddress))
+                        {
+                            policy.WithOrigins(frontAddress)
+                                  .AllowAnyHeader()
+                                  .AllowAnyMethod();
+                        }
+                    });
+            });
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -37,6 +51,8 @@ namespace ReportingPortalServer
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+
+            app.UseCors("origins");
 
             app.MapControllers();
 

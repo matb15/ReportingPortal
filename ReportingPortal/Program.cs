@@ -14,7 +14,16 @@ namespace ReportingPortal
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            string? apiBase = builder.Configuration["ApiBaseAddress"];
+            if (string.IsNullOrWhiteSpace(apiBase))
+            {
+                throw new InvalidOperationException("ApiBaseAddress configuration is missing or empty.");
+            }
+
+            builder.Services.AddScoped(sp => new HttpClient
+            {
+                BaseAddress = new Uri(apiBase)
+            });
 
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<ReportsService>();

@@ -11,13 +11,13 @@ namespace ReportingPortal.Services
 
         public async Task<bool> RegisterAsync(string username, string password)
         {
-            RegisterResponse response = (RegisterResponse) await _http.PostAsJsonAsync("api/auth/register", new { username, password });
+            RegisterResponse response = (RegisterResponse) await _http.PostAsJsonAsync("api/Auth/register", new { username, password });
             return response.IsSuccessStatusCode;
         }
 
         public async Task<LoginResponse> LoginAsync(string username, string password)
         {
-            LoginResponse response = (LoginResponse) await _http.PostAsJsonAsync("api/auth/login", new { username, password });
+            LoginResponse response = (LoginResponse) await _http.PostAsJsonAsync("api/Auth/login", new { username, password });
             return response;
         }
     }
