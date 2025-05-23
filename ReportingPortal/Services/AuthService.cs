@@ -42,7 +42,7 @@ namespace ReportingPortal.Services
                 return loginResponse;
             }
             else
-            {
+            { 
                 var errorResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
                 return new LoginResponse
                 {

@@ -12,6 +12,7 @@ namespace ReportingPortalServer.Services
         public LoginResponse LoginAsync(string username, string password, ApplicationDbContext context);
         public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context);
         public User GetMeAsync(string JWT, ApplicationDbContext context);
+        public User UpdateMeAsync(string JWT, User updatedUser, ApplicationDbContext context);
     }
 
     public class AuthService : IAuthService
@@ -101,6 +102,38 @@ namespace ReportingPortalServer.Services
 
 
 
+        public User UpdateMeAsync(string JWT, User updatedUser, ApplicationDbContext context)
+        {
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            if (!handler.CanReadToken(JWT))
+                throw new ArgumentException("Token JWT non valido.");
+
+            var token = handler.ReadJwtToken(JWT);
+            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                throw new ArgumentException("Impossibile estrarre l'ID utente dal token JWT.");
+
+            if (userId != updatedUser.Id)
+                throw new UnauthorizedAccessException("Non autorizzato ad aggiornare questo utente.");
+
+            var user = context.Users.FirstOrDefault(u => u.Id == updatedUser.Id);
+            if (user == null)
+                throw new InvalidOperationException("Utente non trovato.");
+
+            user.Name = updatedUser.Name;
+            user.Surname = updatedUser.Surname;
+            user.Email = updatedUser.Email;
+            user.Role = updatedUser.Role;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            context.SaveChanges();
+
+            user.Password = "baldman";
+            return user;
+        }
+
+
+
         private string GenerateJwtToken(User user)
         {
             var key = new System.Text.UTF8Encoding().GetBytes("baldman_eroe_notturno_gey_che_combatte_contro_gli_etero"); 
@@ -125,5 +158,6 @@ namespace ReportingPortalServer.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
     }
 }

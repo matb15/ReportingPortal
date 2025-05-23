@@ -59,12 +59,69 @@ namespace ReportingPortalServer.Controllers
 
 
         [HttpGet("me")]
-        public User GetMe(string JWT)
+        public User GetMe()
         {
             _logger.LogInformation("GetMe request received");
-            var response = _authService.GetMeAsync(JWT, context);
+
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return null;
+            }
+            var jwt = authHeader.Substring("Bearer ".Length).Trim();
+
+            var response = _authService.GetMeAsync(jwt, context);
             if (response == null) return null;
             else return response;
+        }
+
+
+
+        [HttpPut("me")]
+        public User UpdateMe(User user)
+        {
+            _logger.LogInformation("UpdateMe request received");
+
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return null;
+            }
+            var jwt = authHeader.Substring("Bearer ".Length).Trim();
+
+            var response = _authService.UpdateMeAsync(jwt, user, context);
+            if (response == null) return null;
+            else return response;
+        }
+
+
+
+        [HttpPut("me/password")]
+        public IActionResult UpdateMePassword(string oldPassword, string newPassword)
+        {
+            _logger.LogInformation("UpdateMePassword request received");
+
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return null;
+            }
+            var jwt = authHeader.Substring("Bearer ".Length).Trim();
+
+            var response = _authService.UpdateMePasswordAsync(jwt, oldPassword, newPassword, context);
+            if (response == null) return NotFound();
+            else return Ok(response);
+        }
+
+
+
+        [HttpDelete("me")]
+        public IActionResult DeleteMe(string JWT)
+        {
+            _logger.LogInformation("DeleteMe request received");
+            var response = _authService.DeleteMeAsync(JWT, context);
+            if (response == null) return NotFound();
+            else return Ok(response);
         }
     }
 }
