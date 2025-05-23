@@ -40,4 +40,10 @@ namespace Models.http
     public class NotificationsPaginatedResponse : PagedResponse<Notification>
     {
     }
+
+    public class GenericResponse
+    {
+        public required string Message { get; set; }
+        public int StatusCode { get; set; }
+    }
 }

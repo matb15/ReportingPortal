@@ -13,6 +13,7 @@ namespace ReportingPortalServer.Services
         public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context);
         public User GetMeAsync(string JWT, ApplicationDbContext context);
         public User UpdateMeAsync(string JWT, User updatedUser, ApplicationDbContext context);
+        public GenericResponse UpdateMePasswordAsync(string JWT, string oldPassword, string newPassword, ApplicationDbContext context);
     }
 
     public class AuthService : IAuthService
@@ -109,7 +110,7 @@ namespace ReportingPortalServer.Services
                 throw new ArgumentException("Token JWT non valido.");
 
             var token = handler.ReadJwtToken(JWT);
-            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
                 throw new ArgumentException("Impossibile estrarre l'ID utente dal token JWT.");
 
@@ -130,6 +131,38 @@ namespace ReportingPortalServer.Services
 
             user.Password = "baldman";
             return user;
+        }
+
+
+
+        public GenericResponse UpdateMePasswordAsync(string JWT, string oldPassword, string newPassword, ApplicationDbContext context)
+        {
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            if (!handler.CanReadToken(JWT))
+                throw new ArgumentException("Token JWT non valido.");
+
+            var token = handler.ReadJwtToken(JWT);
+            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                throw new ArgumentException("Impossibile estrarre l'ID utente dal token JWT.");
+
+            var user = context.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null)
+                throw new InvalidOperationException("Utente non trovato.");
+
+            if (!BCrypt.Net.BCrypt.Verify(oldPassword, user.Password))
+                throw new UnauthorizedAccessException("La vecchia password non è corretta.");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+            context.SaveChanges();
+
+            user.Password = "baldman";
+            return new GenericResponse 
+            {
+                StatusCode = (int)System.Net.HttpStatusCode.OK,
+                Message = "Password aggiornata con successo."
+            };
         }
 
 
@@ -158,6 +191,5 @@ namespace ReportingPortalServer.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
     }
 }

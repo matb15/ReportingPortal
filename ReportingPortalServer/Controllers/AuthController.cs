@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.http;
 using ReportingPortalServer.Services;
@@ -97,7 +98,7 @@ namespace ReportingPortalServer.Controllers
 
 
         [HttpPut("me/password")]
-        public IActionResult UpdateMePassword(string oldPassword, string newPassword)
+        public GenericResponse UpdateMePassword(string oldPassword, string newPassword)
         {
             _logger.LogInformation("UpdateMePassword request received");
 
@@ -109,19 +110,19 @@ namespace ReportingPortalServer.Controllers
             var jwt = authHeader.Substring("Bearer ".Length).Trim();
 
             var response = _authService.UpdateMePasswordAsync(jwt, oldPassword, newPassword, context);
-            if (response == null) return NotFound();
-            else return Ok(response);
+            if (response == null) return null;
+            else return response;
         }
 
 
 
         [HttpDelete("me")]
-        public IActionResult DeleteMe(string JWT)
+        public GenericResponse DeleteMe(string JWT)
         {
             _logger.LogInformation("DeleteMe request received");
             var response = _authService.DeleteMeAsync(JWT, context);
-            if (response == null) return NotFound();
-            else return Ok(response);
+            if (response == null) return null;
+            else return response;
         }
     }
 }
