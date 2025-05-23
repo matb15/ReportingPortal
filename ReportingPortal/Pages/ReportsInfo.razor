@@ -6,9 +6,7 @@
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-semibold text-gray-900">All Reports</h2>
         <div class="flex gap-2 items-center">
-            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-[#66c61c] hover:bg-green-600 text-white shadow">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
+           <InputSearch @bind-SearchText="SearchText" />
             <button class="px-4 py-2 bg-[#66c61c] hover:bg-green-600 text-white rounded-full shadow">
                 Add report
             </button>
@@ -82,13 +80,11 @@
 @code {
     int CurrentPage = 1;
     int PageSize = 10;
-
     ReportsPaginatedResponse? ReportsResponse;
-
+    string SearchText = string.Empty;
     int TotalCount => ReportsResponse?.TotalCount ?? 0;
     int StartIndex => (CurrentPage - 1) * PageSize + 1;
     int EndIndex => Math.Min(CurrentPage * PageSize, TotalCount);
-
     bool IsFirstPage => CurrentPage == 1;
     bool IsLastPage => EndIndex >= TotalCount;
 
