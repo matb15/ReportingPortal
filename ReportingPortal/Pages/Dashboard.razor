@@ -59,9 +59,8 @@
         </div>
 
         <div class="flex items-center space-x-2">
-            <button class="w-10 h-10 text-[#66c61c] flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-100">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
+            <InputSearch @bind-SearchText="searchText"/>
+
             <button class="bg-[#66c61c] hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm">
                 Add Report
             </button>
@@ -162,7 +161,9 @@
 </div>
 
 @code {
-    RealTimeMap realTimeMap = new RealTimeMap();
+    RealTimeMap realTimeMap = new RealTimeMap();    
+    private string searchText = string.Empty;
+
     private string selectedCategory = "All";
     private string selectedDistrict = "All";
     private string selectedStatus = "All";
@@ -170,7 +171,6 @@
     private List<string> categories = new() { "All", "Incendio", "Furto", "Inondazione" };
     private List<string> districts = new() { "All", "Centro", "San Paolo", "Navigli", "Isola" };
     private List<string> statuses = Enum.GetNames(typeof(ReportStatusEnum)).Prepend("All").ToList();
-
 
     RealTimeMap.LoadParameters parameters = new RealTimeMap.LoadParameters()
         {
