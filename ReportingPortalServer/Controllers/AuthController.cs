@@ -23,8 +23,8 @@ namespace ReportingPortalServer.Controllers
         public LoginResponse Login(LoginRequest request)
         {
             _logger.LogInformation("Login request received for user: {Username}", request.Username);
-            var user = _authService.LoginAsync(request.Username, request.Password, context); //attualmente restituisce una lista di utenti
-            return null;
+            var resposnse = _authService.LoginAsync(request.Username, request.Password, context); //attualmente restituisce una lista di utenti
+            return resposnse;
         }
     }
 }
