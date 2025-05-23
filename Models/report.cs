@@ -39,6 +39,12 @@ namespace Models
         [Required]
         public ReportStatusEnum Status { get; set; } = ReportStatusEnum.Pending;
 
+        [Required]
+        public double Latitude { get; set; } = 0.0;
+
+        [Required]
+        public double Longitude { get; set; } = 0.0;
+
         public List<ReportReply> Replies { get; set; } = new();
     }
 

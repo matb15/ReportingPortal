@@ -9,10 +9,10 @@ namespace ReportingPortal.Services
     {
         private readonly HttpClient _http = http;
 
-        public async Task<bool> RegisterAsync(string username, string password)
+        public async Task<RegisterResponse> RegisterAsync(RegisterRequest registerRequest)
         {
-            RegisterResponse response = (RegisterResponse) await _http.PostAsJsonAsync("api/Auth/register", new { username, password });
-            return response.IsSuccessStatusCode;
+            RegisterResponse response = (RegisterResponse)await _http.PostAsJsonAsync("api/Auth/register", registerRequest);
+            return response;
         }
 
         public async Task<LoginResponse> LoginAsync(string username, string password)

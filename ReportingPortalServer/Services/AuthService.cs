@@ -3,12 +3,14 @@ using System;
 using System.Threading.Tasks;
 using Models;
 using Models.http;
+using Models.enums;
 
 namespace ReportingPortalServer.Services
 {
     public interface IAuthService
     {
         public LoginResponse LoginAsync(string username, string password, ApplicationDbContext context);
+        public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context);
     }
 
     public class AuthService : IAuthService
@@ -33,6 +35,33 @@ namespace ReportingPortalServer.Services
                 User = user,
                 Token = token,
                 Message = "Login effettuato con successo."
+            };
+        }
+
+        public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context)
+        {
+            var existingUser = context.Users.FirstOrDefault(u => u.Email == request.Email);
+            if (existingUser != null)
+            {
+                return new RegisterResponse
+                {
+                    Message = "Email già in uso."
+                };
+            }
+            var user = new User
+            {
+
+                Email = request.Email,
+                Password = request.Password,
+                Name = request.Name,
+                Surname = request.Surname,
+                Role = UserRoleEnum.User
+            };
+            context.Users.Add(user);
+            context.SaveChanges();
+            return new RegisterResponse
+            {
+                Message = "Registrazione avvenuta con successo."
             };
         }
 

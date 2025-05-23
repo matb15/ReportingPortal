@@ -26,5 +26,20 @@ namespace ReportingPortalServer.Controllers
             var resposnse = _authService.LoginAsync(request.Username, request.Password, context); //attualmente restituisce una lista di utenti
             return resposnse;
         }
+
+        [HttpPost("register")]
+        public RegisterResponse Register(RegisterRequest request)
+        {
+            _logger.LogInformation("Register request received for user: {Email}", request.Email);
+            var response = _authService.RegisterAsync(request, context);
+            if (response.IsSuccessStatusCode)
+            {
+                return response;
+            }
+            else
+            {
+                return response;
+            }
+        }
     }
 }

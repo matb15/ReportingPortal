@@ -1,5 +1,6 @@
 using Models.enums;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices;
 
 namespace Models
 {
@@ -29,6 +30,5 @@ namespace Models
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public ICollection<Report> Reports { get; set; } = [];
     }
 }

@@ -1,4 +1,9 @@
 @page "/register"
+@using Models.front
+
+@inject NavigationManager Navigation
+@inject HttpClient HttpClient
+@inject AuthService authService
 
 <div>
     <RegisterForm OnRegister="HandleRegister" />
@@ -8,6 +13,17 @@
     private async Task HandleRegister(RegisterModel model)
     {
         Console.WriteLine($"Email: {model.Email}, Password: {model.Password}");
+
+        RegisterRequest request = new RegisterRequest
+            {
+                Email = model.Email,
+                Password = model.Password,
+                ConfirmPassword = model.ConfirmPassword,
+                Name = model.Name,
+                Surname = model.Surname,
+            };
+
+        var response = authService.RegisterAsync(request);
         await Task.CompletedTask;
     }
 }
