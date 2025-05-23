@@ -17,18 +17,19 @@ namespace ReportingPortalServer.Services
     {
         public LoginResponse LoginAsync(string username, string password, ApplicationDbContext context)
         {
-            var user = context.Users.FirstOrDefault(u => u.Email == username && u.Password == password);
-            if (user == null)
+            var user = context.Users.FirstOrDefault(u => u.Email == username);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
             {
                 return new LoginResponse
                 {
+                    StatusCode = System.Net.HttpStatusCode.Unauthorized,
                     Message = "Credenziali non valide."
                 };
             }
 
             var token = GenerateJwtToken(user);
 
-            user.Password = "baldman"; 
+            user.Password = "baldman";
 
             return new LoginResponse
             {
@@ -45,20 +46,25 @@ namespace ReportingPortalServer.Services
             {
                 return new RegisterResponse
                 {
+                    StatusCode = System.Net.HttpStatusCode.Conflict,
                     Message = "Email già in uso."
                 };
             }
+
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
             var user = new User
             {
-
                 Email = request.Email,
-                Password = request.Password,
+                Password = hashedPassword,
                 Name = request.Name,
                 Surname = request.Surname,
-                Role = UserRoleEnum.User
+                Role = 0
             };
+
             context.Users.Add(user);
             context.SaveChanges();
+
             return new RegisterResponse
             {
                 Message = "Registrazione avvenuta con successo."
@@ -67,13 +73,13 @@ namespace ReportingPortalServer.Services
 
         private string GenerateJwtToken(User user)
         {
-            var key = new System.Text.UTF8Encoding().GetBytes("segreta"); 
+            var key = new System.Text.UTF8Encoding().GetBytes("baldman_eroe_notturno_gey_che_combatte_contro_gli_etero"); 
             var claims = new[]
             {
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email),
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Name),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, user.Role.ToString())
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Surname, user.Surname),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email)
             };
 
             var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
