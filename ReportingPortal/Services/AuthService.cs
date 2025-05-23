@@ -11,8 +11,21 @@ namespace ReportingPortal.Services
 
         public async Task<RegisterResponse> RegisterAsync(RegisterRequest registerRequest)
         {
-            RegisterResponse response = (RegisterResponse)await _http.PostAsJsonAsync("api/Auth/register", registerRequest);
-            return response;
+            var response = await _http.PostAsJsonAsync("api/Auth/register", registerRequest);
+            if (response.IsSuccessStatusCode)
+            {
+                var registerResponse = await response.Content.ReadFromJsonAsync<RegisterResponse>();
+                return registerResponse;
+            }
+            else
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<RegisterResponse>();
+                return new RegisterResponse
+                {
+                    Message = errorResponse.Message,
+                    StatusCode = (int)errorResponse.StatusCode
+                };
+            }
         }
 
         public async Task<LoginResponse> LoginAsync(string username, string password)

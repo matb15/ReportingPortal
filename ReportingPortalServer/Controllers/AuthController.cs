@@ -3,7 +3,7 @@ using Models.http;
 using ReportingPortalServer.Services;
 
 namespace ReportingPortalServer.Controllers
-{               
+{
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -23,7 +23,7 @@ namespace ReportingPortalServer.Controllers
         public LoginResponse Login(LoginRequest request)
         {
             _logger.LogInformation("Login request received for user: {Username}", request.Username);
-            LoginResponse resposnse = _authService.LoginAsync(request.Username, request.Password, context); 
+            LoginResponse resposnse = _authService.LoginAsync(request.Username, request.Password, context);
             return resposnse;
         }
 
@@ -32,14 +32,7 @@ namespace ReportingPortalServer.Controllers
         {
             _logger.LogInformation("Register request received for user: {Email}", request.Email);
             var response = _authService.RegisterAsync(request, context);
-            if (response.IsSuccessStatusCode)
-            {
-                return response;
-            }
-            else
-            {
-                return response;
-            }
+            return response;
         }
     }
 }

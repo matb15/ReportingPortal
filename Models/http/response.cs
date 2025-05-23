@@ -13,8 +13,10 @@ namespace Models.http
         public List<T> Items { get; set; } = [];
     }
 
-    public class RegisterResponse : Response
+    public class RegisterResponse
     {
+        public required string Message { get; set; }
+        public int StatusCode { get; set; }
     }
 
     public class LoginResponse 

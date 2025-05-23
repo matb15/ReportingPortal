@@ -49,7 +49,7 @@ namespace ReportingPortalServer.Services
             {
                 return new RegisterResponse
                 {
-                    StatusCode = System.Net.HttpStatusCode.Conflict,
+                    StatusCode = (int)System.Net.HttpStatusCode.Conflict,
                     Message = "Email già in uso."
                 };
             }
@@ -70,6 +70,7 @@ namespace ReportingPortalServer.Services
 
             return new RegisterResponse
             {
+                StatusCode = (int)System.Net.HttpStatusCode.Created,
                 Message = "Registrazione avvenuta con successo."
             };
         }
