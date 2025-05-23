@@ -9,6 +9,9 @@ namespace ReportingPortal.Services
     {
         private readonly HttpClient _http = http;
 
+
+
+
         public async Task<RegisterResponse> RegisterAsync(RegisterRequest registerRequest)
         {
             var response = await _http.PostAsJsonAsync("api/Auth/register", registerRequest);
@@ -28,6 +31,8 @@ namespace ReportingPortal.Services
             }
         }
 
+
+
         public async Task<LoginResponse> LoginAsync(string username, string password)
         {
             var response = await _http.PostAsJsonAsync("api/Auth/login", new { username, password });
@@ -46,5 +51,8 @@ namespace ReportingPortal.Services
                 };
             }
         }
+
+
+
     }
 }

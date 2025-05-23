@@ -11,6 +11,7 @@ namespace ReportingPortalServer.Services
     {
         public LoginResponse LoginAsync(string username, string password, ApplicationDbContext context);
         public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context);
+        public User GetMeAsync(string JWT, ApplicationDbContext context);
     }
 
     public class AuthService : IAuthService
@@ -73,6 +74,29 @@ namespace ReportingPortalServer.Services
                 StatusCode = (int)System.Net.HttpStatusCode.Created,
                 Message = "Registrazione avvenuta con successo."
             };
+        }
+
+
+
+        public User GetMeAsync(string JWT, ApplicationDbContext context)
+        {
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+
+            if (!handler.CanReadToken(JWT))
+                return null;
+
+            var token = handler.ReadJwtToken(JWT);
+
+            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null)
+                return null;
+
+            if (!int.TryParse(userIdClaim.Value, out var userId))
+                return null;
+
+            var user = context.Users.FirstOrDefault(u => u.Id == userId);
+            user.Password = "baldman";
+            return user;
         }
 
 
