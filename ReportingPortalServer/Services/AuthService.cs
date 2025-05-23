@@ -22,7 +22,7 @@ namespace ReportingPortalServer.Services
             {
                 return new LoginResponse
                 {
-                    StatusCode = System.Net.HttpStatusCode.Unauthorized,
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
                     Message = "Credenziali non valide."
                 };
             }
@@ -35,9 +35,12 @@ namespace ReportingPortalServer.Services
             {
                 User = user,
                 Token = token,
-                Message = "Login effettuato con successo."
+                Message = "Login effettuato con successo.",
+                StatusCode = (int)System.Net.HttpStatusCode.OK
             };
         }
+
+
 
         public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context)
         {
@@ -70,6 +73,8 @@ namespace ReportingPortalServer.Services
                 Message = "Registrazione avvenuta con successo."
             };
         }
+
+
 
         private string GenerateJwtToken(User user)
         {

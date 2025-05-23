@@ -17,10 +17,12 @@ namespace Models.http
     {
     }
 
-    public class LoginResponse : Response
+    public class LoginResponse 
     {
         public string Token { get; set; } = default!;
         public User User { get; set; } = default!;
+        public required string Message { get; set; }
+        public int StatusCode { get; set; }
     }
 
     public class ReportsPaginatedResponse : PagedResponse<Report>
