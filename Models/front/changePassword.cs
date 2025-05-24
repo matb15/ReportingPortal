@@ -2,7 +2,7 @@
 
 namespace Models.front
 {
-    public class ChangePasswordModel
+    public class ChangePasswordFormModel
     {
         [Required]
         public string CurrentPassword { get; set; } = string.Empty;

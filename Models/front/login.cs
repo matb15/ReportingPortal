@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Models.front
 {
-    public class LoginModel
+    public class LoginFormModel
     {
         [Required]
         [EmailAddress]

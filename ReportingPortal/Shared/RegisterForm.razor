@@ -55,10 +55,10 @@
 </div>
 
 @code {
-    private RegisterModel registerModel = new();
+    private RegisterFormModel registerModel = new();
 
     [Parameter]
-    public EventCallback<RegisterModel> OnRegister { get; set; }
+    public EventCallback<RegisterFormModel> OnRegister { get; set; }
 
     private async Task OnSubmit()
     {

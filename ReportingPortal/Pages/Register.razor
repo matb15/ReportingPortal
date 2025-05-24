@@ -10,20 +10,39 @@
 </div>
 
 @code {
-    private async Task HandleRegister(RegisterModel model)
+
+    private async Task HandleRegister(RegisterFormModel model)
     {
         Console.WriteLine($"Email: {model.Email}, Password: {model.Password}");
 
         RegisterRequest request = new RegisterRequest
-            {
-                Email = model.Email,
-                Password = model.Password,
-                ConfirmPassword = model.ConfirmPassword,
-                Name = model.Name,
-                Surname = model.Surname,
-            };
+        {
+            Email = model.Email,
+            Password = model.Password,
+            ConfirmPassword = model.ConfirmPassword,
+            Name = model.Name,
+            Surname = model.Surname,
+        };
 
-        var response = authService.RegisterAsync(request);
-        await Task.CompletedTask;
+        try
+        {
+            RegisterResponse response = await authService.RegisterAsync(request);
+
+            if (response.StatusCode >= 200 && response.StatusCode <= 299)
+            {
+                Console.WriteLine("Registration successful!");
+
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                Console.WriteLine($"Registration failed: {response.Message} (Status: {response.StatusCode})");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected error: {ex.Message}");
+        }
     }
+
 }

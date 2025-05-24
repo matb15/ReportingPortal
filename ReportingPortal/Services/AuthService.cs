@@ -1,7 +1,5 @@
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
 using Models.http;
+using System.Net.Http.Json;
 
 namespace ReportingPortal.Services
 {
@@ -9,50 +7,61 @@ namespace ReportingPortal.Services
     {
         private readonly HttpClient _http = http;
 
-
-
-
         public async Task<RegisterResponse> RegisterAsync(RegisterRequest registerRequest)
         {
-            var response = await _http.PostAsJsonAsync("api/Auth/register", registerRequest);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var registerResponse = await response.Content.ReadFromJsonAsync<RegisterResponse>();
-                return registerResponse;
-            }
-            else
-            {
-                var errorResponse = await response.Content.ReadFromJsonAsync<RegisterResponse>();
+                HttpResponseMessage response = await _http.PostAsJsonAsync("api/Auth/register", registerRequest);
+                RegisterResponse? content = await response.Content.ReadFromJsonAsync<RegisterResponse>();
+
+                if (response.IsSuccessStatusCode && content != null)
+                {
+                    return content;
+                }
+
                 return new RegisterResponse
                 {
-                    Message = errorResponse.Message,
-                    StatusCode = (int)errorResponse.StatusCode
+                    Message = content?.Message ?? "An unknown error occurred.",
+                    StatusCode = content?.StatusCode ?? (int)response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                return new RegisterResponse
+                {
+                    Message = $"Request failed: {ex.Message}",
+                    StatusCode = 500
                 };
             }
         }
-
-
 
         public async Task<LoginResponse> LoginAsync(string username, string password)
         {
-            var response = await _http.PostAsJsonAsync("api/Auth/login", new { username, password });
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-                return loginResponse;
-            }
-            else
-            { 
-                var errorResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                HttpResponseMessage response = await _http.PostAsJsonAsync("api/Auth/login", new { username, password });
+                LoginResponse? loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+                if (response.IsSuccessStatusCode && loginResponse != null)
+                {
+                    return loginResponse;
+                }
+
                 return new LoginResponse
                 {
-                    Message = errorResponse.Message,
-                    StatusCode = (int)errorResponse.StatusCode
+                    Message = loginResponse?.Message ?? "Login failed.",
+                    StatusCode = loginResponse?.StatusCode ?? (int)response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                return new LoginResponse
+                {
+                    Message = $"Unexpected error during login: {ex.Message}",
+                    StatusCode = 500
                 };
             }
         }
-
-
 
     }
 }

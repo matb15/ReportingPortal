@@ -39,10 +39,10 @@
 </div>
 
 @code {
-    private LoginModel loginModel = new();
+    private LoginFormModel loginModel = new();
 
     [Parameter]
-    public EventCallback<LoginModel> OnLogin { get; set; }
+    public EventCallback<LoginFormModel> OnLogin { get; set; }
 
     private async Task OnSubmit()
     {

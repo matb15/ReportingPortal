@@ -2,32 +2,43 @@
 
 @using Models.front
 @using Models.http
+@using System.Text.Json
 
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject AuthService authService
+@inject NavigationManager Navigation
 
 <div>
     <LoginForm OnLogin="HandleLogin" />
 </div>
 
 @code {
-    private async Task HandleLogin(LoginModel model)
+
+    private async Task HandleLogin(LoginFormModel model)
     {
         Console.WriteLine($"Email: {model.Email}, Password: {model.Password}");
 
         LoginResponse result = await authService.LoginAsync(model.Email, model.Password);
 
-        if (result != null)
+        if (result != null && (result.StatusCode >= 200 && result.StatusCode <= 299) && !string.IsNullOrEmpty(result.Token))
         {
             await localStorage.SetItemAsync("token", result.Token);
-            await localStorage.SetItemAsync("user", result.User);
+            await localStorage.SetItemAsync("user", JsonSerializer.Serialize(result.User));
             Console.WriteLine("Login successful!");
+
+            if (result.User.Role == UserRoleEnum.Admin)
+            {
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                Navigation.NavigateTo("/home");
+            }
         }
         else
         {
-            Console.WriteLine("Login failed.");
+            Console.WriteLine($"Login failed: {result?.Message ?? "Unknown error"}");
         }
-
-        await Task.CompletedTask;
     }
-} 
+
+}

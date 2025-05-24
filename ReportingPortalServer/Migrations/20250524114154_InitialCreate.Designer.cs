@@ -12,7 +12,7 @@ using ReportingPortalServer.Services;
 namespace ReportingPortalServer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250523141814_InitialCreate")]
+    [Migration("20250524114154_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
