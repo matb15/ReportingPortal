@@ -132,7 +132,7 @@
     private bool IsLastPage => CurrentPage * PageSize >= TotalCount;
     private bool AreAllSelected => Notifications.All(n => SelectedIds.Contains(n.Id)) && Notifications.Count > 0;
 
-    [Inject] private NotificationsService NotificationService { get; set; } = default!;
+    [Inject] private NotificationService NotificationService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

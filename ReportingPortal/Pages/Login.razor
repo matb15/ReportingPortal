@@ -14,6 +14,33 @@
 
 @code {
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            string? token = await localStorage.GetItemAsync<string>("token");
+            if (!string.IsNullOrEmpty(token))
+            {
+                var userJson = await localStorage.GetItemAsync<string>("user");
+                if (!string.IsNullOrEmpty(userJson))
+                {
+                    var user = JsonSerializer.Deserialize<User>(userJson);
+                    if (user != null)
+                    {
+                        if (user.Role == UserRoleEnum.Admin)
+                        {
+                            Navigation.NavigateTo("/dashboard");
+                        }
+                        else
+                        {
+                            Navigation.NavigateTo("/home");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private async Task HandleLogin(LoginFormModel model)
     {
         Console.WriteLine($"Email: {model.Email}, Password: {model.Password}");

@@ -1,9 +1,11 @@
 @page "/register"
 @using Models.front
+@using System.Text.Json
 
 @inject NavigationManager Navigation
 @inject HttpClient HttpClient
 @inject AuthService authService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <div>
     <RegisterForm OnRegister="HandleRegister" />
@@ -11,10 +13,35 @@
 
 @code {
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            string? token = await localStorage.GetItemAsync<string>("token");
+            if (!string.IsNullOrEmpty(token))
+            {
+                var userJson = await localStorage.GetItemAsync<string>("user");
+                if (!string.IsNullOrEmpty(userJson))
+                {
+                    var user = JsonSerializer.Deserialize<User>(userJson);
+                    if (user != null)
+                    {
+                        if (user.Role == UserRoleEnum.Admin)
+                        {
+                            Navigation.NavigateTo("/dashboard");
+                        }
+                        else
+                        {
+                            Navigation.NavigateTo("/home");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private async Task HandleRegister(RegisterFormModel model)
     {
-        Console.WriteLine($"Email: {model.Email}, Password: {model.Password}");
-
         RegisterRequest request = new RegisterRequest
         {
             Email = model.Email,

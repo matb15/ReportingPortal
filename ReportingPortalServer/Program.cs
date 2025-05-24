@@ -35,7 +35,9 @@ namespace ReportingPortalServer
             builder.Services.AddOpenApi();
 
             builder.Services.AddSingleton<IAuthService, AuthService>();
+            builder.Services.AddSingleton<IUserService, UserService>();
             builder.Services.AddSingleton<AuthService>();
+            builder.Services.AddSingleton<UserService>();
 
             var app = builder.Build();
 

@@ -22,12 +22,22 @@ namespace ReportingPortal
 
             builder.Services.AddScoped(sp => new HttpClient
             {
-                BaseAddress = new Uri(apiBase)
+                BaseAddress = new Uri(apiBase),
             });
 
+            builder.Services.AddTransient<AuthHeaderHandler>();
+
+
+            builder.Services.AddHttpClient("AuthorizedClient", client =>
+            {
+                client.BaseAddress = new Uri(apiBase);
+            })
+            .AddHttpMessageHandler<AuthHeaderHandler>();
+
             builder.Services.AddScoped<AuthService>();
-            builder.Services.AddScoped<ReportsService>();
-            builder.Services.AddScoped<NotificationsService>();
+            builder.Services.AddScoped<UserService>();
+            builder.Services.AddScoped<ReportService>();
+            builder.Services.AddScoped<NotificationService>();
 
             builder.Services.AddBlazoredLocalStorage();
 

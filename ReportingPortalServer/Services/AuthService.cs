@@ -1,27 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore.Internal;
-using System;
-using System.Threading.Tasks;
+﻿using Microsoft.IdentityModel.Tokens;
 using Models;
 using Models.http;
-using Models.enums;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ReportingPortalServer.Services
 {
     public interface IAuthService
     {
-        public LoginResponse LoginAsync(string username, string password, ApplicationDbContext context);
+        public LoginResponse LoginAsync(string email, string password, ApplicationDbContext context);
         public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context);
-        public User GetMeAsync(string JWT, ApplicationDbContext context);
-        public User UpdateMeAsync(string JWT, User updatedUser, ApplicationDbContext context);
-        public GenericResponse UpdateMePasswordAsync(string JWT, string oldPassword, string newPassword, ApplicationDbContext context);
-        public GenericResponse DeleteMeAsync(string JWT, ApplicationDbContext context);
     }
 
     public class AuthService : IAuthService
     {
-        public LoginResponse LoginAsync(string username, string password, ApplicationDbContext context)
+        public LoginResponse LoginAsync(string email, string password, ApplicationDbContext context)
         {
-            var user = context.Users.FirstOrDefault(u => u.Email == username);
+            User? user = context.Users.FirstOrDefault(u => u.Email == email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
             {
                 return new LoginResponse
@@ -31,7 +26,7 @@ namespace ReportingPortalServer.Services
                 };
             }
 
-            var token = GenerateJwtToken(user);
+            string token = GenerateJwtToken(user);
 
             user.Password = "baldman";
 
@@ -44,11 +39,9 @@ namespace ReportingPortalServer.Services
             };
         }
 
-
-
         public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context)
         {
-            var existingUser = context.Users.FirstOrDefault(u => u.Email == request.Email);
+            User? existingUser = context.Users.FirstOrDefault(u => u.Email == request.Email);
             if (existingUser != null)
             {
                 return new RegisterResponse
@@ -60,7 +53,7 @@ namespace ReportingPortalServer.Services
 
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            var user = new User
+            User user = new()
             {
                 Email = request.Email,
                 Password = hashedPassword,
@@ -79,144 +72,26 @@ namespace ReportingPortalServer.Services
             };
         }
 
-
-
-        public User GetMeAsync(string JWT, ApplicationDbContext context)
+        private static string GenerateJwtToken(User user)
         {
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            byte[] key = new System.Text.UTF8Encoding().GetBytes("baldman_eroe_notturno_gey_che_combatte_contro_gli_etero");
+            Claim[] claims =
+            [
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Surname, user.Surname),
+                new Claim(ClaimTypes.Email, user.Email)
+            ];
 
-            if (!handler.CanReadToken(JWT))
-                return null;
-
-            var token = handler.ReadJwtToken(JWT);
-
-            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
-            if (userIdClaim == null)
-                return null;
-
-            if (!int.TryParse(userIdClaim.Value, out var userId))
-                return null;
-
-            var user = context.Users.FirstOrDefault(u => u.Id == userId);
-            user.Password = "baldman";
-            return user;
-        }
-
-
-
-        public User UpdateMeAsync(string JWT, User updatedUser, ApplicationDbContext context)
-        {
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            if (!handler.CanReadToken(JWT))
-                throw new ArgumentException("Token JWT non valido.");
-
-            var token = handler.ReadJwtToken(JWT);
-            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                throw new ArgumentException("Impossibile estrarre l'ID utente dal token JWT.");
-
-            if (userId != updatedUser.Id)
-                throw new UnauthorizedAccessException("Non autorizzato ad aggiornare questo utente.");
-
-            var user = context.Users.FirstOrDefault(u => u.Id == updatedUser.Id);
-            if (user == null)
-                throw new InvalidOperationException("Utente non trovato.");
-
-            user.Name = updatedUser.Name;
-            user.Surname = updatedUser.Surname;
-            user.Email = updatedUser.Email;
-            user.Role = updatedUser.Role;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            context.SaveChanges();
-
-            user.Password = "baldman";
-            return user;
-        }
-
-
-
-        public GenericResponse UpdateMePasswordAsync(string JWT, string oldPassword, string newPassword, ApplicationDbContext context)
-        {
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            if (!handler.CanReadToken(JWT))
-                throw new ArgumentException("Token JWT non valido.");
-
-            var token = handler.ReadJwtToken(JWT);
-            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                throw new ArgumentException("Impossibile estrarre l'ID utente dal token JWT.");
-
-            var user = context.Users.FirstOrDefault(u => u.Id == userId);
-            if (user == null)
-                throw new InvalidOperationException("Utente non trovato.");
-
-            if (!BCrypt.Net.BCrypt.Verify(oldPassword, user.Password))
-                throw new UnauthorizedAccessException("La vecchia password non è corretta.");
-
-            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
-            user.UpdatedAt = DateTime.UtcNow;
-            context.SaveChanges();
-
-            user.Password = "baldman";
-            return new GenericResponse 
+            SecurityTokenDescriptor tokenDescriptor = new()
             {
-                StatusCode = (int)System.Net.HttpStatusCode.OK,
-                Message = "Password aggiornata con successo."
-            };
-        }
-
-
-
-        public GenericResponse DeleteMeAsync(string JWT, ApplicationDbContext context)
-        {
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            if (!handler.CanReadToken(JWT))
-                throw new ArgumentException("Token JWT non valido.");
-
-            var token = handler.ReadJwtToken(JWT);
-            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                throw new ArgumentException("Impossibile estrarre l'ID utente dal token JWT.");
-
-            var user = context.Users.FirstOrDefault(u => u.Id == userId);
-            if (user == null)
-                throw new InvalidOperationException("Utente non trovato.");
-
-            context.Users.Remove(user);
-            context.SaveChanges();
-
-            return new GenericResponse
-            {
-                StatusCode = (int)System.Net.HttpStatusCode.OK,
-                Message = "Account eliminato con successo."
-            };
-        }
-
-
-
-        private string GenerateJwtToken(User user)
-        {
-            var key = new System.Text.UTF8Encoding().GetBytes("baldman_eroe_notturno_gey_che_combatte_contro_gli_etero"); 
-            var claims = new[]
-            {
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Name),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Surname, user.Surname),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email)
-            };
-
-            var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
-            {
-                Subject = new System.Security.Claims.ClaimsIdentity(claims),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddHours(2),
-                SigningCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(
-                    new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
-                    Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
+            JwtSecurityTokenHandler tokenHandler = new();
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
     }

@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 
 namespace ReportingPortal.Services
 {
-    public class NotificationsService(HttpClient http)
+    public class NotificationService(HttpClient http)
     {
         private readonly HttpClient _http = http;
 

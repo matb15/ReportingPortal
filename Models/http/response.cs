@@ -1,8 +1,9 @@
 namespace Models.http
 {
-    public class Response : HttpResponseMessage
+    public class Response
     {
-        public required string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public int StatusCode { get; set; }
     }
 
     public class PagedResponse<T> : Response
@@ -13,18 +14,19 @@ namespace Models.http
         public List<T> Items { get; set; } = [];
     }
 
-    public class RegisterResponse
+    public class RegisterResponse : Response
     {
-        public required string Message { get; set; }
-        public int StatusCode { get; set; }
     }
 
-    public class LoginResponse 
+    public class LoginResponse : Response
     {
         public string Token { get; set; } = default!;
         public User User { get; set; } = default!;
-        public required string Message { get; set; }
-        public int StatusCode { get; set; }
+    }
+
+    public class UserResponse : Response
+    {
+        public User User { get; set; } = default!;
     }
 
     public class ReportsPaginatedResponse : PagedResponse<Report>
@@ -39,11 +41,5 @@ namespace Models.http
 
     public class NotificationsPaginatedResponse : PagedResponse<Notification>
     {
-    }
-
-    public class GenericResponse
-    {
-        public required string Message { get; set; }
-        public int StatusCode { get; set; }
     }
 }

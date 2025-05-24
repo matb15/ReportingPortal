@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 
 namespace ReportingPortal.Services
 {
-    public class ReportsService(HttpClient http)
+    public class ReportService(HttpClient http)
     {
         private readonly HttpClient _http = http;
 

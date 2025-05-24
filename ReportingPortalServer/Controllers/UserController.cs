@@ -1,0 +1,89 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Models.front;
+using Models.http;
+using ReportingPortalServer.Services;
+using ReportingPortalServer.Services.Utils;
+
+namespace ReportingPortalServer.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UserController(ILogger<UserController> logger, UserService userService, ApplicationDbContext context) : Controller
+    {
+        private readonly ILogger<UserController> _logger = logger;
+        private readonly UserService _userService = userService;
+        private readonly ApplicationDbContext context = context;
+
+        [HttpGet("me")]
+        public UserResponse GetMe()
+        {
+            _logger.LogInformation("GetMe request received");
+
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            return _userService.GetMeAsync(jwt, context);
+        }
+
+        [HttpPut("me")]
+        public UserResponse UpdateMe(UserPutModel user)
+        {
+            _logger.LogInformation("UpdateMe request received");
+
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            return _userService.UpdateMeAsync(jwt, user, context);
+        }
+
+        [HttpPut("me/password")]
+        public Response UpdateMePassword(ChangePasswordFormModel changePasswordForm)
+        {
+            _logger.LogInformation("UpdateMePassword request received");
+
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            return _userService.UpdateMePasswordAsync(jwt, changePasswordForm.CurrentPassword, changePasswordForm.NewPassword, context);
+        }
+
+        [HttpDelete("me")]
+        public Response DeleteMe()
+        {
+            _logger.LogInformation("DeleteMe request received");
+
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            return _userService.DeleteMeAsync(jwt, context);
+        }
+    }
+}

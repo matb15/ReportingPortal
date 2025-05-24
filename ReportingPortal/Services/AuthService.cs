@@ -35,11 +35,11 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<LoginResponse> LoginAsync(string username, string password)
+        public async Task<LoginResponse> LoginAsync(string email, string password)
         {
             try
             {
-                HttpResponseMessage response = await _http.PostAsJsonAsync("api/Auth/login", new { username, password });
+                HttpResponseMessage response = await _http.PostAsJsonAsync("api/Auth/login", new { email, password });
                 LoginResponse? loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
                 if (response.IsSuccessStatusCode && loginResponse != null)
