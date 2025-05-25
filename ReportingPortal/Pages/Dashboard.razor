@@ -1,4 +1,7 @@
 ﻿@page "/dashboard"
+@attribute [Authorize(Roles = "Admin")]
+
+@using Microsoft.AspNetCore.Authorization
 @using LeafletForBlazor
 
 @inject NavigationManager NavigationManager

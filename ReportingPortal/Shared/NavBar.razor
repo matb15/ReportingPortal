@@ -1,4 +1,8 @@
-﻿<style>
+﻿@using Microsoft.AspNetCore.Components.Authorization;
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthProvider
+<style>
     .text-link {
         color: #66c61c;
         text-decoration: none;
@@ -40,46 +44,64 @@
                              src="/logo.png"
                              alt="Reporting Portal" />
                     </div>
-                    <NavLink href="/home"
-                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                             activeClass="active-text-link">
-                        <i class="fa-solid fa-house"></i>
-                        Home
-                    </NavLink>
-                    <NavLink href="/register"
-                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                             activeClass="active-text-link">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                        Register
-                    </NavLink>
-                    <NavLink href="/login"
-                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                             activeClass="active-text-link">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                        Login
-                    </NavLink>
+                    <AuthorizeView>
+                        <Authorized>
+                            <NavLink href="/home"
+                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                                     activeClass="active-text-link">
+                                <i class="fa-solid fa-house"></i>
+                                Home
+                            </NavLink>
+                        </Authorized>
+                    </AuthorizeView>
+                    <AuthorizeView>
+                        <NotAuthorized>
+                            <NavLink href="/register"
+                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                                     activeClass="active-text-link">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                Register
+                            </NavLink>
+                            <NavLink href="/login"
+                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                                     activeClass="active-text-link">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                Login
+                            </NavLink>
+                        </NotAuthorized>
+                    </AuthorizeView>
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <NavLink href="/notifications"
-                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                             activeClass="active-text-link">
-                        <i class="fa-solid fa-bell"></i>
-                        Notifications
-                    </NavLink>
+                    <AuthorizeView>
+                        <Authorized>
+                            <NavLink href="/notifications"
+                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                                     activeClass="active-text-link">
+                                <i class="fa-solid fa-bell"></i>
+                                Notifications
+                            </NavLink>
+
+                            <NavLink href="/profile"
+                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
+                                     activeClass="active-text-link">
+                                <i class="fa-solid fa-user"></i>
+                                Profile
+                            </NavLink>
+
+                            <button @onclick="LogOut"
+                                    class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                LogOut
+                            </button>
+                        </Authorized>
+                    </AuthorizeView>
 
                     <NavLink href="/"
                              class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
                              activeClass="active-text-link" Match=NavLinkMatch.All>
                         <i class="fa-solid fa-backward"></i>
                         Go Back
-                    </NavLink>
-
-                    <NavLink href="/profile"
-                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                             activeClass="active-text-link">
-                        <i class="fa-solid fa-user"></i>
-                        Profile
                     </NavLink>
                 </div>
             </div>
@@ -118,5 +140,17 @@
     private void ToggleMobileMenu()
     {
         _mobileMenuOpen = !_mobileMenuOpen;
+    }
+
+    private async Task LogOut()
+    {
+        await LocalStorage.RemoveItemAsync("token");
+        await LocalStorage.RemoveItemAsync("user");
+        if (AuthProvider is CustomAuthStateProvider customProvider)
+        {
+            customProvider.NotifyUserLogout();
+        }
+
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 }

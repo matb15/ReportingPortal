@@ -1,6 +1,8 @@
 ﻿@page "/home"
+@attribute [Authorize]
 
 @using LeafletForBlazor
+@using Microsoft.AspNetCore.Authorization
 @using Models.front
 
 @inject NavigationManager Navigation

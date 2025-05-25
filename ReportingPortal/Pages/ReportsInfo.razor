@@ -1,4 +1,8 @@
 ﻿@page "/reports"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+
 @inject ReportService ReportsService
 @inject NavigationManager NavigationManager
 

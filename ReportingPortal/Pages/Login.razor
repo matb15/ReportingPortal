@@ -7,12 +7,15 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject AuthService authService
 @inject NavigationManager Navigation
+@inject CustomAuthStateProvider _authStateProvider
 
 <div>
     <LoginForm OnLogin="HandleLogin" />
 </div>
 
 @code {
+
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -21,10 +24,10 @@
             string? token = await localStorage.GetItemAsync<string>("token");
             if (!string.IsNullOrEmpty(token))
             {
-                var userJson = await localStorage.GetItemAsync<string>("user");
+                string? userJson = await localStorage.GetItemAsync<string>("user");
                 if (!string.IsNullOrEmpty(userJson))
                 {
-                    var user = JsonSerializer.Deserialize<User>(userJson);
+                    User? user = JsonSerializer.Deserialize<User>(userJson);
                     if (user != null)
                     {
                         if (user.Role == UserRoleEnum.Admin)
@@ -51,15 +54,18 @@
         {
             await localStorage.SetItemAsync("token", result.Token);
             await localStorage.SetItemAsync("user", JsonSerializer.Serialize(result.User));
+
+            ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
+
             Console.WriteLine("Login successful!");
 
             if (result.User.Role == UserRoleEnum.Admin)
             {
-                Navigation.NavigateTo("/dashboard");
+                Navigation.NavigateTo("/dashboard", forceLoad: true);
             }
             else
             {
-                Navigation.NavigateTo("/home");
+                Navigation.NavigateTo("/home", forceLoad: true);
             }
         }
         else
@@ -67,5 +73,4 @@
             Console.WriteLine($"Login failed: {result?.Message ?? "Unknown error"}");
         }
     }
-
 }

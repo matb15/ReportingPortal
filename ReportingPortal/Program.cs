@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ReportingPortal.Services;
@@ -38,6 +39,10 @@ namespace ReportingPortal
             builder.Services.AddScoped<UserService>();
             builder.Services.AddScoped<ReportService>();
             builder.Services.AddScoped<NotificationService>();
+
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+            builder.Services.AddScoped<CustomAuthStateProvider>();
 
             builder.Services.AddBlazoredLocalStorage();
 

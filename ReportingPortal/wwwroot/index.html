@@ -15,11 +15,11 @@
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="flex flex-col items-center justify-center h-screen space-y-4 animate-fade-in">
+            <img src="logo.png" alt="Logo" class="w-20 h-20 animate-pulse" />
+            <div class="border-4 border-green-500 border-t-transparent rounded-full w-12 h-12 animate-spin"></div>
+            <p class="text-lg font-medium">Loading, please wait...</p>
+        </div>
     </div>
 
     <div id="blazor-error-ui">

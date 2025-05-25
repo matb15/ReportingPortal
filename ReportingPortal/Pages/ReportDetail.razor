@@ -1,8 +1,11 @@
 ﻿@page "/report/{ReportId:int}"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+@using System.Globalization
+
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-
-@using System.Globalization
 
 <div class="p-6 max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
