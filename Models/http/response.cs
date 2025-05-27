@@ -16,6 +16,7 @@ namespace Models.http
 
     public class RegisterResponse : Response
     {
+        public int UserId { get; set; }
     }
 
     public class LoginResponse : Response
@@ -40,6 +41,20 @@ namespace Models.http
     }
 
     public class NotificationsPaginatedResponse : PagedResponse<Notification>
+    {
+    }
+
+    public class NotificationResponse : Response
+    {
+        public Notification Notification { get; set; } = default!;
+    }
+
+    public class VerificationTokenResponse : Response
+    {
+        public bool IsValid { get; set; } = false;
+    }
+
+    public class VerificationTokenRetryReponse : Response
     {
     }
 }

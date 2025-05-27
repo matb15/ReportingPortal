@@ -19,5 +19,13 @@
         Unread,
         Read
     }
+
+    public enum NotificationChannelEnum
+    {
+        App,
+        Email,
+        Push
+    }
+
 }
 

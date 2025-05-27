@@ -54,7 +54,7 @@ namespace Models.http
         [Required]
         public string Description { get; set; } = default!;
         [Required]
-        public Guid CategoryId { get; set; } = default!;
+        public int CategoryId { get; set; } = default!;
         [Required]
         public string Location { get; set; } = default!;
         public string LocationDetail { get; set; } = default!;
@@ -67,6 +67,16 @@ namespace Models.http
 
     public class NotificationsPaginatedRequest : PagedRequest
     {
-        public Guid? UserId { get; set; }
+        public int UserId { get; set; }
+    }
+
+    public class VerificationTokenRequest : Request
+    {
+        public string Token { get; set; } = default!;
+    }
+
+    public class VerificationTokenRetryRequest : Request
+    {
+        public int UserId { get; set; } = default!;
     }
 }

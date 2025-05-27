@@ -2,7 +2,7 @@
 using Models.front;
 using Models.http;
 using ReportingPortalServer.Services;
-using ReportingPortalServer.Services.Utils;
+using ReportingPortalServer.Services.Helpers;
 
 namespace ReportingPortalServer.Controllers
 {

@@ -21,4 +21,15 @@ namespace Models.front
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
+
+    public class NotificationPutModel
+    {
+        public NotificationStatusEnum Status { get; set; } = NotificationStatusEnum.Unread;
+        public DateTime? ReadAt { get; set; }
+        public DateTime? DismissedAt { get; set; }
+        public bool? EmailSent { get; set; }
+        public DateTime? EmailSentAt { get; set; }
+        public bool? PushSent { get; set; }
+        public DateTime? PushSentAt { get; set; }
+    }
 }

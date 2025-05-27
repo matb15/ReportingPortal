@@ -1,6 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using Models;
 using Models.http;
+using ReportingPortalServer.Services.Helpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -12,8 +13,11 @@ namespace ReportingPortalServer.Services
         public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context);
     }
 
-    public class AuthService : IAuthService
+    public class AuthService(IEmailService emailService, IConfiguration configuration) : IAuthService
     {
+        private readonly IEmailService _emailService = emailService;
+        private readonly IConfiguration _configuration = configuration;
+
         public LoginResponse LoginAsync(string email, string password, ApplicationDbContext context)
         {
             User? user = context.Users.FirstOrDefault(u => u.Email == email);
@@ -22,19 +26,29 @@ namespace ReportingPortalServer.Services
                 return new LoginResponse
                 {
                     StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
-                    Message = "Credenziali non valide."
+                    Message = "Not valid credentials"
+                };
+            }
+
+            user.Password = "baldman";
+
+            if (!user.EmailConfirmed)
+            {
+                return new LoginResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Forbidden,
+                    User = user,
+                    Message = "Email not confirmed."
                 };
             }
 
             string token = GenerateJwtToken(user);
 
-            user.Password = "baldman";
-
             return new LoginResponse
             {
                 User = user,
                 Token = token,
-                Message = "Login effettuato con successo.",
+                Message = "Login successful.",
                 StatusCode = (int)System.Net.HttpStatusCode.OK
             };
         }
@@ -47,7 +61,7 @@ namespace ReportingPortalServer.Services
                 return new RegisterResponse
                 {
                     StatusCode = (int)System.Net.HttpStatusCode.Conflict,
-                    Message = "Email già in uso."
+                    Message = "Email already exists."
                 };
             }
 
@@ -65,10 +79,13 @@ namespace ReportingPortalServer.Services
             context.Users.Add(user);
             context.SaveChanges();
 
+            Utils.GenerateNewVerificationToken(user, context, _configuration, _emailService);
+
             return new RegisterResponse
             {
                 StatusCode = (int)System.Net.HttpStatusCode.Created,
-                Message = "Registrazione avvenuta con successo."
+                Message = "Registration successful. Please check your email to confirm your account.",
+                UserId = user.Id,
             };
         }
 

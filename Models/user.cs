@@ -27,6 +27,8 @@ namespace Models
         [MinLength(2, ErrorMessage = "Surname must be at least 2 characters long.")]
         public string Surname { get; set; } = default!;
 
+        public bool EmailConfirmed { get; set; } = false;
+
         public UserRoleEnum Role { get; set; } = UserRoleEnum.User;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

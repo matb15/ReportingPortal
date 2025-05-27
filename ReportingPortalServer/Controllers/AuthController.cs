@@ -6,10 +6,10 @@ namespace ReportingPortalServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController(ILogger<AuthController> logger, AuthService authService, ApplicationDbContext context) : ControllerBase
+    public class AuthController(ILogger<AuthController> logger, IAuthService authService, ApplicationDbContext context) : ControllerBase
     {
         private readonly ILogger<AuthController> _logger = logger;
-        private readonly AuthService _authService = authService;
+        private readonly IAuthService _authService = authService;
         private readonly ApplicationDbContext context = context;
 
         [HttpPost("login")]

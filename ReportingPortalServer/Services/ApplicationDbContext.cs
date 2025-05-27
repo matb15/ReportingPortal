@@ -3,12 +3,10 @@ using Models;
 
 namespace ReportingPortalServer.Services
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     {
-        public ApplicationDbContext(DbContextOptions options) : base(options)
-        {
-        }
-
         public DbSet<User> Users { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
     }
 }

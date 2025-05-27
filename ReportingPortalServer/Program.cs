@@ -9,8 +9,8 @@ namespace ReportingPortalServer
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            string? origins = "origins";
-            var frontAddress = builder.Configuration["FrontAddress"];
+            string origins = "origins";
+            string? frontAddress = builder.Configuration["FrontAddress"];
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(origins,
@@ -34,10 +34,14 @@ namespace ReportingPortalServer
 
             builder.Services.AddOpenApi();
 
-            builder.Services.AddSingleton<IAuthService, AuthService>();
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+
+            builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddSingleton<IUserService, UserService>();
-            builder.Services.AddSingleton<AuthService>();
-            builder.Services.AddSingleton<UserService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddScoped<ITokenVerificationService, TokenVerificationService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
 
             var app = builder.Build();
 
