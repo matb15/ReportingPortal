@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Models;
 using ReportingPortalServer.Services;
+using ReportingPortalServer.Services.Jobs;
 
 namespace ReportingPortalServer
 {
@@ -36,11 +38,14 @@ namespace ReportingPortalServer
 
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
-            builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddHostedService<JobSchedulerService>();
             builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<ITokenVerificationService, TokenVerificationService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+
+            builder.Services.AddScoped<IScheduledJob, NotificationEmailSender>();
 
 
             var app = builder.Build();

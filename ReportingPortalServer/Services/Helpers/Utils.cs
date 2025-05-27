@@ -111,5 +111,7 @@ namespace ReportingPortalServer.Services.Helpers
 
             emailService.SendEmail(user.Email, "Confirm your email", emailBody);
         }
+
+
     }
 }
