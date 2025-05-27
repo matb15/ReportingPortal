@@ -6,6 +6,7 @@
 @inject EmailVerificationTokenService emailVerificationTokenService
 
 <h3 class="text-2xl font-bold mb-4">Verify Your Token</h3>
+<Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
 
 @if (IsLoading)
 {
@@ -31,7 +32,8 @@ else
 @code {
     private bool? IsValid = null;
     private bool IsLoading = true;
-    private string? Token;
+    private string? Token; 
+    private AlertModel AlertData = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -43,6 +45,15 @@ else
         {
             IsLoading = false;
             IsValid = null;
+
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Information,
+                Message = "No token provided. Please check the URL.",
+                Title = "Token Verification",
+                Position = AlertStylePositionEnum.BottomRight,
+            };
         }
         else
         {
@@ -54,18 +65,32 @@ else
     {
         VerificationTokenResponse? result = await emailVerificationTokenService.VerifyTokenAsync(token);
 
-        Console.WriteLine($"Token verification result: {result?.StatusCode} - {result?.Message}");
-        Console.WriteLine($"IsValid: {result?.IsValid}");
-
         if (result != null && (result.StatusCode >= 200 && result.StatusCode <= 299) && result.IsValid == true)
         {
-            Console.WriteLine("Account confirmed");
+            IsValid = true;
+
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Information,
+                Message = "Account confirmed successfully! You can now log in.",
+                Title = "Success",
+                Position = AlertStylePositionEnum.BottomRight,
+            };
 
             NavigationManager.NavigateTo("/login");
         }
         else
         {
             Console.WriteLine($"Account confirmation failed: {result?.Message ?? "Unknown error"}");
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Message = "Account confirmation failed. Please check your token and try again.",
+                Title = "Error",
+                Position = AlertStylePositionEnum.BottomRight,
+            };
         }
     }
 }

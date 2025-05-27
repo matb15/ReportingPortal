@@ -15,6 +15,7 @@
 </style>
 
 <nav class="bg-[#26272b]">
+    <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
     <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div class="relative flex h-16 items-center justify-between">
             <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -136,6 +137,7 @@
 
 @code {
     private bool _mobileMenuOpen = false;
+    private AlertModel AlertData = new();
 
     private void ToggleMobileMenu()
     {
@@ -150,6 +152,15 @@
         {
             customProvider.NotifyUserLogout();
         }
+
+        AlertData = new AlertModel
+        {
+            IsVisible = true,
+            Style = AlertTypeEnum.Information,
+            Message = "You have been logged out successfully.",
+            Title = "Logged Out",
+            Position = AlertStylePositionEnum.BottomRight,
+        };
 
         Navigation.NavigateTo("/login", forceLoad: true);
     }

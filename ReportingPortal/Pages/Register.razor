@@ -9,38 +9,15 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <div>
+    <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
+
     <RegisterForm OnRegister="HandleRegister" />
-    @if (showEmailConfirmationDiv)
-    {
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-lg shadow-sm mt-4 animate-fade-in">
-            <div class="flex items-start justify-between">
-                <div>
-                    <h3 class="text-lg font-medium">Confirm your email</h3>
-                    <p class="mt-1 text-sm">
-                        Please check your email to confirm your account.
-                        <br />
-                        Didn’t receive it?
-                        <button @onclick="ResendVerificationEmail" class="text-blue-600 hover:underline font-semibold ml-1">
-                            Resend email
-                        </button>
-                    </p>
-                </div>
-                <div class="ml-4 flex-shrink-0">
-                    <svg class="h-6 w-6 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-    }
-
-
 </div>
 
 @code {
-    bool showEmailConfirmationDiv = false;
     int userId = -1;
+
+    private AlertModel AlertData = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -86,18 +63,54 @@
 
             if (response.StatusCode >= 200 && response.StatusCode <= 299)
             {
-                Console.WriteLine("Registration successful!");
+                AlertData = new AlertModel
+                {
+                    IsVisible = true,
+                    Style = AlertTypeEnum.Information,
+                    Message = "Registration successful! Please check your email to confirm your account.",
+                    Title = "Registration Successful",
+                    Position = AlertStylePositionEnum.BottomRight,
+                };
 
-                showEmailConfirmationDiv = true;
+                AlertData = new AlertModel
+                {
+                    IsVisible = true,
+                    Style = AlertTypeEnum.Information,
+                    Message = "Login successful! Please check your email to confirm your account. If you didn’t receive it, click below to resend.",
+                    Title = "Confirm your email",
+                    Position = AlertStylePositionEnum.Center,
+                    HasActions = true,
+                    OkText = "Resend Email",
+                    CancelText = "Close",
+                    OnOk = EventCallback.Factory.Create(this, ResendVerificationEmail),
+                    OnCancel = EventCallback.Factory.Create(this, () => AlertData.IsVisible = false)
+                };
                 userId = response.UserId;
             }
             else
             {
+                AlertData = new AlertModel
+                {
+                    IsVisible = true,
+                    Style = AlertTypeEnum.Danger,
+                    Message = $"Registration failed: {response.Message}",
+                    Title = "Registration Failed",
+                    Position = AlertStylePositionEnum.BottomRight,
+                };
                 Console.WriteLine($"Registration failed: {response.Message} (Status: {response.StatusCode})");
             }
         }
         catch (Exception ex)
         {
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Message = $"An unexpected error occurred: {ex.Message}",
+                Title = "Error",
+                Position = AlertStylePositionEnum.BottomRight,
+            };
+
             Console.WriteLine($"Unexpected error: {ex.Message}");
         }
     }
@@ -109,14 +122,40 @@
             if (userId == -1)
             {
                 Console.WriteLine("User ID is not set. Cannot resend verification email.");
+
+                AlertData = new AlertModel
+                {
+                    IsVisible = true,
+                    Style = AlertTypeEnum.Danger,
+                    Message = "Cannot resend verification email.",
+                    Title = "Problem",
+                    Position = AlertStylePositionEnum.BottomRight,
+                };
+
                 return;
             }
 
             await tokenVerificationService.RetryVerificationAsync(userId);
-            Console.WriteLine("Verification email resent successfully.");
+            
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Information,
+                Message = "Verification email resent successfully!",
+                Title = "Email Resent",
+                Position = AlertStylePositionEnum.BottomRight,
+            };
         }
         catch (Exception ex)
         {
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Message = $"Failed to resend verification email: {ex.Message}",
+                Title = "Error",
+                Position = AlertStylePositionEnum.BottomRight,
+            };
             Console.WriteLine($"Error resending verification email: {ex.Message}");
         }
     }

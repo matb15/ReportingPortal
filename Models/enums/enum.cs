@@ -27,5 +27,19 @@
         Push
     }
 
+    public enum AlertTypeEnum
+    {
+        Information,
+        Warning,
+        Danger,
+        Normal
+    }
+
+    public enum AlertStylePositionEnum
+    {
+        BottomRight,
+        Center,
+    }
+
 }
 

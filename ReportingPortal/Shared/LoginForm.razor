@@ -40,6 +40,7 @@
 
 @code {
     private LoginFormModel loginModel = new();
+    private bool showToast = true;
 
     [Parameter]
     public EventCallback<LoginFormModel> OnLogin { get; set; }
