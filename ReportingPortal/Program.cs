@@ -35,6 +35,7 @@ namespace ReportingPortal
             })
             .AddHttpMessageHandler<AuthHeaderHandler>();
 
+            builder.Services.AddScoped<EmailVerificationTokenService>();
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<UserService>();
             builder.Services.AddScoped<ReportService>();
