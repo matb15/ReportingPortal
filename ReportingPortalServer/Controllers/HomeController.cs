@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ReportingPortalServer.Services.AppwriteIO;
 
 namespace ReportingPortalServer.Controllers
 {
@@ -7,9 +8,25 @@ namespace ReportingPortalServer.Controllers
     public class HomeController : ControllerBase
     {
         [HttpGet]
-        public IActionResult GetStatus()
+        public IActionResult GetStatus(IAppwriteClient appwriteClient)
         {
-            return Ok(new { status = "API is running." });
+            try
+            {
+                var bucketId = appwriteClient.CreateBucketAsync("Files").Result;
+                if (string.IsNullOrEmpty(bucketId))
+                {
+                    return StatusCode(500, new { status = "API is not running properly." });
+                }
+
+                Console.WriteLine($"Bucket created with ID: {bucketId}");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = "API is not running properly.", error = ex.Message });
+            }
+            {
+                return Ok(new { status = "API is running." });
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Models;
 using ReportingPortalServer.Services;
+using ReportingPortalServer.Services.AppwriteIO;
 using ReportingPortalServer.Services.Jobs;
 
 namespace ReportingPortalServer
@@ -37,8 +38,10 @@ namespace ReportingPortalServer
             builder.Services.AddOpenApi();
 
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.Configure<AppwriteSettings>(builder.Configuration.GetSection("AppwriteSettings"));
 
             builder.Services.AddHostedService<JobSchedulerService>();
+            builder.Services.AddSingleton<IAppwriteClient, AppwriteClient>();
             builder.Services.AddSingleton<IUserService, UserService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
