@@ -42,7 +42,7 @@ namespace ReportingPortalServer.Services.AppwriteIO
             _client = new Client()
                 .SetEndpoint(_settings.Endpoint)
                 .SetProject(_settings.ProjectId)
-                .SetKey(_settings.ApiKey)
+                .SetKey(_settings.ApiKey);
 
             _storage = new Storage(_client);
         }
