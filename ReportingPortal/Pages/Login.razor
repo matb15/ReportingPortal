@@ -12,6 +12,7 @@
 
 <div>
     <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
+    <Alert AlertData="@AlertData2" OnDismissed="@(() => AlertData2.IsVisible = false)" />
 
     <LoginForm OnLogin="HandleLogin" />
 </div>
@@ -20,6 +21,7 @@
 
     private int userId = -1;
     private AlertModel AlertData = new();
+    private AlertModel AlertData2 = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -79,7 +81,6 @@
         }
         else
         {
-            Console.WriteLine($"Login failed: {result?.Message ?? "Unknown error"}");
             AlertData = new AlertModel
             {
                 IsVisible = true,
@@ -89,30 +90,23 @@
                 Position = AlertStylePositionEnum.BottomRight,
             };
 
-            if (result?.StatusCode == 403)
+            if (result?.StatusCode == 403 && result.User != null)
             {
-                if (result.User != null)
+                userId = result.User.Id;
+
+                AlertData = new AlertModel
                 {
-                    userId = result.User.Id;
-                    
-                    AlertData = new AlertModel
-                    {
-                        IsVisible = true,
-                        Style = AlertTypeEnum.Information,
-                        Message = "Login successful! Please check your email to confirm your account. If you didn’t receive it, click below to resend.",
-                        Title = "Confirm your email",
-                        Position = AlertStylePositionEnum.Center,
-                        HasActions = true,
-                        OkText = "Resend Email",
-                        CancelText = "Close",
-                        OnOk = EventCallback.Factory.Create(this, ResendVerificationEmail),
-                        OnCancel = EventCallback.Factory.Create(this, () => AlertData.IsVisible = false)
-                    };
-                }
-                else
-                {
-                    Console.WriteLine("User information is not available.");
-                }
+                    IsVisible = true,
+                    Style = AlertTypeEnum.Information,
+                    Message = "Login successful! Please check your email to confirm your account. If you didnâ€™t receive it, click below to resend.",
+                    Title = "Confirm your email",
+                    Position = AlertStylePositionEnum.Center,
+                    HasActions = true,
+                    OkText = "Resend Email",
+                    CancelText = "Close",
+                    OnOk = EventCallback.Factory.Create(this, ResendVerificationEmail),
+                    OnCancel = EventCallback.Factory.Create(this, () => AlertData2.IsVisible = false)
+                };
             }
         }
     }
@@ -123,21 +117,20 @@
         {
             if (userId == -1)
             {
-                Console.WriteLine("User ID is not set. Cannot resend verification email.");
-                AlertData = new AlertModel
+                AlertData2 = new AlertModel
                 {
                     IsVisible = true,
                     Style = AlertTypeEnum.Danger,
                     Message = "Cannot resend verification email.",
-                    Title = "Problem.",
+                    Title = "Problem",
                     Position = AlertStylePositionEnum.BottomRight,
                 };
                 return;
             }
 
             await tokenVerificationService.RetryVerificationAsync(userId);
-            
-            AlertData = new AlertModel
+
+            AlertData2 = new AlertModel
             {
                 IsVisible = true,
                 Style = AlertTypeEnum.Information,
@@ -148,7 +141,7 @@
         }
         catch (Exception ex)
         {
-            AlertData = new AlertModel
+            AlertData2 = new AlertModel
             {
                 IsVisible = true,
                 Style = AlertTypeEnum.Danger,

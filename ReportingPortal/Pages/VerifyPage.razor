@@ -5,34 +5,63 @@
 @inject NavigationManager NavigationManager
 @inject EmailVerificationTokenService emailVerificationTokenService
 
-<h3 class="text-2xl font-bold mb-4">Verify Your Token</h3>
-<Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
+<div class="flex items-center justify-center bg-gray-50 px-4 py-12">
+    <div class="max-w-4xl w-full bg-white rounded-lg shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        <div class="bg-gradient-to-tr from-indigo-600 to-purple-600 p-10 flex flex-col justify-center text-white space-y-6">
+            <h2 class="text-3xl font-extrabold tracking-tight">Verify Your Email</h2>
+            <p class="text-lg opacity-90">
+                Please wait while we verify your token. If there is an issue, we’ll notify you here.
+            </p>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 opacity-40 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 12l-4-4-4 4m0 0l4 4 4-4" />
+            </svg>
+        </div>
 
-@if (IsLoading)
-{
-    <p class="text-gray-500">Verifying your token, please wait...</p>
-}
-else if (IsValid == true)
-{
-    <div class="p-4 mb-4 text-green-700 bg-green-100 rounded">
-        Token verified successfully! 🎉
+        <div class="p-10 flex flex-col justify-center space-y-6">
+            <h3 class="text-2xl font-semibold mb-6 text-gray-900">Verify Your Token</h3>
+
+            <Alert AlertData="@AlertData" OnDismissed="@(() => { AlertData.IsVisible = false; NavigationManager.NavigateTo("/login"); })" />
+
+            @if (IsLoading)
+            {
+                <div class="flex items-center space-x-3 text-blue-600 bg-blue-50 p-4 rounded-md shadow animate-pulse">
+                    <svg class="h-6 w-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                    </svg>
+                    <span class="text-lg font-medium">Verifying your token, please wait...</span>
+                </div>
+            }
+            else if (IsValid == true)
+            {
+                <div class="flex items-center space-x-3 text-green-700 bg-green-100 border border-green-200 p-4 rounded-md shadow animate-fade-in">
+                    <svg class="h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span class="text-lg font-semibold">Token verified successfully! 🎉</span>
+                </div>
+            }
+            else if (IsValid == false)
+            {
+                <div class="flex items-center space-x-3 text-red-700 bg-red-100 border border-red-200 p-4 rounded-md shadow animate-fade-in">
+                    <svg class="h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span class="text-lg font-semibold">Token verification failed. Please check your token and try again.</span>
+                </div>
+            }
+            else
+            {
+                <p class="text-gray-600 text-base">No token provided.</p>
+            }
+        </div>
     </div>
-}
-else if (IsValid == false)
-{
-    <div class="p-4 mb-4 text-red-700 bg-red-100 rounded">
-        Token verification failed. Please check your token and try again.
-    </div>
-}
-else
-{
-    <p class="text-gray-700">No token provided.</p>
-}
+</div>
 
 @code {
     private bool? IsValid = null;
     private bool IsLoading = true;
-    private string? Token; 
+    private string? Token;
     private AlertModel AlertData = new();
 
     protected override async Task OnInitializedAsync()
@@ -77,12 +106,12 @@ else
                 Title = "Success",
                 Position = AlertStylePositionEnum.BottomRight,
             };
-
-            NavigationManager.NavigateTo("/login");
         }
         else
         {
             Console.WriteLine($"Account confirmation failed: {result?.Message ?? "Unknown error"}");
+            IsValid = false;
+
             AlertData = new AlertModel
             {
                 IsVisible = true,
@@ -92,5 +121,8 @@ else
                 Position = AlertStylePositionEnum.BottomRight,
             };
         }
+
+        IsLoading = false;
+        StateHasChanged();
     }
 }

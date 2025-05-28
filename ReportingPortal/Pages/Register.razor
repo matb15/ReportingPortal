@@ -10,6 +10,7 @@
 
 <div>
     <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
+    <Alert AlertData="@AlertData2" OnDismissed="@(() => AlertData2.IsVisible = false)" />
 
     <RegisterForm OnRegister="HandleRegister" />
 </div>
@@ -18,6 +19,7 @@
     int userId = -1;
 
     private AlertModel AlertData = new();
+    private AlertModel AlertData2 = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -72,19 +74,6 @@
                     Position = AlertStylePositionEnum.BottomRight,
                 };
 
-                AlertData = new AlertModel
-                {
-                    IsVisible = true,
-                    Style = AlertTypeEnum.Information,
-                    Message = "Login successful! Please check your email to confirm your account. If you didn’t receive it, click below to resend.",
-                    Title = "Confirm your email",
-                    Position = AlertStylePositionEnum.Center,
-                    HasActions = true,
-                    OkText = "Resend Email",
-                    CancelText = "Close",
-                    OnOk = EventCallback.Factory.Create(this, ResendVerificationEmail),
-                    OnCancel = EventCallback.Factory.Create(this, () => AlertData.IsVisible = false)
-                };
                 userId = response.UserId;
             }
             else
@@ -123,7 +112,7 @@
             {
                 Console.WriteLine("User ID is not set. Cannot resend verification email.");
 
-                AlertData = new AlertModel
+                AlertData2 = new AlertModel
                 {
                     IsVisible = true,
                     Style = AlertTypeEnum.Danger,
@@ -137,7 +126,7 @@
 
             await tokenVerificationService.RetryVerificationAsync(userId);
             
-            AlertData = new AlertModel
+            AlertData2 = new AlertModel
             {
                 IsVisible = true,
                 Style = AlertTypeEnum.Information,
@@ -148,7 +137,7 @@
         }
         catch (Exception ex)
         {
-            AlertData = new AlertModel
+            AlertData2 = new AlertModel
             {
                 IsVisible = true,
                 Style = AlertTypeEnum.Danger,
