@@ -65,6 +65,21 @@ namespace Models.http
 
     }
 
+    public class NotificationConnectRequest : Request
+    {
+        [Required]
+        public string Client { get; set; } = default!;
+
+        [Required]
+        public string Endpoint { get; set; } = default!;
+
+        [Required]
+        public string P256dh { get; set; } = default!;
+
+        [Required]
+        public string Auth { get; set; } = default!;
+    }
+
     public class NotificationsPaginatedRequest : PagedRequest
     {
         public int UserId { get; set; }

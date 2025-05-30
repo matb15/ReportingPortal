@@ -3,6 +3,7 @@ using Models.enums;
 using Models.front;
 using Models.http;
 using System.Net;
+using WebPush;
 
 namespace ReportingPortalServer.Services
 {
@@ -14,8 +15,8 @@ namespace ReportingPortalServer.Services
         NotificationResponse UpdateNotification(int notificationId, NotificationPutModel updatedNotification, ApplicationDbContext context);
         bool MarkAsRead(int notificationId, ApplicationDbContext context);
         bool DeleteNotification(int notificationId, ApplicationDbContext context);
-
         void CreateNotification(int userId, string title, string message, NotificationChannelEnum channel, ApplicationDbContext context);
+        bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration);
     }
 
     public class NotificationService(IEmailService emailService) : INotificationService
@@ -46,25 +47,6 @@ namespace ReportingPortalServer.Services
 
             context.Notifications.Add(notification);
             context.SaveChanges();
-
-            if (channel == NotificationChannelEnum.Email)
-            {
-                try
-                {
-                    _emailService.SendEmail(user.Email, title, message);
-                }
-                catch (Exception ex)
-                {
-                    return new NotificationResponse
-                    {
-                        StatusCode = (int)HttpStatusCode.InternalServerError,
-                        Message = $"Notifica creata, ma invio email fallito: {ex.Message}",
-                        Notification = notification
-                    };
-                }
-            }
-
-            // TODO: invio notifiche via push se richiesto
 
             return new NotificationResponse
             {
@@ -189,5 +171,46 @@ namespace ReportingPortalServer.Services
             context.Notifications.Add(notification);
             context.SaveChanges();
         }
+        public bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration)
+        {
+            User? user = context.Users.Find(userId);
+            if (user == null) return false;
+
+            List<WebPush.PushSubscription> subscriptions = [.. context.PushSubscriptions
+                .Where(s => s.UserId == userId)
+                .Select(s => new WebPush.PushSubscription(s.Endpoint, s.P256dh, s.Auth))];
+
+            string? subject = configuration["VAPID:subject"];
+            string? publicKey = configuration["VAPID:publicKey"];
+            string? privateKey = configuration["VAPID:privateKey"];
+
+            if (string.IsNullOrEmpty(subject) || string.IsNullOrEmpty(publicKey) || string.IsNullOrEmpty(privateKey))
+            {
+                Console.WriteLine("VAPID configuration is missing.");
+                return false;
+            }
+
+            foreach (WebPush.PushSubscription subscription in subscriptions)
+            {
+                VapidDetails vapidDetails = new(subject, publicKey, privateKey);
+                WebPushClient webPushClient = new();
+                try
+                {
+
+                    webPushClient.SendNotification(subscription, message, vapidDetails);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending push notification: {ex.Message}");
+                    if (ex.InnerException != null)
+                        Console.WriteLine("Inner: " + ex.InnerException.Message);
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
+

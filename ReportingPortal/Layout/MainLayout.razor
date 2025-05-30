@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager Navigation
 
+<link rel="manifest" href="/manifest.json">
+
 <div class="flex flex-col min-h-screen">
     @if (!IsHomePage)
     {
@@ -13,6 +15,14 @@
         </article>
     </main>
 </div>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("/ServiceWorker.js");
+        });
+    }
+</script>
 
 @code {
     private bool IsHomePage => Navigation.Uri.EndsWith("/");
