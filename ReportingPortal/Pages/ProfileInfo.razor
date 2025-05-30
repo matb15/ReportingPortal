@@ -1,0 +1,136 @@
+﻿@page "/profile"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+@using Models.front
+@using Models.http
+@using System.Text.Json
+
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject UserService userService
+
+<div class="max-w-4xl mx-auto p-8 bg-gray-50">
+    <h2 class="text-4xl font-extrabold text-gray-900 mb-10 tracking-wide">Profile Settings</h2>
+
+    <div class="bg-white rounded-3xl shadow-lg p-8 mb-10 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-3">Edit Profile</h3>
+
+        <EditForm Model="_user" OnValidSubmit="UpdateProfile" class="space-y-8">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <label class="block mb-2 text-sm font-semibold text-gray-700">Name</label>
+                    <input type="text" @bind="_user.Name"
+                           class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:border-lime-500 transition" />
+                </div>
+                <div>
+                    <label class="block mb-2 text-sm font-semibold text-gray-700">Surname</label>
+                    <input type="text" @bind="_user.Surname"
+                           class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:border-lime-500 transition" />
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block mb-2 text-sm font-semibold text-gray-700">Email</label>
+                    <input type="email" @bind="email" disabled
+                           class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:border-lime-500 transition" />
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-6">
+                <button type="submit"
+                        class="bg-gradient-to-r from-lime-500 to-lime-600 text-white px-8 py-3 rounded-2xl font-semibold shadow-md hover:from-lime-600 hover:to-lime-700 transition">
+                    Save Changes
+                </button>
+
+                <button class="text-lime-600 font-semibold hover:underline" @onclick="() => ChangePasswordVisible = true">
+                    Change Password
+                </button>
+            </div>
+        </EditForm>
+    </div>
+
+    <ChangePasswordModal IsVisible="@ChangePasswordVisible"
+                         IsVisibleChanged="@(visible => this.ChangePasswordVisible = visible)"/>
+
+    <div class="mt-12 text-center text-gray-500 text-sm space-y-1 font-light">
+        <p><strong>Role:</strong> @_user?.Role</p>
+        <p><strong>Created:</strong> @_user?.CreatedAt.ToString("yyyy-MM-dd")</p>
+        <p><strong>Last Updated:</strong> @_user?.UpdatedAt.ToString("yyyy-MM-dd")</p>
+    </div>
+</div>
+
+@code {
+    private UserPutModel _user = new();
+    private string email = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string? userJson = await localStorage.GetItemAsync<string>("user");
+        if (!string.IsNullOrEmpty(userJson))
+        {
+            User? deserializedUser = JsonSerializer.Deserialize<User>(userJson);
+            if (deserializedUser != null)
+            {
+                _user = new UserPutModel
+                {
+                    Name = deserializedUser.Name,
+                    Surname = deserializedUser.Surname,
+                    Role = deserializedUser.Role,
+                    CreatedAt = deserializedUser.CreatedAt,
+                    UpdatedAt = deserializedUser.UpdatedAt
+                };
+                email = deserializedUser.Email;
+            }
+        }
+
+        UserResponse result = await userService.GetMeAsync();
+
+        if (result != null && (result.StatusCode >= 200 && result.StatusCode <= 299) && result.User != null)
+        { 
+            _user = new UserPutModel
+            {
+                Name = result.User.Name,
+                Surname = result.User.Surname,
+                Role = result.User.Role,
+                CreatedAt = result.User.CreatedAt,
+                UpdatedAt = result.User.UpdatedAt
+            };
+            email = result.User.Email;
+
+            await localStorage.SetItemAsync("user", JsonSerializer.Serialize(result.User));
+        }
+        else
+        {
+            Console.WriteLine($"User info fetch failed: {result?.Message ?? "Unknown error"}");
+        }
+    }
+
+    private bool ChangePasswordVisible { get; set; } = false;
+
+    private async void UpdateProfile()
+    {
+        _user.UpdatedAt = DateTime.UtcNow;
+        
+        UserResponse result = await userService.UpdateMeAsync(_user);
+
+        if (result != null && (result.StatusCode >= 200 && result.StatusCode <= 299) && result.User != null)
+        {
+            _user = new UserPutModel
+            {
+                Name = result.User.Name,
+                Surname = result.User.Surname,
+                Role = result.User.Role,
+                CreatedAt = result.User.CreatedAt,
+                UpdatedAt = result.User.UpdatedAt
+            };
+            email = result.User.Email;
+
+            await localStorage.SetItemAsync("user", JsonSerializer.Serialize(result.User));
+        }
+        else
+        {
+            Console.WriteLine($"User update failed: {result?.Message ?? "Unknown error"}");
+        }
+    }
+}

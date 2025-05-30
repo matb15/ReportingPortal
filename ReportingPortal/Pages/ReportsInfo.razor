@@ -1,0 +1,128 @@
+﻿@page "/reports"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+
+@inject ReportService ReportsService
+@inject NavigationManager NavigationManager
+
+<div class="p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-gray-900">All Reports</h2>
+        <div class="flex gap-2 items-center">
+           <InputSearch @bind-SearchText="SearchText" />
+            <button class="px-4 py-2 bg-[#66c61c] hover:bg-green-600 text-white rounded-full shadow">
+                Add report
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white shadow rounded-lg overflow-hidden text-sm">
+            <thead class="bg-gray-100 text-gray-600">
+                <tr>
+                    <th class="text-left px-4 py-3 font-semibold">Type</th>
+                    <th class="text-left px-4 py-3 font-semibold">Location</th>
+                    <th class="text-left px-4 py-3 font-semibold">Reporter</th>
+                    <th class="text-left px-4 py-3 font-semibold">Submitted</th>
+                    <th class="text-left px-4 py-3 font-semibold">Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ReportsResponse?.Items is not null)
+                {
+                    @foreach (Report report in ReportsResponse.Items)
+                    {
+                        <tr class="border-b hover:bg-gray-50 transition">
+                            <td class="px-4 py-3 gap-2">
+                                <i class="@report.Category.IconClass text-gray-500"></i>
+                                <span class="text-gray-900 font-medium">@report.Category.Name</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-700">
+                                @report.Location <br />
+                                <span class="text-gray-500 text-xs">@report.LocationDetail</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-700">@report.User.Email</td>
+                            <td class="px-4 py-3 text-gray-700">
+                                @report.CreatedAt.ToString("d MMM yyyy") <br />
+                                <span class="text-xs text-gray-500">@report.CreatedAt.ToString("h:mm tt")</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="font-semibold text-sm text-@report.Status">@report.Status</span>
+                            </td>
+                            <td class="px-2 py-3 text-right text-gray-400" @onclick="@(_ => GoToReportDetail(report.Id))">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex justify-between items-center text-sm text-gray-600 mt-4 px-2">
+        <button @onclick="PreviousPage" class="p-2 hover:text-[#66c61c]" disabled="@IsFirstPage">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <span>
+            @StartIndex–@EndIndex of @TotalCount
+        </span>
+
+        <button @onclick="NextPage" class="p-2 hover:text-[#66c61c]" disabled="@IsLastPage">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+
+    @if (ReportsResponse?.Items?.Count == 0)
+    {
+        <div class="text-center text-gray-500 py-6">No reports available</div>
+    }
+</div>
+
+@code {
+    int CurrentPage = 1;
+    int PageSize = 10;
+    ReportsPaginatedResponse? ReportsResponse;
+    string SearchText = string.Empty;
+    int TotalCount => ReportsResponse?.TotalCount ?? 0;
+    int StartIndex => (CurrentPage - 1) * PageSize + 1;
+    int EndIndex => Math.Min(CurrentPage * PageSize, TotalCount);
+    bool IsFirstPage => CurrentPage == 1;
+    bool IsLastPage => EndIndex >= TotalCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReports();
+    }
+
+    private async Task LoadReports()
+    {
+        ReportsResponse = await ReportsService.GetPaginatedReportsAsync(CurrentPage, PageSize);
+        StateHasChanged();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+            await LoadReports();
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (!IsLastPage)
+        {
+            CurrentPage++;
+            await LoadReports();
+        }
+    }
+
+    private async void GoToReportDetail(int reportId)
+    {
+        NavigationManager.NavigateTo($"/report/{reportId}");
+    }
+}

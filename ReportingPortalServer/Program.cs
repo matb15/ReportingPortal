@@ -49,6 +49,7 @@ namespace ReportingPortalServer
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddScoped<IScheduledJob, NotificationEmailSender>();
+            builder.Services.AddScoped<IScheduledJob, NotificationPushSender>();
 
 
             var app = builder.Build();

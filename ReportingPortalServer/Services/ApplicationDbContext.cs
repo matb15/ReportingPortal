@@ -8,5 +8,6 @@ namespace ReportingPortalServer.Services
         public DbSet<User> Users { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
+        public DbSet<PushSubscription> PushSubscriptions { get; set; }
     }
 }

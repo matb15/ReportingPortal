@@ -49,6 +49,11 @@ namespace Models.http
         public Notification Notification { get; set; } = default!;
     }
 
+    public class NotificationConnectResponse : Response
+    {
+       
+    }
+
     public class VerificationTokenResponse : Response
     {
         public bool IsValid { get; set; } = false;

@@ -1,0 +1,179 @@
+﻿@page "/report/{ReportId:int}"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+@using System.Globalization
+
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="p-6 max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-800">Dettagli Segnalazione</h2>
+        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full" @onclick="ExportToPdf">
+            <i class="fa-solid fa-file-pdf mr-2"></i> Esporta in PDF
+        </button>
+    </div>
+
+    @if (report is not null)
+    {
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Sinistra: Dettagli + Input -->
+            <div class="col-span-1 md:col-span-1 space-y-6">
+                <div class="bg-white rounded-lg shadow p-4 space-y-3">
+                    <div>
+                        <strong class="text-gray-600">Tipo:</strong> @report.Category.Name
+                    </div>
+                    <div>
+                        <strong class="text-gray-600">Luogo:</strong> @report.Location
+                        <div class="text-sm text-gray-500">@report.LocationDetail</div>
+                    </div>
+                    <div>
+                        <strong class="text-gray-600">Segnalato da:</strong> @report.User.Email
+                    </div>
+                    <div>
+                        <strong class="text-gray-600">Data:</strong> @report.CreatedAt.ToString("d MMM yyyy", CultureInfo.GetCultureInfo("it-IT"))
+                    </div>
+                    <div>
+                        <strong class="text-gray-600">Stato:</strong>
+                        <span class="font-semibold status-@report.Status">@report.Status</span>
+                    </div>
+                </div>
+
+                @if (currentUser.Role == UserRoleEnum.Admin)
+                {
+                    <div class="bg-white p-4 rounded-lg shadow space-y-3">
+                        <h3 class="text-lg font-medium text-gray-800">Aggiungi una risposta</h3>
+
+                        <textarea class="w-full border border-gray-300 rounded-md p-2 text-sm"
+                                  rows="4" @bind="newMessage" placeholder="Scrivi un commento..."></textarea>
+
+                        <div class="flex items-center gap-3">
+                            <select class="border border-gray-300 rounded-md px-2 py-1 text-sm" @bind="selectedStatus">
+                                <option value="">Aggiorna stato (opzionale)</option>
+                                @foreach (var status in Enum.GetValues<ReportStatusEnum>())
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </select>
+
+                            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full text-sm" @onclick="SubmitReply">
+                                Invia risposta
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Destra: Timeline -->
+            <div class="col-span-1 md:col-span-2">
+                <div class="bg-white rounded-lg shadow p-4 h-full max-h-[600px] overflow-y-auto">
+                    <h3 class="text-xl font-medium text-gray-800 mb-4">Timeline aggiornamenti</h3>
+
+                    <ul class="space-y-4">
+                        @foreach (var reply in timeline.OrderByDescending(t => t.SentAt))
+                        {
+                            <li class="bg-gray-50 border-l-4 border-green-500 p-3 rounded">
+                                <div class="text-sm">
+                                    <strong>@(reply?.User?.Role == UserRoleEnum.User ? "Citizen" : "City Council"):</strong> @reply?.Message
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    @reply?.SentAt.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo("it-IT"))
+                                    @if (reply?.NewStatus != null)
+                                    {
+                                        <span class="ml-2 italic">→ Stato aggiornato: <span class="status-@reply.NewStatus">@reply.NewStatus</span></span>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int ReportId { get; set; }
+
+    private Report? report;
+    private List<ReportReply> timeline = new();
+    private string newMessage = "";
+    private ReportStatusEnum? selectedStatus;
+
+    private User currentUser = new User
+        {
+            Id = 1,
+            Email = "admin@example.com",
+            Role = UserRoleEnum.Admin // Cambia a User per testare comportamento citizen
+        };
+
+    protected override async Task OnInitializedAsync()
+    {
+        report = await LoadReportAsync(ReportId);
+        timeline = await LoadTimelineAsync(ReportId);
+    }
+
+    private async Task ExportToPdf()
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "Export in PDF triggered.");
+    }
+
+    private async Task SubmitReply()
+    {
+        if (!string.IsNullOrWhiteSpace(newMessage))
+        {
+            var reply = new ReportReply
+                {
+                    ReportId = ReportId,
+                    UserId = currentUser.Id,
+                    Message = newMessage,
+                    SentAt = DateTime.UtcNow,
+                    NewStatus = selectedStatus ?? ReportStatusEnum.Pending
+                };
+
+            timeline.Insert(0, reply);
+            newMessage = "";
+            selectedStatus = null;
+        }
+    }
+
+    private Task<Report> LoadReportAsync(int id) => Task.FromResult(new Report
+        {
+            Id = id,
+            Category = new Category { Name = "a" },
+            Location = "Via Roma, Milano",
+            LocationDetail = "Vicino all'incrocio con Via Torino",
+            User = new User { Email = "a", Role = UserRoleEnum.Admin },
+            CreatedAt = DateTime.Now.AddDays(-3),
+            Status = ReportStatusEnum.Pending,
+        });
+
+    private Task<List<ReportReply>> LoadTimelineAsync(int id) => Task.FromResult(new List<ReportReply>
+    {
+        new() { Message = "Segnalazione ricevuta", SentAt = DateTime.Now.AddDays(-2), UserId = 0 },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+        new() { Message = "Valutazione in corso", SentAt = DateTime.Now.AddDays(-1), UserId = 1, NewStatus = ReportStatusEnum.Pending },
+    });
+}

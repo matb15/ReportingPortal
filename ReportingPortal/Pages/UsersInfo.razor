@@ -1,0 +1,114 @@
+﻿@page "/users"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+
+<div class="p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-gray-900">All Users</h2>
+        <div class="flex gap-2 items-center">
+            <InputSearch @bind-SearchText="SearchText" />
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white shadow rounded-lg overflow-hidden text-sm">
+            <thead class="bg-gray-100 text-gray-600">
+                <tr>
+                    <th class="text-left px-4 py-3 font-semibold">Name</th>
+                    <th class="text-left px-4 py-3 font-semibold">Email</th>
+                    <th class="text-left px-4 py-3 font-semibold">Role</th>
+                    <th class="text-center px-4 py-3 font-semibold">Reports Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in PagedUsers)
+                {
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 font-medium text-gray-800">@user.Name</td>
+                        <td class="px-4 py-3 text-gray-700">@user.Email</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold text-white bg-@user.Role">
+                                @user.Role
+                            </span>
+                        </td>
+                        <td class="text-center px-4 py-3 text-green-600 font-semibold">@user.ReportCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex justify-between items-center text-sm text-gray-600 mt-4 px-2">
+        <button @onclick="PreviousPage" class="p-2 hover:text-[#66c61c]" disabled="@IsFirstPage">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <span>
+            @StartIndex–@EndIndex of @TotalCount
+        </span>
+
+        <button @onclick="NextPage" class="p-2 hover:text-[#66c61c]" disabled="@IsLastPage">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+
+    @if (AllUsers.Count == 0)
+    {
+        <div class="text-center text-gray-500 py-6">No users available</div>
+    }
+</div>
+
+@code {
+    class User
+    {
+        public string Name { get; set; } = "";
+        public string Email { get; set; } = "";
+        public UserRoleEnum Role { get; set; } = default!;
+        public int ReportCount { get; set; }
+    }
+
+    int CurrentPage = 1;
+    int PageSize = 10;
+
+    int TotalCount => AllUsers.Count;
+    int StartIndex => (CurrentPage - 1) * PageSize + 1;
+    int EndIndex => Math.Min(CurrentPage * PageSize, TotalCount);
+
+    bool IsFirstPage => CurrentPage == 1;
+    bool IsLastPage => EndIndex >= TotalCount;
+
+    List<User> AllUsers = new();
+    List<User> PagedUsers => AllUsers.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+
+    string SearchText = string.Empty;
+
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+            CurrentPage--;
+    }
+
+    private void NextPage()
+    {
+        if (!IsLastPage)
+            CurrentPage++;
+    }
+
+    protected override void OnInitialized()
+    {
+
+        for (int i = 1; i <= 67; i++)
+        {
+            var role = i % 2 == 0 ? UserRoleEnum.Admin : UserRoleEnum.User;
+            AllUsers.Add(new User
+                {
+                    Name = $"User {i}",
+                    Email = $"user{i}@example.com",
+                    Role = role,
+                    ReportCount = Random.Shared.Next(0, 25)
+                });
+        }
+    }
+}
+
