@@ -8,10 +8,10 @@ namespace ReportingPortalServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController(ILogger<UserController> logger, UserService userService, ApplicationDbContext context) : Controller
+    public class UserController(ILogger<UserController> logger, IUserService userService, ApplicationDbContext context) : Controller
     {
         private readonly ILogger<UserController> _logger = logger;
-        private readonly UserService _userService = userService;
+        private readonly IUserService _userService = userService;
         private readonly ApplicationDbContext context = context;
 
         [HttpGet("me")]
