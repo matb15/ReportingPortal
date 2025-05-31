@@ -8,7 +8,7 @@ namespace ReportingPortalServer.Services.Jobs
         private readonly ILogger<NotificationPushSender> _logger = logger;
 
         public string JobName => "PushNotificationSender";
-        public TimeSpan Interval => TimeSpan.FromMinutes(5);
+        public TimeSpan Interval => TimeSpan.FromMinutes(1);
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {

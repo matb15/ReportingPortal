@@ -3,10 +3,16 @@
 
 @using LeafletForBlazor
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Models.front
+@using System.Security.Claims
+@using System.Text.Json
 
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject CustomAuthStateProvider AuthProvider
+@inject NotificationService notificationService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <style>
     .text-link {
@@ -125,6 +131,8 @@
 @code {
     RealTimeMap realTimeMap = new RealTimeMap();
 
+    private static Home? _instance;
+
     private bool showAddReportForm = false;
 
     private void ShowAddReportForm() => showAddReportForm = true;
@@ -173,6 +181,26 @@
     {
         if (firstRender)
         {
+            _instance = this;
+
+            User? user = null;
+
+            string? userJson = await localStorage.GetItemAsync<string>("user");
+            if (!string.IsNullOrEmpty(userJson))
+            {
+                User? deserializedUser = JsonSerializer.Deserialize<User>(userJson);
+                if (deserializedUser != null)
+                {
+
+                    user = deserializedUser;
+                }
+            }
+
+            if (user != null && !string.IsNullOrEmpty(user.Email))
+            {
+                await JSRuntime.InvokeVoidAsync("registerPushNotifications", user.Email);
+            }
+
             if (showDemo)
             {
                 AddDemoReports();
@@ -180,6 +208,15 @@
                 StateHasChanged();
             }
         }
+    }
+
+    [JSInvokable]
+    public static async Task AutoSubscribe(string clientEmail, string endpoint, string p256dh, string auth)
+    {
+        if (_instance is null)
+        throw new InvalidOperationException("Component instance is not initialized.");
+
+        await _instance.notificationService.SubscribeToPushNotificationsAsync(clientEmail, endpoint, p256dh, auth);
     }
 
     private void AddDemoReports()

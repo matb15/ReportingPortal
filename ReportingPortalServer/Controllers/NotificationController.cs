@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Models;
-using Models.front;
 using Models.http;
 using ReportingPortalServer.Services;
-using ReportingPortalServer.Services.Helpers;
 
 namespace ReportingPortalServer.Controllers
 {
@@ -36,23 +34,37 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            PushSubscription subscription = new()
-            {
-                Client = request.Client,
-                Endpoint = request.Endpoint,
-                P256dh = request.P256dh,
-                Auth = request.Auth,
-                UserId = user.Id
-            };
+            PushSubscription? existingSubscription = context.PushSubscriptions
+                .FirstOrDefault(s => s.Client == request.Client && s.Endpoint == request.Endpoint);
 
-            context.PushSubscriptions.Add(subscription);
-            context.SaveChanges();
-
-            return new NotificationConnectResponse
+            if (existingSubscription == null)
             {
-                Message = "Push notification subscription created successfully.",
-                StatusCode = 200,
-            };
+                PushSubscription subscription = new()
+                {
+                    Client = request.Client,
+                    Endpoint = request.Endpoint,
+                    P256dh = request.P256dh,
+                    Auth = request.Auth,
+                    UserId = user.Id
+                };
+
+                context.PushSubscriptions.Add(subscription);
+                context.SaveChanges();
+
+                return new NotificationConnectResponse
+                {
+                    Message = "Push notification subscription created successfully.",
+                    StatusCode = 200,
+                };
+            }
+            else
+            {
+                return new NotificationConnectResponse
+                {
+                    Message = "Subscription already exists.",
+                    StatusCode = 409,
+                };
+            }
         }
     }
 }

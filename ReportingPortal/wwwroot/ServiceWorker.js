@@ -7,7 +7,6 @@ self.addEventListener('activate', event => {
   console.log('Service worker activated.');
 });
 
-
 self.addEventListener('push', function (e) {
     var body;
 
