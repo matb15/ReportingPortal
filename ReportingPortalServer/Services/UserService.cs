@@ -17,6 +17,7 @@ namespace ReportingPortalServer.Services
         public UserResponse GetUserAsync(string JWT, int id, ApplicationDbContext context);
         public UserResponse UpdateUserAsync(string JWT, int id, UserPutModel updatedUser, ApplicationDbContext context);
         public Response DeleteUserAsync(string JWT, int id, ApplicationDbContext context);
+        public PagedResponse<User> GetUserPaginationAsync(string JWT, int page, int pageSize, ApplicationDbContext context);
     }
 
     public class UserService : IUserService
@@ -386,6 +387,62 @@ namespace ReportingPortalServer.Services
             {
                 StatusCode = (int)System.Net.HttpStatusCode.OK,
                 Message = "User deleted successfully."
+            };
+        }
+        public PagedResponse<User> GetUserPaginationAsync(string JWT, int page, int pageSize, ApplicationDbContext context)
+        {
+            JwtSecurityTokenHandler handler = new();
+            if (!handler.CanReadToken(JWT))
+            {
+                return new PagedResponse<User>
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                };
+            }
+            JwtSecurityToken token = handler.ReadJwtToken(JWT);
+            Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return new PagedResponse<User>
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                };
+            }
+            User? currentUser = context.Users.FirstOrDefault(u => u.Id == userId);
+            if (currentUser == null)
+            {
+                return new PagedResponse<User>
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.NotFound,
+                    Message = "Authenticated user not found."
+                };
+            }
+            if (currentUser.Role != UserRoleEnum.Admin)
+            {
+                return new PagedResponse<User>
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Forbidden,
+                    Message = "Solo gli amministratori possono accedere a questa risorsa."
+                };
+            }
+            int totalCount = context.Users.Count();
+            List<User> users = context.Users
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            foreach (var user in users)
+            {
+                user.Password = "baldman";
+            }
+            return new PagedResponse<User>
+            {
+                Items = users,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                StatusCode = (int)System.Net.HttpStatusCode.OK
             };
         }
     }

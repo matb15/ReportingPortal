@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Models;
 using Models.front;
 using Models.http;
 using ReportingPortalServer.Services;
@@ -102,6 +103,23 @@ namespace ReportingPortalServer.Controllers
                 };
             }
             return _userService.GetUserAsync(jwt, userId, context);
+        }
+
+        [HttpGet("getUserPagination")]
+        [Authorize]
+        public PagedResponse<User> GetUserPagination(int page, int pageSize)
+        {
+            _logger.LogInformation($"GetUserPagination request received for page: {page}, pageSize: {pageSize}");
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new PagedResponse<User>
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+            return _userService.GetUserPaginationAsync(jwt, page, pageSize, context);
         }
 
         [HttpPut("updateUser")]
