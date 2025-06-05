@@ -1,7 +1,5 @@
-﻿using Appwrite.Models;
-using Models;
+﻿using Models;
 using Models.enums;
-using Models.front;
 using Models.http;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -17,10 +15,8 @@ namespace ReportingPortalServer.Services
         PagedResponse<Notification> GetNotifications(string jwt, int userId, int page, int pageSize, ApplicationDbContext context);
     }
 
-    public class NotificationService(IEmailService emailService) : INotificationService
+    public class NotificationService() : INotificationService
     {
-        private readonly IEmailService _emailService = emailService;
-
         public bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration)
         {
             Models.User? user = context.Users.Find(userId);
@@ -69,31 +65,33 @@ namespace ReportingPortalServer.Services
             {
                 return new NotificationsPaginatedResponse
                 {
-                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    StatusCode = (int)HttpStatusCode.BadRequest,
                     Message = "JWT not valid."
                 };
             }
+
             JwtSecurityToken token = handler.ReadJwtToken(JWT);
             Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var parsedUserId))
             {
                 return new NotificationsPaginatedResponse
                 {
-                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    StatusCode = (int)HttpStatusCode.BadRequest,
                     Message = "JWT does not contain user ID."
                 };
             }
-            Models.User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
+
+            User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
             if (currentUser == null)
             {
                 return new NotificationsPaginatedResponse
                 {
-                    StatusCode = (int)System.Net.HttpStatusCode.NotFound,
+                    StatusCode = (int)HttpStatusCode.NotFound,
                     Message = "Authenticated user not found."
                 };
             }
 
-            List<Notification> notifications = new List<Notification>();
+            List<Notification> notifications = [];
 
             if (currentUser.Role != UserRoleEnum.Admin)
             {

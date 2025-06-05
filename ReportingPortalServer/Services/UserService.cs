@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Models;
 using Models.enums;
 using Models.front;
 using Models.http;
@@ -17,7 +18,7 @@ namespace ReportingPortalServer.Services
         public UserResponse GetUserAsync(string JWT, int id, ApplicationDbContext context);
         public UserResponse UpdateUserAsync(string JWT, int id, UserPutModel updatedUser, ApplicationDbContext context);
         public Response DeleteUserAsync(string JWT, int id, ApplicationDbContext context);
-        public PagedResponse<User> GetUserPaginationAsync(string JWT, int page, int pageSize, ApplicationDbContext context);
+        public PagedResponse<User> GetUserPaginationAsync(string JWT, UsersPaginatedRequest request, ApplicationDbContext context);
     }
 
     public class UserService : IUserService
@@ -403,7 +404,8 @@ namespace ReportingPortalServer.Services
                 Message = "User deleted successfully."
             };
         }
-        public PagedResponse<User> GetUserPaginationAsync(string JWT, int page, int pageSize, ApplicationDbContext context)
+
+        public PagedResponse<User> GetUserPaginationAsync(string JWT, UsersPaginatedRequest request, ApplicationDbContext context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(JWT))
@@ -436,7 +438,7 @@ namespace ReportingPortalServer.Services
                     Message = "Authenticated user not found."
                 };
             }
-            
+
             if (currentUser.Role != UserRoleEnum.Admin)
             {
                 return new PagedResponse<User>
@@ -446,19 +448,51 @@ namespace ReportingPortalServer.Services
                 };
             }
 
-            int totalCount = context.Users.Count();
-            List<User> users = [.. context.Users
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+            bool asc = request.SortAscending ?? true;
+
+            IQueryable<User> query = context.Users.AsQueryable();
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                query = query.Where(u =>
+                    u.Name.ToLower().Contains(request.Search.ToLower()) ||
+                    u.Surname.ToLower().Contains(request.Search.ToLower()) ||
+                    u.Email.ToLower().Contains(request.Search.ToLower()));
+            }
+
+            if (request.Role.HasValue)
+            {
+                query = query.Where(u => u.Role == request.Role.Value);
+            }
+
+            if (request.EmailConfirmed.HasValue)
+            {
+                query = query.Where(u => u.EmailConfirmed == request.EmailConfirmed.Value);
+            }
+
+            if (!string.IsNullOrEmpty(request.SortField))
+            {
+                if (asc)
+                {
+                    query = query.OrderBy(u => EF.Property<object>(u, request.SortField));
+                }
+                else
+                {
+                    query = query.OrderByDescending(u => EF.Property<object>(u, request.SortField));
+                }
+            }
+
+            List<User> users = [.. query
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .AsEnumerable()
                 .Select(u => { u.Password = "baldman"; return u; })];
 
             return new PagedResponse<User>
             {
                 Items = users,
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = totalCount,
+                Page = request.Page,
+                PageSize = request.PageSize,
+                TotalCount = users.Count,
                 StatusCode = (int)System.Net.HttpStatusCode.OK
             };
         }

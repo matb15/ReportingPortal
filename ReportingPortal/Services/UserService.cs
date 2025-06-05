@@ -8,11 +8,44 @@ namespace ReportingPortal.Services
     {
         private readonly HttpClient _http = factory.CreateClient("AuthorizedClient");
 
-        public async Task<UsersPaginatedResponse> GetAllAsync(PagedRequest request)
+        public async Task<UsersPaginatedResponse> GetAllAsync(UsersPaginatedRequest request)
         {
             try
             {
-                HttpResponseMessage response = await _http.GetAsync($"api/User?page={request.Page}&pageSize={request.PageSize}");
+                List<string> queryParams =
+                [
+                        $"page={request.Page}",
+                        $"pageSize={request.PageSize}"
+                ];
+
+                if (request.Role.HasValue)
+                {
+                    queryParams.Add($"role={request.Role}");
+                }
+
+                if (request.EmailConfirmed.HasValue)
+                {
+                    queryParams.Add($"emailConfirmed={request.EmailConfirmed.Value.ToString().ToLower()}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.Search))
+                {
+                    queryParams.Add($"search={Uri.EscapeDataString(request.Search)}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.SortField))
+                {
+                    queryParams.Add($"sortField={Uri.EscapeDataString(request.SortField)}");
+                }
+
+                if (request.SortAscending.HasValue)
+                {
+                    queryParams.Add($"sortAscending={request.SortAscending.Value.ToString().ToLower()}");
+                }
+
+                string queryString = string.Join("&", queryParams);
+                HttpResponseMessage response = await _http.GetAsync($"api/User?{queryString}");
+
                 UsersPaginatedResponse? content = await response.Content.ReadFromJsonAsync<UsersPaginatedResponse>();
 
                 if (response.IsSuccessStatusCode && content != null)
@@ -144,6 +177,31 @@ namespace ReportingPortal.Services
                 return new Response
                 {
                     Message = content?.Message ?? "Error deleting account",
+                    StatusCode = content?.StatusCode ?? (int)response.StatusCode
+                };
+            }
+            catch (HttpRequestException ex)
+            {
+                return new Response
+                {
+                    Message = $"Request failed: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
+
+        public async Task<Response> DeleteAsync(int userId)
+        {
+            try
+            {
+                HttpResponseMessage response = await _http.DeleteAsync($"api/User/{userId}");
+                Response? content = await response.Content.ReadFromJsonAsync<Response>();
+                if (response.IsSuccessStatusCode && content != null)
+                    return content;
+
+                return new Response
+                {
+                    Message = content?.Message ?? "Error deleting user",
                     StatusCode = content?.StatusCode ?? (int)response.StatusCode
                 };
             }

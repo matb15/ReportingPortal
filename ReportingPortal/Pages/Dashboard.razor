@@ -131,22 +131,39 @@
             }
         </div>
 
-        <!-- Latest Users -->
         <div class="bg-white rounded-lg shadow p-4">
             <h2 class="text-lg font-medium text-gray-800 mb-2">Latest Users</h2>
             @if (users.Count > 0)
             {
                 <table class="w-full text-sm text-gray-700">
-                    @foreach (User user in users)
+                    @foreach (var user in users.Take(5))
                     {
                         <tr class="border-b">
-                            <td class="py-2">@user.Id</td>
-                            <td class="py-2">@user.Email</td>
-                            <td class="py-2">@user.Name</td>
-                            <td class="py-2 text-right">
-                                <button class="text-[#66c61c] hover:underline cursor-pointer">
-                                    <i class="fa-solid fa-right-to-bracket"></i>
-                                </button>
+                            <td class="py-4 align-top">
+                                <div class="text-sm text-gray-800 space-y-1">
+                                    <div class="grid grid-cols-2">
+                                        <div>
+                                            <span class="font-semibold text-gray-900">Name:</span>
+                                            <span class="ml-1 text-gray-600">@user.Name</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="font-semibold text-gray-900">Surname:</span>
+                                            <span class="ml-1 text-gray-600">@user.Surname</span>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2">
+                                        <div>
+                                            <span class="font-semibold text-gray-900">Email:</span>
+                                            <span class="ml-1 text-gray-600">@user.Email</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="font-semibold text-gray-900">Role:</span>
+                                            <span class="ml-1 rounded-full text-xs font-semibold text-white bg-@user.Role">
+                                                @user.Role
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -224,10 +241,10 @@
 
     private async Task FetchUsersAsync()
     {
-        UsersPaginatedResponse response = await UserService.GetAllAsync(new PagedRequest
+        UsersPaginatedResponse response = await UserService.GetAllAsync(new UsersPaginatedRequest
         {
             Page = 1,
-            PageSize = 5
+            PageSize = 5,
         });
         
         users = response.Items ?? new List<User>();
@@ -247,7 +264,7 @@
         // You can filter `reports` list here if it contains real data
     }
 
-    private async void GoToReportDetail(int reportId)
+    private void GoToReportDetail(int reportId)
     {
         NavigationManager.NavigateTo($"/report/{reportId}");
     }

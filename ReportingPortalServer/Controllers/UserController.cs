@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.front;
 using Models.http;
@@ -102,14 +101,14 @@ namespace ReportingPortalServer.Controllers
                 };
             }
             return _userService.GetUserAsync(jwt, userId, context);
-        } 
+        }
 
         [HttpGet]
-        public PagedResponse<User> GetUserPagination(int page, int pageSize)
+        public PagedResponse<User> GetUserPagination([FromQuery] UsersPaginatedRequest request)
         {
-            _logger.LogInformation($"GetUserPagination request received for page: {page}, pageSize: {pageSize}");
+            _logger.LogInformation($"GetUserPagination request received with parameters: Page={request.Page}, PageSize={request.PageSize}, Role={request.Role}, EmailConfirmed={request.EmailConfirmed}, Search={request.Search}");
+
             string? jwt = Utils.GetJwt(HttpContext);
-            Console.WriteLine($"JWT: {jwt}");
             if (string.IsNullOrEmpty(jwt))
             {
                 return new PagedResponse<User>
@@ -118,7 +117,7 @@ namespace ReportingPortalServer.Controllers
                     Message = "Authorization header is missing or invalid."
                 };
             }
-            return _userService.GetUserPaginationAsync(jwt, page, pageSize, context);
+            return _userService.GetUserPaginationAsync(jwt, request, context);
         }
 
         [HttpPut("{userId}")]
@@ -138,7 +137,7 @@ namespace ReportingPortalServer.Controllers
         }
 
         [HttpDelete("{userId}")]
-        public Response DeleteUser(int userId) 
+        public Response DeleteUser(int userId)
         {
             _logger.LogInformation($"DeleteUser request received for user ID: {userId}");
             string? jwt = Utils.GetJwt(HttpContext);
