@@ -15,6 +15,7 @@ namespace ReportingPortalServer.Services
         bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration);
 
         PagedResponse<Notification> GetNotifications(string jwt, int userId, int page, int pageSize, ApplicationDbContext context);
+        NotificationResponse ReadNotification(string jwt, int userId, int notificationId, ApplicationDbContext context);    
     }
 
     public class NotificationService(IEmailService emailService) : INotificationService
@@ -119,6 +120,57 @@ namespace ReportingPortalServer.Services
                 Page = page,
                 PageSize = pageSize,
                 StatusCode = (int)HttpStatusCode.OK
+            };
+        }
+        public NotificationResponse ReadNotification(string jwt, int userId, int notificationId, ApplicationDbContext context)
+        {
+            JwtSecurityTokenHandler handler = new();
+            if (!handler.CanReadToken(jwt))
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                };
+            }
+            JwtSecurityToken token = handler.ReadJwtToken(jwt);
+            Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var parsedUserId))
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                };
+            }
+            Models.User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
+            if (currentUser == null)
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Message = "Authenticated user not found."
+                };
+            }
+            Notification? notification = context.Notifications.FirstOrDefault(n => n.Id == notificationId && n.UserId == userId);
+            if (notification == null)
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Message = "Notification not found."
+                };
+            }
+
+            notification.Status = NotificationStatusEnum.Read;
+            notification.ReadAt = DateTime.UtcNow;
+
+            context.SaveChanges();
+            return new NotificationResponse
+            {
+                Notification = notification,
+                StatusCode = (int)HttpStatusCode.OK,
+                Message = "Notification marked as read."
             };
         }
     }

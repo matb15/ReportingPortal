@@ -76,7 +76,7 @@ namespace ReportingPortalServer.Controllers
             }
         }
 
-        [HttpGet("Pagination")]
+        [HttpGet("paged")]
         public NotificationsPaginatedResponse GetNotifications([FromQuery] NotificationsPaginatedRequest request)
         {
             if (request == null || request.UserId <= 0)
@@ -88,7 +88,7 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            _logger.LogInformation($"GetUserPagination request received for page: {request.Page}, pageSize: {request.PageSize}");
+            _logger.LogInformation($"GetNotificationPagination request received for page: {request.Page}, pageSize: {request.PageSize}");
             string? jwt = Utils.GetJwt(HttpContext);
             if (string.IsNullOrEmpty(jwt))
             {
@@ -108,6 +108,39 @@ namespace ReportingPortalServer.Controllers
                 PageSize = response.PageSize,
                 TotalCount = response.TotalCount,
                 Items = response.Items
+            };
+        }
+
+        [HttpPut("read")]
+        public NotificationResponse MarkNotificationAsRead([FromBody] ReadNotificationRequest request)
+        {
+            if (request == null || request.NotificationId <= 0)
+            {
+                return new NotificationResponse
+                {
+                    Message = "Invalid request data.",
+                    StatusCode = 400,
+                };
+            }
+
+            _logger.LogInformation($"PutRead request received for notification: {request.NotificationId}, userId: {request.UserId}");
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            var response = _notificationService.ReadNotification(jwt, request.UserId, request.NotificationId, _context);
+
+            return new NotificationResponse
+            {
+                Message = "Notification marked as read successfully.",
+                StatusCode = 200,
+                Notification = response.Notification
             };
         }
     }

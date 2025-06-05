@@ -90,6 +90,12 @@ namespace Models.http
         public int UserId { get; set; }
     }
 
+    public class ReadNotificationRequest : Request
+    {
+        public int UserId { get; set; } = default!;
+        public int NotificationId { get; set; } = default!;
+    }
+
     public class VerificationTokenRequest : Request
     {
         public string Token { get; set; } = default!;
