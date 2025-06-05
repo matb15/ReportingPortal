@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Models.front;
 using Models.http;
 using ReportingPortalServer.Services;
@@ -84,6 +85,23 @@ namespace ReportingPortalServer.Controllers
             }
 
             return _userService.DeleteMeAsync(jwt, context);
+        }
+
+        [HttpGet("getUser")]
+        [Authorize]
+        public UserResponse GetUser(int userId)
+        {
+            _logger.LogInformation($"GetUser request received for user ID: {userId}");
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+            return _userService.GetUserAsync(jwt, userId, context);
         }
     }
 }
