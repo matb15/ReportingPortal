@@ -120,5 +120,22 @@ namespace ReportingPortalServer.Controllers
             }
             return _userService.UpdateUserAsync(jwt, userId, user, context);
         }
+
+        [HttpDelete("deleteUser")]
+        [Authorize]
+        public Response DeleteUser(int userId) 
+        {
+            _logger.LogInformation($"DeleteUser request received for user ID: {userId}");
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+            return _userService.DeleteUserAsync(jwt, userId, context);
+        }
     }
 }
