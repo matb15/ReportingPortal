@@ -1,3 +1,4 @@
+using Models.enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace Models.http
@@ -14,6 +15,9 @@ namespace Models.http
 
         [Range(1, 100)]
         public int PageSize { get; set; } = 10;
+        public string? Search { get; set; } = default!;
+        public string? SortField { get; set; } = default!;
+        public bool? SortAscending { get; set; } = null;
     }
 
     public class LoginRequest : Request
@@ -67,7 +71,8 @@ namespace Models.http
 
     public class UsersPaginatedRequest : PagedRequest
     {
-        
+        public UserRoleEnum? Role { get; set; } = default!;
+        public bool? EmailConfirmed { get; set; } = default!;
     }
 
     public class NotificationConnectRequest : Request

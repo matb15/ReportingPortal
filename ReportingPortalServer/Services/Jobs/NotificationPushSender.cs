@@ -18,8 +18,8 @@ namespace ReportingPortalServer.Services.Jobs
             INotificationService notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
             List<Notification> pendingPushNotification = [.. context.Notifications
-                .Where(e => e.Channel == NotificationChannelEnum.Push)
-                .OrderBy(e => e.PushSent == false || e.PushSent == null)
+                .Where(e => e.Channel == NotificationChannelEnum.Push && (e.PushSent == false || e.PushSent == null))
+                .OrderBy(e => e.CreatedAt)
                 .Take(50)];
 
             _logger.LogInformation("Sending {Count} pending push notifications...", pendingPushNotification.Count);
@@ -40,6 +40,8 @@ namespace ReportingPortalServer.Services.Jobs
                     notificationService.SendNotificationPushUser(user.Id, email.Message, context, scope.ServiceProvider.GetRequiredService<IConfiguration>());
                     email.PushSent = true;
                     email.PushSentAt = DateTime.UtcNow;
+
+                    context.Notifications.Update(email);
                 }
                 catch (Exception ex)
                 {
