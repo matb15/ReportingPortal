@@ -266,6 +266,7 @@ namespace ReportingPortalServer.Services
                     Message = "User not found."
                 };
             }
+
             user.Password = "baldman";
             return new UserResponse
             {
@@ -284,8 +285,10 @@ namespace ReportingPortalServer.Services
                     Message = "JWT not valid."
                 };
             }
+
             JwtSecurityToken token = handler.ReadJwtToken(JWT);
             Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
                 return new UserResponse
@@ -294,6 +297,7 @@ namespace ReportingPortalServer.Services
                     Message = "JWT does not contain user ID."
                 };
             }
+
             User? currentUser = context.Users.FirstOrDefault(u => u.Id == userId);
             if (currentUser == null)
             {
@@ -303,6 +307,7 @@ namespace ReportingPortalServer.Services
                     Message = "Authenticated user not found."
                 };
             }
+
             if (currentUser.Role != UserRoleEnum.Admin)
             {
                 return new UserResponse
@@ -327,7 +332,9 @@ namespace ReportingPortalServer.Services
             user.Role = updatedUser.Role;
             user.UpdatedAt = DateTime.UtcNow;
             context.SaveChanges();
+
             user.Password = "baldman";
+
             return new UserResponse
             {
                 User = user,
@@ -345,8 +352,10 @@ namespace ReportingPortalServer.Services
                     Message = "JWT not valid."
                 };
             }
+
             JwtSecurityToken token = handler.ReadJwtToken(JWT);
             Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
                 return new UserResponse
@@ -355,6 +364,7 @@ namespace ReportingPortalServer.Services
                     Message = "JWT does not contain user ID."
                 };
             }
+
             User? currentUser = context.Users.FirstOrDefault(u => u.Id == userId);
             if (currentUser == null)
             {
@@ -364,6 +374,7 @@ namespace ReportingPortalServer.Services
                     Message = "Authenticated user not found."
                 };
             }
+
             if (currentUser.Role != UserRoleEnum.Admin)
             {
                 return new UserResponse
@@ -372,6 +383,7 @@ namespace ReportingPortalServer.Services
                     Message = "Solo gli amministratori possono accedere a questa risorsa."
                 };
             }
+
             User? user = context.Users.FirstOrDefault(u => u.Id == id);
             if (user == null)
             {
@@ -381,8 +393,10 @@ namespace ReportingPortalServer.Services
                     Message = "User not found."
                 };
             }
+
             context.Users.Remove(user);
             context.SaveChanges();
+
             return new Response
             {
                 StatusCode = (int)System.Net.HttpStatusCode.OK,
@@ -400,8 +414,10 @@ namespace ReportingPortalServer.Services
                     Message = "JWT not valid."
                 };
             }
+
             JwtSecurityToken token = handler.ReadJwtToken(JWT);
             Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
                 return new PagedResponse<User>
@@ -410,6 +426,7 @@ namespace ReportingPortalServer.Services
                     Message = "JWT does not contain user ID."
                 };
             }
+
             User? currentUser = context.Users.FirstOrDefault(u => u.Id == userId);
             if (currentUser == null)
             {
@@ -419,6 +436,7 @@ namespace ReportingPortalServer.Services
                     Message = "Authenticated user not found."
                 };
             }
+            
             if (currentUser.Role != UserRoleEnum.Admin)
             {
                 return new PagedResponse<User>
@@ -427,15 +445,14 @@ namespace ReportingPortalServer.Services
                     Message = "Solo gli amministratori possono accedere a questa risorsa."
                 };
             }
+
             int totalCount = context.Users.Count();
-            List<User> users = context.Users
+            List<User> users = [.. context.Users
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToList();
-            foreach (var user in users)
-            {
-                user.Password = "baldman";
-            }
+                .AsEnumerable()
+                .Select(u => { u.Password = "baldman"; return u; })];
+
             return new PagedResponse<User>
             {
                 Items = users,

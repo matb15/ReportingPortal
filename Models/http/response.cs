@@ -35,6 +35,10 @@ namespace Models.http
 
     }
 
+    public class UsersPaginatedResponse : PagedResponse<User>
+    {
+    }
+
     public class ReportResponse : Response
     {
         public Report Report { get; set; } = default!;
