@@ -6,6 +6,7 @@
 
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject UserService UserService
 
 <style>
     .text-link {
@@ -136,10 +137,12 @@
             @if (users.Count > 0)
             {
                 <table class="w-full text-sm text-gray-700">
-                    @foreach (var user in users.Take(5))
+                    @foreach (User user in users)
                     {
                         <tr class="border-b">
-                            <td class="py-2">@("(User name)")</td>
+                            <td class="py-2">@user.Id</td>
+                            <td class="py-2">@user.Email</td>
+                            <td class="py-2">@user.Name</td>
                             <td class="py-2 text-right">
                                 <button class="text-[#66c61c] hover:underline cursor-pointer">
                                     <i class="fa-solid fa-right-to-bracket"></i>
@@ -205,9 +208,9 @@
             if (showDemo)
             {
                 AddDemoReports();
-                AddDemoUsers();
                 StateHasChanged();
             }
+            await FetchUsersAsync();
         }
     }
 
@@ -219,12 +222,16 @@
         }
     }
 
-    private void AddDemoUsers()
+    private async Task FetchUsersAsync()
     {
-        for (int i = 0; i < 5; i++)
+        UsersPaginatedResponse response = await UserService.GetAllAsync(new PagedRequest
         {
-            users.Add(new User{ });
-        }
+            Page = 1,
+            PageSize = 5
+        });
+        
+        users = response.Items ?? new List<User>();
+        StateHasChanged();
     }
 
     private void AddReport()

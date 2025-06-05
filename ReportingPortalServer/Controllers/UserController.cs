@@ -88,8 +88,7 @@ namespace ReportingPortalServer.Controllers
             return _userService.DeleteMeAsync(jwt, context);
         }
 
-        [HttpGet("getUser")]
-        [Authorize]
+        [HttpGet("{userId}")]
         public UserResponse GetUser(int userId)
         {
             _logger.LogInformation($"GetUser request received for user ID: {userId}");
@@ -103,14 +102,14 @@ namespace ReportingPortalServer.Controllers
                 };
             }
             return _userService.GetUserAsync(jwt, userId, context);
-        }
+        } 
 
-        [HttpGet("getUserPagination")]
-        [Authorize]
+        [HttpGet]
         public PagedResponse<User> GetUserPagination(int page, int pageSize)
         {
             _logger.LogInformation($"GetUserPagination request received for page: {page}, pageSize: {pageSize}");
             string? jwt = Utils.GetJwt(HttpContext);
+            Console.WriteLine($"JWT: {jwt}");
             if (string.IsNullOrEmpty(jwt))
             {
                 return new PagedResponse<User>
@@ -122,8 +121,7 @@ namespace ReportingPortalServer.Controllers
             return _userService.GetUserPaginationAsync(jwt, page, pageSize, context);
         }
 
-        [HttpPut("updateUser")]
-        [Authorize]
+        [HttpPut("{userId}")]
         public Response PutUser(int userId, UserPutModel user)
         {
             _logger.LogInformation($"PutUser request received for user ID: {userId}");
@@ -139,8 +137,7 @@ namespace ReportingPortalServer.Controllers
             return _userService.UpdateUserAsync(jwt, userId, user, context);
         }
 
-        [HttpDelete("deleteUser")]
-        [Authorize]
+        [HttpDelete("{userId}")]
         public Response DeleteUser(int userId) 
         {
             _logger.LogInformation($"DeleteUser request received for user ID: {userId}");

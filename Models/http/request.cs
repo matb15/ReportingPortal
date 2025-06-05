@@ -65,6 +65,11 @@ namespace Models.http
 
     }
 
+    public class UsersPaginatedRequest : PagedRequest
+    {
+        
+    }
+
     public class NotificationConnectRequest : Request
     {
         [Required]

@@ -2,12 +2,13 @@
 @attribute [Authorize]
 
 @using Microsoft.AspNetCore.Authorization
+@inject UserService UserService
 
 <div class="p-6">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-semibold text-gray-900">All Users</h2>
         <div class="flex gap-2 items-center">
-            <InputSearch @bind-SearchText="SearchText" />
+            <InputSearch SearchText="@SearchText" SearchTextChanged="OnSearchTextChanged" />
         </div>
     </div>
 
@@ -32,7 +33,7 @@
                                 @user.Role
                             </span>
                         </td>
-                        <td class="text-center px-4 py-3 text-green-600 font-semibold">@user.ReportCount</td>
+                        <td class="text-center px-4 py-3 text-green-600 font-semibold">0</td>
                     </tr>
                 }
             </tbody>
@@ -53,62 +54,69 @@
         </button>
     </div>
 
-    @if (AllUsers.Count == 0)
+    @if (users.Count == 0)
     {
         <div class="text-center text-gray-500 py-6">No users available</div>
     }
 </div>
 
 @code {
-    class User
+    private List<User> users = new();
+    private string SearchText { get; set; } = string.Empty;
+
+    private int Page { get; set; } = 1;
+    private int PageSize { get; set; } = 5;
+    private int TotalCount { get; set; }
+    private int StartIndex => users.Count == 0 ? 0 : ((Page - 1) * PageSize) + 1;
+    private int EndIndex => Math.Min(Page * PageSize, TotalCount);
+
+    private bool IsFirstPage => Page == 1;
+    private bool IsLastPage => Page * PageSize >= TotalCount;
+
+    private IEnumerable<User> PagedUsers => users;
+
+    protected override async Task OnInitializedAsync()
     {
-        public string Name { get; set; } = "";
-        public string Email { get; set; } = "";
-        public UserRoleEnum Role { get; set; } = default!;
-        public int ReportCount { get; set; }
+        await FetchUsersAsync();
     }
 
-    int CurrentPage = 1;
-    int PageSize = 10;
-
-    int TotalCount => AllUsers.Count;
-    int StartIndex => (CurrentPage - 1) * PageSize + 1;
-    int EndIndex => Math.Min(CurrentPage * PageSize, TotalCount);
-
-    bool IsFirstPage => CurrentPage == 1;
-    bool IsLastPage => EndIndex >= TotalCount;
-
-    List<User> AllUsers = new();
-    List<User> PagedUsers => AllUsers.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
-
-    string SearchText = string.Empty;
-
-    private void PreviousPage()
+    private async Task FetchUsersAsync()
     {
-        if (CurrentPage > 1)
-            CurrentPage--;
-    }
-
-    private void NextPage()
-    {
-        if (!IsLastPage)
-            CurrentPage++;
-    }
-
-    protected override void OnInitialized()
-    {
-
-        for (int i = 1; i <= 67; i++)
+        PagedRequest request = new()
         {
-            var role = i % 2 == 0 ? UserRoleEnum.Admin : UserRoleEnum.User;
-            AllUsers.Add(new User
-                {
-                    Name = $"User {i}",
-                    Email = $"user{i}@example.com",
-                    Role = role,
-                    ReportCount = Random.Shared.Next(0, 25)
-                });
+            Page = Page,
+            PageSize = PageSize,
+        };
+
+        UsersPaginatedResponse response = await UserService.GetAllAsync(request);
+
+        users = response.Items ?? new List<User>();
+        TotalCount = response.TotalCount;
+        StateHasChanged();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (Page > 1)
+        {
+            Page--;
+            await FetchUsersAsync();
         }
     }
-}
 
+    private async Task NextPage()
+    {
+        if (!IsLastPage)
+        {
+            Page++;
+            await FetchUsersAsync();
+        }
+    }
+
+    private async Task OnSearchTextChanged(string value)
+    {
+        SearchText = value;
+        Page = 1;
+        await FetchUsersAsync();
+    }
+}
