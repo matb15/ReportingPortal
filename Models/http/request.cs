@@ -110,4 +110,21 @@ namespace Models.http
     {
         public int UserId { get; set; } = default!;
     }
+
+    public class CreateNotificationRequest : Request
+    {
+        [Required]
+        public int UserId { get; set; } = default!;
+
+        [Required]
+        [StringLength(100, ErrorMessage = "Title cannot be longer than 100 characters.")]
+        public string Title { get; set; } = default!;
+
+        [Required]
+        [StringLength(500, ErrorMessage = "Message cannot be longer than 500 characters.")]
+        public string Message { get; set; } = default!;
+
+        public NotificationStatusEnum Status { get; set; } = NotificationStatusEnum.Unread;
+        public NotificationChannelEnum Channel { get; set; } = NotificationChannelEnum.App;
+    }
 }

@@ -1,4 +1,6 @@
-﻿using Models;
+﻿using Appwrite.Models;
+using Microsoft.EntityFrameworkCore;
+using Models;
 using Models.enums;
 using Models.http;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,7 +15,8 @@ namespace ReportingPortalServer.Services
         bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration);
 
         PagedResponse<Notification> GetNotifications(string jwt, int userId, int page, int pageSize, ApplicationDbContext context);
-        NotificationResponse ReadNotification(string jwt, int userId, int notificationId, ApplicationDbContext context);    
+        NotificationResponse ReadNotification(string jwt, int userId, int notificationId, ApplicationDbContext context);
+        NotificationResponse CreateNotification(string jwt, int UserId, string Message, ApplicationDbContext context);
     }
 
     public class NotificationService() : INotificationService
@@ -82,7 +85,7 @@ namespace ReportingPortalServer.Services
                 };
             }
 
-            User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
+            Models.User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
             if (currentUser == null)
             {
                 return new NotificationsPaginatedResponse
@@ -169,6 +172,54 @@ namespace ReportingPortalServer.Services
                 Notification = notification,
                 StatusCode = (int)HttpStatusCode.OK,
                 Message = "Notification marked as read."
+            };
+        }
+        public NotificationResponse CreateNotification(string jwt, int UserId, string Message, ApplicationDbContext context)
+        {
+            JwtSecurityTokenHandler handler = new();
+            if (!handler.CanReadToken(jwt))
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                };
+            }
+            JwtSecurityToken token = handler.ReadJwtToken(jwt);
+            Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var parsedUserId))
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                };
+            }
+            Models.User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
+            if (currentUser == null)
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Message = "Authenticated user not found."
+                };
+            }
+            Notification notification = new()
+            {
+                UserId = UserId,
+                Title = "New Notification",
+                Message = Message,
+                Status = NotificationStatusEnum.Unread,
+                Channel = NotificationChannelEnum.App,
+                CreatedAt = DateTime.UtcNow
+            };
+            context.Notifications.Add(notification);
+            context.SaveChanges();
+            return new NotificationResponse
+            {
+                Notification = notification,
+                StatusCode = (int)HttpStatusCode.Created,
+                Message = "Notification created successfully."
             };
         }
     }
