@@ -173,5 +173,38 @@ namespace ReportingPortalServer.Controllers
                 Notification = response.Notification
             };
         }
+
+        [HttpDelete]
+        public NotificationResponse DeleteNotification([FromQuery] int notificationId)
+        {
+            if (notificationId <= 0)
+            {
+                return new NotificationResponse
+                {
+                    Message = "Invalid request data.",
+                    StatusCode = 400,
+                };
+            }
+
+            _logger.LogInformation($"DeleteNotification request received for notificationId: {notificationId}");
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            var response = _notificationService.DeleteNotification(jwt, notificationId, _context);
+
+            return new NotificationResponse
+            {
+                Message = "Notification deleted successfully.",
+                StatusCode = 200,
+                Notification = response.Notification
+            };
+        }
     }
 }
