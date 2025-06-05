@@ -179,5 +179,35 @@ namespace ReportingPortalServer.Controllers
 
             return response;
         }
+
+        [HttpPut]
+        public NotificationResponse UpdateNotification([FromBody] UpdateNotificationRequest request)
+        {
+            if (request == null || request.NotificationId <= 0 || string.IsNullOrEmpty(request.Message))
+            {
+                return new NotificationResponse
+                {
+                    Message = "Invalid request data.",
+                    StatusCode = 400,
+                };
+            }
+            _logger.LogInformation($"UpdateNotification request received for notificationId: {request.NotificationId}, message: {request.Message}");
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new NotificationResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+            var response = _notificationService.ModNotification(jwt, request.NotificationId, request.Title, request.Message, _context);
+            return new NotificationResponse
+            {
+                Message = "Notification updated successfully.",
+                StatusCode = 200,
+                Notification = response.Notification
+            };
+        }
     }
 }
