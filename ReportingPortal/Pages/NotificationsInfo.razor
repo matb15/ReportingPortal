@@ -143,26 +143,14 @@
 
     private async Task LoadNotifications()
     {
-        var response = await NotificationService.GetPaginatedNotificationsAsync(CurrentPage, PageSize);
+        NotificationsPaginatedResponse response = await NotificationService.GetPaginatedNotificationsAsync(CurrentPage, PageSize);
         if (response == null)
         {
-            Notifications = new List<Notification>
-{
-new Notification { Id = 1, UserId = 1, Title = "Welcome!", Message = "Thanks for signing up!", Status =
-NotificationStatusEnum.Unread, CreatedAt = DateTime.UtcNow.AddMinutes(-30) },
-new Notification { Id = 2, UserId = 1, Title = "Update Available", Message = "A new version is now live.", Status =
-NotificationStatusEnum.Read, CreatedAt = DateTime.UtcNow.AddHours(-1) },
-new Notification { Id = 3, UserId = 1, Title = "Security Alert", Message = "Login from new device detected.", Status =
-NotificationStatusEnum.Unread, CreatedAt = DateTime.UtcNow.AddDays(-1) },
-new Notification { Id = 4, UserId = 1, Title = "Security Alert", Message = "Login from new device detected.", Status =
-NotificationStatusEnum.Unread, CreatedAt = DateTime.UtcNow.AddDays(-1) },
-new Notification { Id = 5, UserId = 1, Title = "Security Alert", Message = "Login from new device detected.", Status =
-NotificationStatusEnum.Unread, CreatedAt = DateTime.UtcNow.AddDays(-1) },
-};
-            TotalCount = Notifications.Count;
+            Notifications.Clear();
+            TotalCount = 0;
             return;
         }
-
+       
         Notifications = response.Items;
         TotalCount = response.TotalCount;
     }

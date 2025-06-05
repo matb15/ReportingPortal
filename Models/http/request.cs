@@ -92,7 +92,6 @@ namespace Models.http
 
     public class NotificationsPaginatedRequest : PagedRequest
     {
-        public int UserId { get; set; }
     }
 
     public class ReadNotificationRequest : Request

@@ -1,6 +1,4 @@
-﻿using Appwrite.Models;
-using Microsoft.EntityFrameworkCore;
-using Models;
+﻿using Models;
 using Models.enums;
 using Models.http;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,8 +12,8 @@ namespace ReportingPortalServer.Services
     {
         bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration);
 
-        PagedResponse<Notification> GetNotifications(string jwt, int userId, int page, int pageSize, ApplicationDbContext context);
-        NotificationResponse ReadNotification(string jwt, int userId, int notificationId, ApplicationDbContext context);
+        NotificationsPaginatedResponse GetNotifications(string jwt, NotificationsPaginatedRequest request, ApplicationDbContext context);
+        NotificationResponse ReadNotification(string jwt, int notificationId, ApplicationDbContext context);
         NotificationResponse CreateNotification(string jwt, int UserId, string Message, ApplicationDbContext context);
         NotificationResponse DeleteNotification(string jwt, int notificationId, ApplicationDbContext context);
     }
@@ -24,7 +22,7 @@ namespace ReportingPortalServer.Services
     {
         public bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration)
         {
-            Models.User? user = context.Users.Find(userId);
+            User? user = context.Users.Find(userId);
             if (user == null) return false;
 
             List<WebPush.PushSubscription> subscriptions = [.. context.PushSubscriptions
@@ -47,7 +45,6 @@ namespace ReportingPortalServer.Services
                 WebPushClient webPushClient = new();
                 try
                 {
-
                     webPushClient.SendNotification(subscription, message, vapidDetails);
                     return true;
                 }
@@ -63,7 +60,7 @@ namespace ReportingPortalServer.Services
             return true;
         }
 
-        public PagedResponse<Notification> GetNotifications(string JWT, int userId, int page, int pageSize, ApplicationDbContext context)
+        public NotificationsPaginatedResponse GetNotifications(string JWT, NotificationsPaginatedRequest request, ApplicationDbContext context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(JWT))
@@ -77,7 +74,7 @@ namespace ReportingPortalServer.Services
 
             JwtSecurityToken token = handler.ReadJwtToken(JWT);
             Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var parsedUserId))
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int parsedUserId))
             {
                 return new NotificationsPaginatedResponse
                 {
@@ -86,7 +83,7 @@ namespace ReportingPortalServer.Services
                 };
             }
 
-            Models.User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
+            User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
             if (currentUser == null)
             {
                 return new NotificationsPaginatedResponse
@@ -101,30 +98,30 @@ namespace ReportingPortalServer.Services
             if (currentUser.Role != UserRoleEnum.Admin)
             {
                 notifications = [.. context.Notifications
-                .Where(n => n.UserId == userId)
+                .Where(n => n.UserId == parsedUserId)
                 .OrderByDescending(n => n.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)];
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)];
             }
             else
             {
                 notifications = [.. context.Notifications
                 .OrderByDescending(n => n.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)];
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)];
             }
 
-            int totalCount = context.Notifications.Count(n => n.UserId == userId);
-            return new PagedResponse<Notification>
+            int totalCount = context.Notifications.Count(n => n.UserId == parsedUserId);
+            return new NotificationsPaginatedResponse
             {
                 Items = notifications,
                 TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize,
+                Page = request.Page,
+                PageSize = request.PageSize,
                 StatusCode = (int)HttpStatusCode.OK
             };
         }
-        public NotificationResponse ReadNotification(string jwt, int userId, int notificationId, ApplicationDbContext context)
+        public NotificationResponse ReadNotification(string jwt, int notificationId, ApplicationDbContext context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -137,7 +134,7 @@ namespace ReportingPortalServer.Services
             }
             JwtSecurityToken token = handler.ReadJwtToken(jwt);
             Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var parsedUserId))
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int parsedUserId))
             {
                 return new NotificationResponse
                 {
@@ -154,7 +151,7 @@ namespace ReportingPortalServer.Services
                     Message = "Authenticated user not found."
                 };
             }
-            Notification? notification = context.Notifications.FirstOrDefault(n => n.Id == notificationId && n.UserId == userId);
+            Notification? notification = context.Notifications.FirstOrDefault(n => n.Id == notificationId && n.UserId == parsedUserId);
             if (notification == null)
             {
                 return new NotificationResponse

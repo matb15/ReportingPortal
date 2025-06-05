@@ -7,18 +7,38 @@ namespace ReportingPortal.Services
     {
         private readonly HttpClient _http = http;
 
-        public async Task<NotificationsPaginatedResponse?> GetPaginatedNotificationsAsync(int page = 1, int pageSize = 5)
+        public async Task<NotificationsPaginatedResponse> GetPaginatedNotificationsAsync(int page = 1, int pageSize = 5)
         {
-            var url = $"api/notifications/paginated?page={page}&pageSize={pageSize}";
+            string url = $"api/Notification?page={page}&pageSize={pageSize}";
             try
             {
-                var response = await _http.GetFromJsonAsync<NotificationsPaginatedResponse>(url);
-                return response;
+                HttpResponseMessage response = await _http.GetAsync(url);
+                NotificationsPaginatedResponse? content = await response.Content.ReadFromJsonAsync<NotificationsPaginatedResponse>();
+                if (content != null && response.IsSuccessStatusCode)
+                {
+                    return content;
+                }
+                else
+                {
+                    return new NotificationsPaginatedResponse
+                    {
+                        Message = content?.Message ?? "Failed to fetch notifications.",
+                        StatusCode = (int)response.StatusCode,
+                        Page = page,
+                        PageSize = pageSize
+                    };
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to fetch notifications: {ex.Message}");
-                return null;
+                return new NotificationsPaginatedResponse
+                {
+                    Message = $"Request failed: {ex.Message}",
+                    StatusCode = 500,
+                    Page = page,
+                    PageSize = pageSize
+                };
             }
         }
 

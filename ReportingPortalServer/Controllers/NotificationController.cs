@@ -8,18 +8,11 @@ namespace ReportingPortalServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class NotificationController : Controller
+    public class NotificationController(ILogger<NotificationController> logger, ApplicationDbContext context, INotificationService notificationService) : Controller
     {
-        private readonly ILogger<NotificationController> _logger;
-        private readonly ApplicationDbContext _context;
-        private readonly INotificationService _notificationService;
-
-        public NotificationController(ILogger<NotificationController> logger, ApplicationDbContext context, INotificationService notificationService)
-        {
-            _logger = logger;
-            _context = context;
-            _notificationService = notificationService;
-        }
+        private readonly ILogger<NotificationController> _logger = logger;
+        private readonly ApplicationDbContext _context = context;
+        private readonly INotificationService _notificationService = notificationService;
 
         [HttpPost("connect-push-notifications")]
         public NotificationConnectResponse ConnectPushNotifications(NotificationConnectRequest request)
@@ -76,10 +69,10 @@ namespace ReportingPortalServer.Controllers
             }
         }
 
-        [HttpGet("paged")]
+        [HttpGet]
         public NotificationsPaginatedResponse GetNotifications([FromQuery] NotificationsPaginatedRequest request)
         {
-            if (request == null || request.UserId <= 0)
+            if (request == null)
             {
                 return new NotificationsPaginatedResponse
                 {
@@ -99,16 +92,8 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            var response = _notificationService.GetNotifications(jwt, request.UserId, request.Page, request.PageSize, _context);
-            return new NotificationsPaginatedResponse
-            {
-                Message = "Notifications retrieved successfully.",
-                StatusCode = 200,
-                Page = response.Page,
-                PageSize = response.PageSize,
-                TotalCount = response.TotalCount,
-                Items = response.Items
-            };
+            NotificationsPaginatedResponse response = _notificationService.GetNotifications(jwt, request, _context);
+            return response;
         }
 
         [HttpPut("read")]
@@ -134,17 +119,12 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            var response = _notificationService.ReadNotification(jwt, request.UserId, request.NotificationId, _context);
+            NotificationResponse response = _notificationService.ReadNotification(jwt, request.NotificationId, _context);
 
-            return new NotificationResponse
-            {
-                Message = "Notification marked as read successfully.",
-                StatusCode = 200,
-                Notification = response.Notification
-            };
+            return response;
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public NotificationResponse CreateNotification([FromBody] CreateNotificationRequest request)
         {
             if (request == null || string.IsNullOrEmpty(request.Message) || request.UserId <= 0)
@@ -155,6 +135,7 @@ namespace ReportingPortalServer.Controllers
                     StatusCode = 400,
                 };
             }
+
             _logger.LogInformation($"CreateNotification request received for userId: {request.UserId}, message: {request.Message}");
             string? jwt = Utils.GetJwt(HttpContext);
             if (string.IsNullOrEmpty(jwt))
@@ -165,13 +146,10 @@ namespace ReportingPortalServer.Controllers
                     Message = "Authorization header is missing or invalid."
                 };
             }
-            var response = _notificationService.CreateNotification(jwt, request.UserId, request.Message, _context);
-            return new NotificationResponse
-            {
-                Message = "Notification created successfully.",
-                StatusCode = 200,
-                Notification = response.Notification
-            };
+
+            NotificationResponse response = _notificationService.CreateNotification(jwt, request.UserId, request.Message, _context);
+
+            return response;
         }
 
         [HttpDelete]
@@ -197,14 +175,9 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            var response = _notificationService.DeleteNotification(jwt, notificationId, _context);
+            NotificationResponse response = _notificationService.DeleteNotification(jwt, notificationId, _context);
 
-            return new NotificationResponse
-            {
-                Message = "Notification deleted successfully.",
-                StatusCode = 200,
-                Notification = response.Notification
-            };
+            return response;
         }
     }
 }
