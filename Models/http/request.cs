@@ -127,4 +127,11 @@ namespace Models.http
         public NotificationStatusEnum Status { get; set; } = NotificationStatusEnum.Unread;
         public NotificationChannelEnum Channel { get; set; } = NotificationChannelEnum.App;
     }
+
+    public class UpdateNotificationRequest : Request
+    {
+        public int NotificationId { get; set; } = default!;
+        public string Title { get; set; } = default!;
+        public string Message { get; set; } = default!;
+    }
 }
