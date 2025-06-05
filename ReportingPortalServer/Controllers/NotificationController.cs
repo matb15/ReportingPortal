@@ -201,7 +201,7 @@ namespace ReportingPortalServer.Controllers
                     Message = "Authorization header is missing or invalid."
                 };
             }
-            var response = _notificationService.ModNotification(jwt, request.NotificationId, request.Title, request.Message, _context);
+            var response = _notificationService.UpdateNotification(jwt, request.NotificationId, request.Title, request.Message, _context);
             return new NotificationResponse
             {
                 Message = "Notification updated successfully.",
