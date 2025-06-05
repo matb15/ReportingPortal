@@ -14,6 +14,7 @@ namespace ReportingPortalServer.Services
         public Response UpdateMePasswordAsync(string JWT, string oldPassword, string newPassword, ApplicationDbContext context);
         public Response DeleteMeAsync(string JWT, ApplicationDbContext context);
         public UserResponse GetUserAsync(string JWT, int id, ApplicationDbContext context);
+        public UserResponse UpdateUserAsync(string JWT, int id, UserPutModel updatedUser, ApplicationDbContext context);
     }
 
     public class UserService : IUserService
@@ -252,16 +253,8 @@ namespace ReportingPortalServer.Services
                 };
             }
 
-            if (!int.TryParse(id, out var targetUserId))
-            {
-                return new UserResponse
-                {
-                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
-                    Message = "User ID non valido."
-                };
-            }
+            User? user = context.Users.FirstOrDefault(u => u.Id == id);
 
-            User? user = context.Users.FirstOrDefault(u => u.Id == targetUserId);
             if (user == null)
             {
                 return new UserResponse
@@ -270,6 +263,67 @@ namespace ReportingPortalServer.Services
                     Message = "User not found."
                 };
             }
+            user.Password = "baldman";
+            return new UserResponse
+            {
+                User = user,
+                StatusCode = (int)System.Net.HttpStatusCode.OK,
+            };
+        }
+        public UserResponse UpdateUserAsync(string JWT, int id, UserPutModel updatedUser, ApplicationDbContext context)
+        {
+            JwtSecurityTokenHandler handler = new();
+            if (!handler.CanReadToken(JWT))
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                };
+            }
+            JwtSecurityToken token = handler.ReadJwtToken(JWT);
+            Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                };
+            }
+            User? currentUser = context.Users.FirstOrDefault(u => u.Id == userId);
+            if (currentUser == null)
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.NotFound,
+                    Message = "Authenticated user not found."
+                };
+            }
+            if (currentUser.Role != UserRoleEnum.Admin)
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Forbidden,
+                    Message = "Solo gli amministratori possono accedere a questa risorsa."
+                };
+            }
+
+            User? user = context.Users.FirstOrDefault(u => u.Id == id);
+
+            if (user == null)
+            {
+                return new UserResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.NotFound,
+                    Message = "User not found."
+                };
+            }
+            user.Name = updatedUser.Name;
+            user.Surname = updatedUser.Surname;
+            user.Role = updatedUser.Role;
+            user.UpdatedAt = DateTime.UtcNow;
+            context.SaveChanges();
             user.Password = "baldman";
             return new UserResponse
             {
