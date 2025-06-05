@@ -2,15 +2,24 @@ using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.http;
 using ReportingPortalServer.Services;
+using ReportingPortalServer.Services.Helpers;
 
 namespace ReportingPortalServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class NotificationController(ILogger<NotificationController> logger, ApplicationDbContext context) : Controller
+    public class NotificationController : Controller
     {
-        private readonly ILogger<NotificationController> _logger = logger;
-        private readonly ApplicationDbContext context = context;
+        private readonly ILogger<NotificationController> _logger;
+        private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
+
+        public NotificationController(ILogger<NotificationController> logger, ApplicationDbContext context, INotificationService notificationService)
+        {
+            _logger = logger;
+            _context = context;
+            _notificationService = notificationService;
+        }
 
         [HttpPost("connect-push-notifications")]
         public NotificationConnectResponse ConnectPushNotifications(NotificationConnectRequest request)
@@ -24,7 +33,7 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            User? user = context.Users.FirstOrDefault(u => u.Email == request.Client);
+            User? user = _context.Users.FirstOrDefault(u => u.Email == request.Client);
             if (user == null)
             {
                 return new NotificationConnectResponse
@@ -34,7 +43,7 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            PushSubscription? existingSubscription = context.PushSubscriptions
+            PushSubscription? existingSubscription = _context.PushSubscriptions
                 .FirstOrDefault(s => s.Client == request.Client && s.Endpoint == request.Endpoint);
 
             if (existingSubscription == null)
@@ -48,8 +57,8 @@ namespace ReportingPortalServer.Controllers
                     UserId = user.Id
                 };
 
-                context.PushSubscriptions.Add(subscription);
-                context.SaveChanges();
+                _context.PushSubscriptions.Add(subscription);
+                _context.SaveChanges();
 
                 return new NotificationConnectResponse
                 {
@@ -65,6 +74,41 @@ namespace ReportingPortalServer.Controllers
                     StatusCode = 409,
                 };
             }
+        }
+
+        [HttpGet("Pagination")]
+        public NotificationsPaginatedResponse GetNotifications([FromQuery] NotificationsPaginatedRequest request)
+        {
+            if (request == null || request.UserId <= 0)
+            {
+                return new NotificationsPaginatedResponse
+                {
+                    Message = "Invalid request data.",
+                    StatusCode = 400,
+                };
+            }
+
+            _logger.LogInformation($"GetUserPagination request received for page: {request.Page}, pageSize: {request.PageSize}");
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new NotificationsPaginatedResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            var response = _notificationService.GetNotifications(jwt, request.UserId, request.Page, request.PageSize, _context);
+            return new NotificationsPaginatedResponse
+            {
+                Message = "Notifications retrieved successfully.",
+                StatusCode = 200,
+                Page = response.Page,
+                PageSize = response.PageSize,
+                TotalCount = response.TotalCount,
+                Items = response.Items
+            };
         }
     }
 }

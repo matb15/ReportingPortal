@@ -1,179 +1,29 @@
-﻿using Models;
+﻿using Appwrite.Models;
+using Models;
 using Models.enums;
 using Models.front;
 using Models.http;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Security.Claims;
 using WebPush;
 
 namespace ReportingPortalServer.Services
 {
     public interface INotificationService
     {
-        NotificationResponse SendNotification(int userId, string title, string message, NotificationChannelEnum channel, ApplicationDbContext context);
-        NotificationsPaginatedResponse GetUserNotifications(int userId, ApplicationDbContext context, int page = 1, int pageSize = 10);
-        NotificationResponse GetNotification(int userId, int notificationId, ApplicationDbContext context);
-        NotificationResponse UpdateNotification(int notificationId, NotificationPutModel updatedNotification, ApplicationDbContext context);
-        bool MarkAsRead(int notificationId, ApplicationDbContext context);
-        bool DeleteNotification(int notificationId, ApplicationDbContext context);
-        void CreateNotification(int userId, string title, string message, NotificationChannelEnum channel, ApplicationDbContext context);
         bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration);
+
+        PagedResponse<Notification> GetNotifications(string jwt, int userId, int page, int pageSize, ApplicationDbContext context);
     }
 
     public class NotificationService(IEmailService emailService) : INotificationService
     {
         private readonly IEmailService _emailService = emailService;
 
-        public NotificationResponse SendNotification(int userId, string title, string message, NotificationChannelEnum channel, ApplicationDbContext context)
-        {
-            User? user = context.Users.Find(userId);
-            if (user == null)
-            {
-                return new NotificationResponse
-                {
-                    StatusCode = (int)HttpStatusCode.NotFound,
-                    Message = "Utente non trovato."
-                };
-            }
-
-            Notification notification = new()
-            {
-                UserId = userId,
-                Title = title,
-                Message = message,
-                Status = NotificationStatusEnum.Unread,
-                Channel = channel,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            context.Notifications.Add(notification);
-            context.SaveChanges();
-
-            return new NotificationResponse
-            {
-                StatusCode = (int)HttpStatusCode.Created,
-                Message = "Notification created successfully",
-                Notification = notification
-            };
-        }
-
-        public NotificationsPaginatedResponse GetUserNotifications(int userId, ApplicationDbContext context, int page = 1, int pageSize = 10)
-        {
-            if (page <= 0) page = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            IQueryable<Notification> query = context.Notifications
-                .Where(n => n.UserId == userId && n.Channel == NotificationChannelEnum.App)
-                .OrderByDescending(n => n.CreatedAt);
-
-            int totalNotifications = query.Count();
-
-            List<Notification> notifications = [.. query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)];
-
-            return new NotificationsPaginatedResponse
-            {
-                StatusCode = (int)HttpStatusCode.OK,
-                Message = "Notifications retrieved successfully",
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = totalNotifications,
-                Items = notifications
-            };
-        }
-
-        public NotificationResponse GetNotification(int userId, int notificationId, ApplicationDbContext context)
-        {
-            Notification? notification = context.Notifications
-                .Where(n => n.UserId == userId && n.Id == notificationId)
-                .FirstOrDefault();
-
-            if (notification == null)
-            {
-                return new NotificationResponse
-                {
-                    StatusCode = (int)HttpStatusCode.NotFound,
-                    Message = "Notification not found."
-                };
-            }
-
-            return new NotificationResponse
-            {
-                StatusCode = (int)HttpStatusCode.OK,
-                Message = "Notification retrieved successfully",
-                Notification = notification
-            };
-        }
-
-        public NotificationResponse UpdateNotification(int notificationId, NotificationPutModel updatedNotification, ApplicationDbContext context)
-        {
-            Notification? notification = context.Notifications.Find(notificationId);
-            if (notification == null)
-            {
-                return new NotificationResponse
-                {
-                    StatusCode = (int)HttpStatusCode.NotFound,
-                    Message = "Notification not found."
-                };
-            }
-
-            notification.Status = updatedNotification.Status;
-            notification.ReadAt = updatedNotification.ReadAt;
-            notification.DismissedAt = updatedNotification.DismissedAt;
-            notification.EmailSent = updatedNotification.EmailSent;
-            notification.EmailSentAt = updatedNotification.EmailSentAt;
-            notification.PushSent = updatedNotification.PushSent;
-            notification.PushSentAt = updatedNotification.PushSentAt;
-
-            context.SaveChanges();
-
-            return new NotificationResponse
-            {
-                StatusCode = (int)HttpStatusCode.OK,
-                Message = "Notification updated successfully",
-                Notification = notification
-            };
-        }
-
-        public bool MarkAsRead(int notificationId, ApplicationDbContext context)
-        {
-            Notification? notification = context.Notifications.Find(notificationId);
-            if (notification == null) return false;
-
-            notification.Status = NotificationStatusEnum.Read;
-            notification.ReadAt = DateTime.UtcNow;
-            context.SaveChanges();
-            return true;
-        }
-
-        public bool DeleteNotification(int notificationId, ApplicationDbContext context)
-        {
-            Notification? notification = context.Notifications.Find(notificationId);
-            if (notification == null) return false;
-
-            context.Notifications.Remove(notification);
-            context.SaveChanges();
-            return true;
-        }
-
-        public void CreateNotification(int userId, string title, string message, NotificationChannelEnum channel, ApplicationDbContext context)
-        {
-            Notification notification = new()
-            {
-                UserId = userId,
-                Title = title,
-                Message = message,
-                Channel = channel,
-                Status = NotificationStatusEnum.Unread,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            context.Notifications.Add(notification);
-            context.SaveChanges();
-        }
         public bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration)
         {
-            User? user = context.Users.Find(userId);
+            Models.User? user = context.Users.Find(userId);
             if (user == null) return false;
 
             List<WebPush.PushSubscription> subscriptions = [.. context.PushSubscriptions
@@ -210,6 +60,66 @@ namespace ReportingPortalServer.Services
             }
 
             return true;
+        }
+
+        public PagedResponse<Notification> GetNotifications(string JWT, int userId, int page, int pageSize, ApplicationDbContext context)
+        {
+            JwtSecurityTokenHandler handler = new();
+            if (!handler.CanReadToken(JWT))
+            {
+                return new NotificationsPaginatedResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                };
+            }
+            JwtSecurityToken token = handler.ReadJwtToken(JWT);
+            Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var parsedUserId))
+            {
+                return new NotificationsPaginatedResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                };
+            }
+            Models.User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
+            if (currentUser == null)
+            {
+                return new NotificationsPaginatedResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.NotFound,
+                    Message = "Authenticated user not found."
+                };
+            }
+
+            List<Notification> notifications = new List<Notification>();
+
+            if (currentUser.Role != UserRoleEnum.Admin)
+            {
+                notifications = [.. context.Notifications
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)];
+            }
+            else
+            {
+                notifications = [.. context.Notifications
+                .OrderByDescending(n => n.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)];
+            }
+
+            int totalCount = context.Notifications.Count(n => n.UserId == userId);
+            return new PagedResponse<Notification>
+            {
+                Items = notifications,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                StatusCode = (int)HttpStatusCode.OK
+            };
         }
     }
 }
