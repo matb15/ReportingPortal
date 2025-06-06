@@ -58,7 +58,7 @@
                     </select>
                 </div>
 
-                <button @onclick="ApplyFilters" class="px-4 py-2 bg-[#66c61c] hover:bg-green-600 text-white rounded-full text-sm mt-2 md:mt-6">
+                <button @onclick="ApplyFilters" class="px-4 py-2 bg-[#66c61c] hover:bg-green-600 text-white rounded-full text-sm">
                     Apply Filters
                 </button>
             </div>
@@ -67,19 +67,19 @@
                 <button class="bg-[#66c61c] hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm">
                     Add Report
                 </button>
-                <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-full text-sm">
+                <NavLink href="/dashboard/categories" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-full text-sm">
                     Manage Categories
-                </button>
-                <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-full text-sm">
-                    Manager Notifications
-                </button>
+                </NavLink>
+                <NavLink href="/dashboard/notifications" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-full text-sm">
+                    Manage Notifications
+                </NavLink>
             </div>
         </div>
     </div>
 
 
     <div class="w-full">
-        <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="450px" width="100%"></RealTimeMap>
+        <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="450px" width="100%"/>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,7 +129,7 @@
                     Showing @Math.Min(5, reports.Count) of @reports.Count
                 </p>
                 <div class="text-right mt-3">
-                    <NavLink href="/reports" class="text-link">View all</NavLink>
+                    <NavLink href="/dashboard/reports" class="text-link">View all</NavLink>
                 </div>
             }
             else
@@ -179,7 +179,7 @@
                     Showing @Math.Min(5, users.Count) of @users.Count
                 </p>
                 <div class="text-right mt-3">
-                    <NavLink href="/users" class="text-link">View all</NavLink>
+                    <NavLink href="/dashboard/users" class="text-link">View all</NavLink>
                 </div>
             }
             else
@@ -192,7 +192,6 @@
 
 @code {
     RealTimeMap realTimeMap = new RealTimeMap();    
-
     private string selectedCategory = "All";
     private string selectedDistrict = "All";
     private string selectedStatus = "All";

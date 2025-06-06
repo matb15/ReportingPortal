@@ -94,6 +94,11 @@ namespace Models.http
     {
     }
 
+    public class CategoriesPaginatedRequest : PagedRequest
+    {
+    
+    }
+
     public class ReadNotificationRequest : Request
     {
         public int UserId { get; set; } = default!;

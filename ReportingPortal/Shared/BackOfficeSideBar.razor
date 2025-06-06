@@ -1,0 +1,76 @@
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+@inject CustomAuthStateProvider AuthProvider
+
+<div class="h-full w-64 bg-white border-r shadow-lg fixed top-0 left-0 z-2000 transition-transform duration-300 ease-in-out"
+    style="@(!IsOpen ? "transform: translateX(-100%);" : "")">
+    <div class="p-6 space-y-6">
+        <h2 class="text-xl font-bold text-gray-800">Admin Panel</h2>
+        <nav class="space-y-2 text-sm">
+            <NavLink href="/dashboard"
+                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link">
+                <i class="fa-solid fa-chart-line w-5"></i>
+                <span>Dashboard</span>
+            </NavLink>
+            <NavLink href="/dashboard/reports"
+                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link">
+                <i class="fa-solid fa-file-lines w-5"></i>
+                <span>Reports</span>
+            </NavLink>
+            <NavLink href="/dashboard/users"
+                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link">
+                <i class="fa-solid fa-users w-5"></i>
+                <span>Users</span>
+            </NavLink>
+            <button @onclick="LogOut"
+                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link border-0 bg-transparent w-full text-left">
+                <i class="fa-solid fa-right-from-bracket w-5"></i>
+                <span>LogOut</span>
+            </button>
+            <NavLink href="/"
+                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link">
+                <i class="fa-solid fa-arrow-left w-5"></i>
+                <span>Exit</span>
+            </NavLink>
+        </nav>
+    </div>
+</div>
+
+<button @onclick="ToggleSidebar"
+    class="fixed bottom-4 right-4 z-2000 bg-green-500 hover:bg-green-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-xl focus:outline-none transition transform hover:scale-105">
+    <i class="fa-solid fa-bars text-lg"></i>
+</button>
+
+<style>
+    .text-link {
+        color: #00c448;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .text-link:hover {
+        text-decoration: underline;
+    }
+</style>
+
+@code {
+    private bool IsOpen = true;
+
+    private void ToggleSidebar()
+    {
+        IsOpen = !IsOpen;
+    }
+
+    private async Task LogOut()
+    {
+        await LocalStorage.RemoveItemAsync("token");
+        await LocalStorage.RemoveItemAsync("user");
+        if (AuthProvider is CustomAuthStateProvider customProvider)
+        {
+            customProvider.NotifyUserLogout();
+        }
+
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

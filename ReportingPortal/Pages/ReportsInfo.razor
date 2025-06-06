@@ -1,5 +1,5 @@
-﻿@page "/reports"
-@attribute [Authorize]
+﻿@page "/dashboard/reports"
+@attribute [Authorize(Roles = "Admin")]
 
 @using Microsoft.AspNetCore.Authorization
 
@@ -121,7 +121,7 @@
         }
     }
 
-    private async void GoToReportDetail(int reportId)
+    private void GoToReportDetail(int reportId)
     {
         NavigationManager.NavigateTo($"/report/{reportId}");
     }

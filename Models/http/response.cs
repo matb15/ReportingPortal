@@ -39,6 +39,15 @@ namespace Models.http
     {
     }
 
+    public class CategoriesPaginatedResponse : PagedResponse<Category>
+    {
+    }
+
+    public class CategoryResponse : Response
+    {
+        public Category Category { get; set; } = default!;
+    }
+
     public class ReportResponse : Response
     {
         public Report Report { get; set; } = default!;
