@@ -1,76 +1,97 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject NavigationManager Navigation
 @inject CustomAuthStateProvider AuthProvider
+@inject IConfiguration Configuration
 
-<div class="h-full w-64 bg-white border-r shadow-lg fixed top-0 left-0 z-2000 transition-transform duration-300 ease-in-out"
-    style="@(!IsOpen ? "transform: translateX(-100%);" : "")">
-    <div class="p-6 space-y-6">
-        <h2 class="text-xl font-bold text-gray-800">Admin Panel</h2>
-        <nav class="space-y-2 text-sm">
-            <NavLink href="/dashboard"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link">
-                <i class="fa-solid fa-chart-line w-5"></i>
-                <span>Dashboard</span>
-            </NavLink>
-            <NavLink href="/dashboard/reports"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link">
-                <i class="fa-solid fa-file-lines w-5"></i>
-                <span>Reports</span>
-            </NavLink>
-            <NavLink href="/dashboard/users"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link">
-                <i class="fa-solid fa-users w-5"></i>
-                <span>Users</span>
-            </NavLink>
-            <button @onclick="LogOut"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link border-0 bg-transparent w-full text-left">
-                <i class="fa-solid fa-right-from-bracket w-5"></i>
-                <span>LogOut</span>
-            </button>
-            <NavLink href="/"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition text-link">
-                <i class="fa-solid fa-arrow-left w-5"></i>
-                <span>Exit</span>
-            </NavLink>
-        </nav>
+<div class="fixed top-0 left-0 h-screen w-64 bg-white border-r shadow-lg z-5000 transition-transform duration-300 ease-in-out transform"
+    style="transform:@(!IsOpen ? "translateX(-100%)" : "translateX(0)")">
+
+    <div class="p-6 space-y-6 flex flex-col h-full">
+       <div class="mb-4">
+          <h2 class="text-2xl font-bold text-gray-800 tracking-tight">Admin Panel</h2>
+          <p class="text-sm text-gray-500">Management Console</p>
+       </div>
+
+       <nav class="flex-1 space-y-1">
+          @SidebarLink("/dashboard", "fa-chart-line", "Dashboard")
+          @SidebarLink("/dashboard/reports", "fa-file-lines", "Reports")
+          @SidebarLink("/dashboard/categories", "fa-tags", "Categories")
+          @SidebarLink("/dashboard/notifications", "fa-bell", "Notifications")
+          @SidebarLink("/dashboard/users", "fa-users", "Users")
+
+          <hr class="my-4 border-t border-gray-200" />
+
+          <button @onclick="LogOut"
+             class="text-link flex items-center gap-3 px-4 py-2 w-full text-left rounded-lg text-gray-700 hover:bg-gray-100 hover:text-red-600 transition">
+             <i class="fa-solid fa-right-from-bracket w-5"></i>
+             <span>Log Out</span>
+          </button>
+
+          <NavLink href="/"
+                 class="text-link flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition">
+             <i class="fa-solid fa-arrow-left w-5"></i>
+             <span>Exit</span>
+          </NavLink>
+       </nav>
+
+       <div class="pt-4 text-xs text-gray-400 border-t border-gray-100">
+          &copy; @DateTime.Now.Year ReportingPortal<br />
+          Version: @AppVersion
+       </div>
     </div>
 </div>
 
 <button @onclick="ToggleSidebar"
-    class="fixed bottom-4 right-4 z-2000 bg-green-500 hover:bg-green-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-xl focus:outline-none transition transform hover:scale-105">
-    <i class="fa-solid fa-bars text-lg"></i>
+       class="fixed bottom-4 right-4 z-5000 bg-green-500 hover:bg-green-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition transform hover:scale-105 focus:outline-none">
+    <i class="fa-solid fa-bars text-xl"></i>
 </button>
 
 <style>
     .text-link {
-        color: #00c448;
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-decoration: none;
+       font-size: 0.875rem;
+       font-weight: 500;
+       color: #23bd00;
     }
 
     .text-link:hover {
-        text-decoration: underline;
+       text-decoration: underline;
     }
 </style>
 
 @code {
-    private bool IsOpen = true;
+    private bool IsOpen = false;
+    private string AppVersion = "";
 
-    private void ToggleSidebar()
+    protected override void OnInitialized()
     {
-        IsOpen = !IsOpen;
+       AppVersion = Configuration["AppVersion"] ?? "N/A";
     }
+
+    private void ToggleSidebar() => IsOpen = !IsOpen;
 
     private async Task LogOut()
     {
-        await LocalStorage.RemoveItemAsync("token");
-        await LocalStorage.RemoveItemAsync("user");
-        if (AuthProvider is CustomAuthStateProvider customProvider)
-        {
-            customProvider.NotifyUserLogout();
-        }
+       await LocalStorage.RemoveItemAsync("token");
+       await LocalStorage.RemoveItemAsync("user");
 
-        Navigation.NavigateTo("/login", forceLoad: true);
+       if (AuthProvider is CustomAuthStateProvider customProvider)
+       {
+          customProvider.NotifyUserLogout();
+       }
+
+       Navigation.NavigateTo("/login", forceLoad: true);
     }
+
+    RenderFragment SidebarLink(string href, string icon, string text) => __builder =>
+    {
+       __builder.OpenComponent<NavLink>(0);
+       __builder.AddAttribute(1, "href", href);
+       __builder.AddAttribute(2, "class", "text-link flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-green-600 transition");
+       __builder.AddAttribute(3, "ChildContent", (RenderFragment)((builder2) =>
+       {
+          builder2.AddMarkupContent(4, $"<i class=\"fa-solid {icon} w-5\"></i>");
+          builder2.AddContent(5, text);
+       }));
+       __builder.CloseComponent();
+    };
 }

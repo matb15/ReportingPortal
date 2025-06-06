@@ -2,57 +2,79 @@
 @attribute [Authorize(Roles = "Admin")]
 
 @using Microsoft.AspNetCore.Authorization
-
 @inject ReportService ReportsService
 @inject NavigationManager NavigationManager
 
-<div class="p-6">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold text-gray-900">All Reports</h2>
-        <div class="flex gap-2 items-center">
-           <InputSearch @bind-SearchText="SearchText" />
-            <button class="px-4 py-2 bg-[#66c61c] hover:bg-green-600 text-white rounded-full shadow">
-                Add report
+<div class="max-w-7xl mx-auto p-8 bg-white rounded-xl mt-8">
+    <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
+    <Alert AlertData="@AlertData2" OnDismissed="@(() => AlertData2.IsVisible = false)" />
+
+    @if (IsCreatingReport)
+    {
+        <div class="mt-8 border rounded-lg p-6 bg-gray-50 shadow-sm">
+            <AddReportForm OnSubmit="@OnReportCreated" OnCancel="@OnCancelCreate" />
+        </div>
+    }
+
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div class="flex items-center gap-3">
+            <NavLink href="/dashboard" class="flex items-center px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-200 transition text-base font-medium shadow-sm border border-gray-200" activeClass="">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Back
+            </NavLink>
+            <h2 class="text-3xl font-bold text-gray-900 ml-4">All Reports</h2>
+        </div>
+        <div class="flex flex-wrap gap-3 items-center">
+            <button class="px-4 py-2 rounded-lg bg-[#66c61c] text-white hover:bg-green-600 transition text-base font-medium shadow-sm" @onclick="ShowCreateReportForm">
+                <i class="fa-solid fa-plus mr-2"></i> Add Report
             </button>
+            <InputSearch SearchText="@SearchText" SearchTextChanged="OnSearchTextChanged" />
+            <select class="border border-gray-300 rounded-lg px-4 py-2 text-base bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm" @onchange="OnSortChanged">
+                <option value="CreatedAtDesc">Newest</option>
+                <option value="CreatedAtAsc">Oldest</option>
+                <option value="StatusAsc">Status ↑</option>
+                <option value="StatusDesc">Status ↓</option>
+            </select>
         </div>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white shadow rounded-lg overflow-hidden text-sm">
-            <thead class="bg-gray-100 text-gray-600">
+    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <table class="min-w-full bg-white rounded-lg text-base">
+            <thead class="bg-gray-50 text-gray-700">
                 <tr>
-                    <th class="text-left px-4 py-3 font-semibold">Type</th>
-                    <th class="text-left px-4 py-3 font-semibold">Location</th>
-                    <th class="text-left px-4 py-3 font-semibold">Reporter</th>
-                    <th class="text-left px-4 py-3 font-semibold">Submitted</th>
-                    <th class="text-left px-4 py-3 font-semibold">Status</th>
-                    <th></th>
+                    <th class="text-left px-6 py-4 font-semibold">Type</th>
+                    <th class="text-left px-6 py-4 font-semibold">Location</th>
+                    <th class="text-left px-6 py-4 font-semibold">Reporter</th>
+                    <th class="text-left px-6 py-4 font-semibold">Submitted</th>
+                    <th class="text-left px-6 py-4 font-semibold">Status</th>
+                    <th class="text-center px-6 py-4 font-semibold"></th>
                 </tr>
             </thead>
             <tbody>
-                @if (ReportsResponse?.Items is not null)
+                @if (Reports.Count > 0)
                 {
-                    @foreach (Report report in ReportsResponse.Items)
+                    @foreach (var report in Reports)
                     {
-                        <tr class="border-b hover:bg-gray-50 transition">
-                            <td class="px-4 py-3 gap-2">
-                                <i class="@report.Category.IconClass text-gray-500"></i>
+                        <tr class="border-b last:border-b-0 hover:bg-gray-100 transition">
+                            <td class="px-6 py-4 gap-2">
+                                <i class="@report.Category.IconClass text-xl text-green-600"></i>
                                 <span class="text-gray-900 font-medium">@report.Category.Name</span>
                             </td>
-                            <td class="px-4 py-3 text-gray-700">
+                            <td class="px-6 py-4 text-gray-700">
                                 @report.Location <br />
                                 <span class="text-gray-500 text-xs">@report.LocationDetail</span>
                             </td>
-                            <td class="px-4 py-3 text-gray-700">@report.User.Email</td>
-                            <td class="px-4 py-3 text-gray-700">
+                            <td class="px-6 py-4 text-gray-700">@report.User.Email</td>
+                            <td class="px-6 py-4 text-gray-700">
                                 @report.CreatedAt.ToString("d MMM yyyy") <br />
                                 <span class="text-xs text-gray-500">@report.CreatedAt.ToString("h:mm tt")</span>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-6 py-4">
                                 <span class="font-semibold text-sm text-@report.Status">@report.Status</span>
                             </td>
-                            <td class="px-2 py-3 text-right text-gray-400" @onclick="@(_ => GoToReportDetail(report.Id))">
-                                <i class="fa-solid fa-chevron-right"></i>
+                            <td class="text-center px-6 py-4">
+                                <button class="p-2 rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition" @onclick="() => GoToReportDetail(report.Id)" title="View Details">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
                             </td>
                         </tr>
                     }
@@ -61,54 +83,98 @@
         </table>
     </div>
 
-    <div class="flex justify-between items-center text-sm text-gray-600 mt-4 px-2">
-        <button @onclick="PreviousPage" class="p-2 hover:text-[#66c61c]" disabled="@IsFirstPage">
+    <div class="flex flex-col md:flex-row justify-between items-center text-base text-gray-600 mt-6 px-2 gap-3">
+        <button @onclick="PreviousPage" class="p-2 rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50" disabled="@IsFirstPage">
             <i class="fa-solid fa-chevron-left"></i>
         </button>
-
         <span>
-            @StartIndex–@EndIndex of @TotalCount
+            <span class="font-semibold">@StartIndex–@EndIndex</span> of <span class="font-semibold">@TotalCount</span>
         </span>
-
-        <button @onclick="NextPage" class="p-2 hover:text-[#66c61c]" disabled="@IsLastPage">
+        <button @onclick="NextPage" class="p-2 rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50" disabled="@IsLastPage">
             <i class="fa-solid fa-chevron-right"></i>
         </button>
     </div>
 
-    @if (ReportsResponse?.Items?.Count == 0)
+    @if (Reports.Count == 0)
     {
-        <div class="text-center text-gray-500 py-6">No reports available</div>
+        <div class="text-center text-gray-400 py-10 text-lg">No reports available</div>
     }
 </div>
 
 @code {
-    int CurrentPage = 1;
-    int PageSize = 10;
-    ReportsPaginatedResponse? ReportsResponse;
-    string SearchText = string.Empty;
-    int TotalCount => ReportsResponse?.TotalCount ?? 0;
-    int StartIndex => (CurrentPage - 1) * PageSize + 1;
-    int EndIndex => Math.Min(CurrentPage * PageSize, TotalCount);
-    bool IsFirstPage => CurrentPage == 1;
-    bool IsLastPage => EndIndex >= TotalCount;
+    private List<Report> Reports = new();
+    private string SearchText { get; set; } = string.Empty;
+    private string SortField { get; set; } = "CreatedAt";
+    private bool SortAscending { get; set; } = false;
+
+    private int Page { get; set; } = 1;
+    private int PageSize { get; set; } = 10;
+    private int TotalCount { get; set; }
+
+    private int StartIndex => Reports.Count == 0 ? 0 : ((Page - 1) * PageSize) + 1;
+    private int EndIndex => Math.Min(Page * PageSize, TotalCount);
+
+    private bool IsFirstPage => Page == 1;
+    private bool IsLastPage => Page * PageSize >= TotalCount;
+
+    private AlertModel AlertData = new();
+    private AlertModel AlertData2 = new();
+    private bool IsCreatingReport { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadReports();
+        await FetchReportsAsync();
     }
 
-    private async Task LoadReports()
+    private void ShowCreateReportForm()
     {
-        ReportsResponse = await ReportsService.GetPaginatedReportsAsync(CurrentPage, PageSize);
+        IsCreatingReport = true;
+    }
+
+    private async Task OnReportCreated()
+    {
+        IsCreatingReport = false;
+        await FetchReportsAsync();
+
+        AlertData2 = new AlertModel
+        {
+            IsVisible = true,
+            Style = AlertTypeEnum.Information,
+            Title = "Success",
+            Message = "Report created successfully!",
+            Position = AlertStylePositionEnum.BottomRight
+        };
+    }
+
+    private void OnCancelCreate()
+    {
+        IsCreatingReport = false;
+    }
+
+    private async Task FetchReportsAsync()
+    {
+        ReportsPaginatedRequest request = new()
+        {
+            Page = Page,
+            PageSize = PageSize,
+            Search = SearchText,
+            SortAscending = SortAscending,
+            SortField = SortField
+        };
+
+        ReportsPaginatedResponse response = await ReportsService.GetAllAsync(request);
+
+        Reports = response.Items ?? new List<Report>();
+        TotalCount = response.TotalCount;
         StateHasChanged();
     }
 
     private async Task PreviousPage()
     {
-        if (CurrentPage > 1)
+        if (Page > 1)
         {
-            CurrentPage--;
-            await LoadReports();
+            Page--;
+            await FetchReportsAsync();
         }
     }
 
@@ -116,8 +182,35 @@
     {
         if (!IsLastPage)
         {
-            CurrentPage++;
-            await LoadReports();
+            Page++;
+            await FetchReportsAsync();
+        }
+    }
+
+    private async Task OnSearchTextChanged(string value)
+    {
+        SearchText = value;
+        Page = 1;
+        await FetchReportsAsync();
+    }
+
+    private async Task OnSortChanged(ChangeEventArgs e)
+    {
+        string? selected = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(selected))
+        {
+            if (selected.StartsWith("CreatedAt"))
+            {
+                SortField = "CreatedAt";
+                SortAscending = selected.EndsWith("Asc");
+            }
+            else if (selected.StartsWith("Status"))
+            {
+                SortField = "Status";
+                SortAscending = selected.EndsWith("Asc");
+            }
+            Page = 1;
+            await FetchReportsAsync();
         }
     }
 
