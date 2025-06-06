@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @inject UserService UserService
 
-<div class="max-w-7xl mx-auto p-8 bg-white rounded-xl mt-8">
+<div class="mx-auto px-4 sm:px-8 py-8 bg-white rounded-xl mt-8">
     <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
     <Alert AlertData="@AlertData2" OnDismissed="@(() => AlertData2.IsVisible = false)" />
 
@@ -15,35 +15,55 @@
             </NavLink>
             <h2 class="text-3xl font-bold text-gray-900 ml-4">All Users</h2>
         </div>
-        <div class="flex flex-wrap gap-3 items-center">
-            <InputSearch SearchText="@Search" SearchTextChanged="OnSearchTextChanged" />
-            <select class="border border-gray-300 rounded-lg px-4 py-2 text-base bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm" @onchange="OnRoleFilterChanged">
-                <option value="">All Roles</option>
-                @foreach (UserRoleEnum role in Enum.GetValues<UserRoleEnum>())
-                {
-                    <option value="@role.ToString()" selected="@(role == RoleFilter)">
-                        @role
-                    </option>
-                }
-            </select>
-            <select class="border border-gray-300 rounded-lg px-4 py-2 text-base bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm" @onchange="OnEmailConfirmedFilterChanged">
-                <option value="">All</option>
-                <option value="true" selected="@(EmailConfirmedFilter == true)">Confirmed</option>
-                <option value="false" selected="@(EmailConfirmedFilter == false)">Unconfirmed</option>
-            </select>
-            <select class="border border-gray-300 rounded-lg px-4 py-2 text-base bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm" @onchange="OnSortChanged">
-                <option value="NameAsc">Name ↑</option>
-                <option value="NameDesc">Name ↓</option>
-                <option value="SurnameAsc">Surname ↑</option>
-                <option value="SurnameDesc">Surname ↓</option>
-                <option value="EmailAsc">Email ↑</option>
-                <option value="EmailDesc">Email ↓</option>
-            </select>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+        <div class="flex flex-col sm:flex-row sm:gap-4 w-full sm:w-2/3">
+            <div class="flex flex-col w-full sm:w-1/2">
+                <label class="text-sm text-gray-600 mb-1">Search by name or email</label>
+                <InputSearch SearchText="@Search" SearchTextChanged="OnSearchTextChanged" />
+            </div>
+        </div>
+
+        <div class="flex flex-row flex-wrap gap-3 w-full sm:w-auto">
+            <div class="flex flex-col w-40 min-w-[10rem]">
+                <label class="text-sm text-gray-600 mb-1">Filter by role</label>
+                <select class="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm text-sm" @onchange="OnRoleFilterChanged">
+                    <option value="">All Roles</option>
+                    @foreach (UserRoleEnum role in Enum.GetValues<UserRoleEnum>())
+                    {
+                        <option value="@role.ToString()" selected="@(role == RoleFilter)">
+                            @role
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="flex flex-col w-40 min-w-[10rem]">
+                <label class="text-sm text-gray-600 mb-1">Email confirmation</label>
+                <select class="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm text-sm" @onchange="OnEmailConfirmedFilterChanged">
+                    <option value="">All</option>
+                    <option value="true" selected="@(EmailConfirmedFilter == true)">Confirmed</option>
+                    <option value="false" selected="@(EmailConfirmedFilter == false)">Unconfirmed</option>
+                </select>
+            </div>
+            <div class="flex flex-col w-40 min-w-[10rem]">
+                <label class="text-sm text-gray-600 mb-1">Sort users</label>
+                <select class="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm text-sm" @onchange="OnSortChanged">
+                    <option value="NameAsc">Name ↑</option>
+                    <option value="NameDesc">Name ↓</option>
+                    <option value="SurnameAsc">Surname ↑</option>
+                    <option value="SurnameDesc">Surname ↓</option>
+                    <option value="EmailAsc">Email ↑</option>
+                    <option value="EmailDesc">Email ↓</option>
+                </select>
+            </div>
         </div>
     </div>
 
-    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-        <table class="min-w-full bg-white rounded-lg text-base">
+
+
+    <div class="w-full overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <table class="w-full bg-white text-sm md:text-base table-auto">
             <thead class="bg-gray-50 text-gray-700">
                 <tr>
                     <th class="text-left px-6 py-4 font-semibold">Name</th>
@@ -59,9 +79,9 @@
                 @foreach (var user in PagedUsers)
                 {
                     <tr class="border-b last:border-b-0 hover:bg-gray-100 transition">
-                        <td class="px-6 py-4 font-medium text-gray-900">@user.Name</td>
-                        <td class="px-6 py-4 font-medium text-gray-900">@user.Surname</td>
-                        <td class="px-6 py-4 text-gray-700">@user.Email</td>
+                        <td class="px-6 py-4 font-medium text-gray-900 truncate">@user.Name</td>
+                        <td class="px-6 py-4 font-medium text-gray-900 truncate">@user.Surname</td>
+                        <td class="px-6 py-4 text-gray-700 truncate">@user.Email</td>
                         <td class="text-center px-6 py-4">
                             @if (user.EmailConfirmed)
                             {
@@ -72,14 +92,15 @@
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white bg-red-500 shadow-sm">Unconfirmed</span>
                             }
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 truncate">
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#66c61c] to-green-500 shadow-sm">
                                 @user.Role
                             </span>
                         </td>
                         <td class="text-center px-6 py-4 text-green-600 font-semibold">0</td>
                         <td class="text-center px-6 py-4">
-                            <button class="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition" @onclick="() => ConfirmDeleteUser(user.Id)" title="Delete User">
+                            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition"
+                                    @onclick="() => ConfirmDeleteUser(user.Id)" title="Delete User">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -90,13 +111,19 @@
     </div>
 
     <div class="flex flex-col md:flex-row justify-between items-center text-base text-gray-600 mt-6 px-2 gap-3">
-        <button @onclick="PreviousPage" class="p-2 rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50" disabled="@IsFirstPage">
+        <button @onclick="PreviousPage"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50"
+                disabled="@IsFirstPage">
             <i class="fa-solid fa-chevron-left"></i>
         </button>
+
+
         <span>
             <span class="font-semibold">@StartIndex–@EndIndex</span> of <span class="font-semibold">@TotalCount</span>
         </span>
-        <button @onclick="NextPage" class="p-2 rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50" disabled="@IsLastPage">
+        <button @onclick="PreviousPage"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50"
+                disabled="@IsFirstPage">
             <i class="fa-solid fa-chevron-right"></i>
         </button>
     </div>
@@ -108,7 +135,6 @@
 </div>
 
 @code {
-
     private List<User> users = new();
     private string Search { get; set; } = string.Empty;
     private UserRoleEnum? RoleFilter { get; set; } = null;
@@ -128,8 +154,6 @@
 
     private IEnumerable<User> PagedUsers => users;
 
-    private List<UserRoleEnum> Roles => Enum.GetValues(typeof(UserRoleEnum)).Cast<UserRoleEnum>().ToList();
-
     private AlertModel AlertData = new();
     private AlertModel AlertData2 = new();
 
@@ -140,7 +164,7 @@
 
     private async Task FetchUsersAsync()
     {
-        UsersPaginatedRequest request = new()
+        var request = new UsersPaginatedRequest
         {
             Page = Page,
             PageSize = PageSize,
@@ -151,8 +175,7 @@
             SortField = SortField
         };
 
-        UsersPaginatedResponse response = await UserService.GetAllAsync(request);
-
+        var response = await UserService.GetAllAsync(request);
         users = response.Items ?? new List<User>();
         TotalCount = response.TotalCount;
         StateHasChanged();
@@ -183,25 +206,17 @@
         await FetchUsersAsync();
     }
 
-    private async Task OnRoleFilterChanged(ChangeEventArgs e)  
-    {  
-        string selectedValue = e.Value?.ToString() ?? ""; 
-        if (Enum.TryParse<UserRoleEnum>(selectedValue, out UserRoleEnum parsedRole))  
-        {  
-            RoleFilter = parsedRole;  
-        }  
-        else  
-        {  
-            RoleFilter = null;
-        }  
-
-        Page = 1;  
-        await FetchUsersAsync();  
+    private async Task OnRoleFilterChanged(ChangeEventArgs e)
+    {
+        var selected = e.Value?.ToString();
+        RoleFilter = Enum.TryParse<UserRoleEnum>(selected, out var parsedRole) ? parsedRole : null;
+        Page = 1;
+        await FetchUsersAsync();
     }
 
     private async Task OnEmailConfirmedFilterChanged(ChangeEventArgs e)
     {
-        string? selected = e.Value?.ToString();
+        var selected = e.Value?.ToString();
         EmailConfirmedFilter = selected switch
         {
             "true" => true,
@@ -214,7 +229,7 @@
 
     private async Task OnSortChanged(ChangeEventArgs e)
     {
-        string? selected = e.Value?.ToString();
+        var selected = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(selected))
         {
             SortField = selected.Replace("Asc", "").Replace("Desc", "");
@@ -245,9 +260,9 @@
     {
         if (AlertData.OkText == "Delete" && AlertData.IsVisible)
         {
-            Response response = await UserService.DeleteAsync(userId);
+            var response = await UserService.DeleteAsync(userId);
 
-            if (response.StatusCode <= 200 && response.StatusCode >= 299)
+            if (response.StatusCode < 200 || response.StatusCode >= 300)
             {
                 AlertData2 = new AlertModel
                 {

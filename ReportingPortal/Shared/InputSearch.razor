@@ -1,21 +1,26 @@
-@if (ShowSearch)
-{
-    <input @bind="CurrentSearchText" @bind:event="oninput"
-        class="px-3 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#66c61c] transition w-48"
-        placeholder="Search ..." />
-    <button class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 ml-2"
-        @onclick="() => HideSearch()">
-        <i class="fa-solid fa-xmark"></i>
-    </button>
-}
-else
-{
-    <button
-        class="w-10 h-10 flex items-center justify-center rounded-full bg-[#66c61c] hover:bg-green-600 text-white shadow"
-        @onclick="() => ShowSearchInput()">
-        <i class="fa-solid fa-magnifying-glass"></i>
-    </button>
-}
+<div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+    @if (ShowSearch)
+    {
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <input @bind="CurrentSearchText" @bind:event="oninput"
+                   class="flex-1 sm:w-48 px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#66c61c] transition"
+                   placeholder="Search ..." />
+            <button type="button"
+                    class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600"
+                    @onclick="HideSearch" title="Close search">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    }
+    else
+    {
+        <button type="button"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-[#66c61c] hover:bg-green-600 text-white shadow"
+                @onclick="ShowSearchInput" title="Open search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    }
+</div>
 
 @code {
     [Parameter, EditorRequired]
@@ -24,9 +29,9 @@ else
     [Parameter]
     public EventCallback<string> SearchTextChanged { get; set; }
 
-    bool ShowSearch = false;
+    private bool ShowSearch = false;
 
-    string CurrentSearchText
+    private string CurrentSearchText
     {
         get => SearchText;
         set
@@ -39,6 +44,7 @@ else
         }
     }
 
-    void HideSearch() => ShowSearch = false;
-    void ShowSearchInput() => ShowSearch = true;
+    private void HideSearch() => ShowSearch = false;
+
+    private void ShowSearchInput() => ShowSearch = true;
 }

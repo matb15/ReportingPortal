@@ -4,17 +4,9 @@
 @using Microsoft.AspNetCore.Authorization
 @inject CategoryService CategoryService
 
-<div class="max-w-7xl mx-auto p-8 bg-white rounded-xl mt-8">
+<div class="mx-auto px-4 sm:px-8 py-8 bg-white rounded-xl mt-8">
     <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
     <Alert AlertData="@AlertData2" OnDismissed="@(() => AlertData2.IsVisible = false)" />
-
-    @if (IsCreatingCategory)
-    {
-        <div class="mt-8 border rounded-lg p-6 bg-gray-50 shadow-sm">
-            <AddCategoryForm OnCreated="@OnCategoryCreated" OnCancel="@OnCancelCreate" />
-        </div>
-    }
-
 
     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
         <div class="flex items-center gap-3">
@@ -23,20 +15,42 @@
             </NavLink>
             <h2 class="text-3xl font-bold text-gray-900 ml-4">All Categories</h2>
         </div>
-        <div class="flex flex-wrap gap-3 items-center">
-            <button class="px-4 py-2 rounded-lg bg-[#66c61c] text-white hover:bg-green-600 transition text-base font-medium shadow-sm" @onclick="ShowCreateCategoryForm">
-                <i class="fa-solid fa-plus mr-2"></i> Create Category
-            </button>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+        <div class="flex flex-col w-full sm:w-1/2">
+            <label class="text-sm text-gray-600 mb-1">Search categories</label>
             <InputSearch SearchText="@Search" SearchTextChanged="OnSearchTextChanged" />
-            <select class="border border-gray-300 rounded-lg px-4 py-2 text-base bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm" @onchange="OnSortChanged">
-                <option value="NameAsc">Name ↑</option>
-                <option value="NameDesc">Name ↓</option>
-            </select>
+        </div>
+
+        <div class="flex flex-row sm:justify-end gap-3 items-end w-full sm:w-auto">
+            <div class="flex flex-col w-36">
+                <label class="text-sm text-gray-600 mb-1">Sort by</label>
+                <select class="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#66c61c] shadow-sm text-sm" @onchange="OnSortChanged">
+                    <option value="NameAsc">Name ↑</option>
+                    <option value="NameDesc">Name ↓</option>
+                </select>
+            </div>
+
+            <div class="flex flex-col">
+                <label class="text-sm text-gray-600 mb-1">Create</label>
+                <button class="px-3 py-2 rounded-lg bg-[#66c61c] text-white hover:bg-green-600 transition text-sm font-medium shadow-sm h-[38px]"
+                        @onclick="ShowCreateCategoryForm">
+                    <i class="fa-solid fa-plus mr-2"></i> Create
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-        <table class="min-w-full bg-white rounded-lg text-base">
+    @if (IsCreatingCategory)
+    {
+        <div class="mb-6 border rounded-lg p-6 bg-gray-50 shadow-sm">
+            <AddCategoryForm OnCreated="@OnCategoryCreated" OnCancel="@OnCancelCreate" />
+        </div>
+    }
+
+    <div class="w-full overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <table class="w-full bg-white text-sm md:text-base table-auto">
             <thead class="bg-gray-50 text-gray-700">
                 <tr>
                     <th class="text-left px-6 py-4 font-semibold">Icon</th>
@@ -53,7 +67,8 @@
                         </td>
                         <td class="px-6 py-4 font-medium text-gray-900">@category.Name</td>
                         <td class="text-center px-6 py-4">
-                            <button class="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition" @onclick="() => ConfirmDeleteCategory(category.Id)" title="Delete Category">
+                            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition"
+                                    @onclick="() => ConfirmDeleteCategory(category.Id)" title="Delete Category">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -64,13 +79,19 @@
     </div>
 
     <div class="flex flex-col md:flex-row justify-between items-center text-base text-gray-600 mt-6 px-2 gap-3">
-        <button @onclick="PreviousPage" class="p-2 rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50" disabled="@IsFirstPage">
+        <button @onclick="PreviousPage"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50"
+                disabled="@IsFirstPage">
             <i class="fa-solid fa-chevron-left"></i>
         </button>
+
         <span>
             <span class="font-semibold">@StartIndex–@EndIndex</span> of <span class="font-semibold">@TotalCount</span>
         </span>
-        <button @onclick="NextPage" class="p-2 rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50" disabled="@IsLastPage">
+
+        <button @onclick="NextPage"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-[#66c61c] hover:text-white transition disabled:opacity-50"
+                disabled="@IsLastPage">
             <i class="fa-solid fa-chevron-right"></i>
         </button>
     </div>
@@ -108,36 +129,27 @@
         await FetchCategoriesAsync();
     }
 
-    private void ShowCreateCategoryForm()
-    {
-        IsCreatingCategory = true;
-    }
+    private void ShowCreateCategoryForm() => IsCreatingCategory = true;
 
     private async Task OnCategoryCreated()
-{
-    IsCreatingCategory = false;
-    await FetchCategoriesAsync();
-
-    AlertData2 = new AlertModel
-    {
-        IsVisible = true,
-        Style = AlertTypeEnum.Information,
-        Title = "Success",
-        Message = "Category created successfully!",
-        Position = AlertStylePositionEnum.BottomRight
-    };
-}
-
-    private void OnCancelCreate()
     {
         IsCreatingCategory = false;
+        await FetchCategoriesAsync();
+        AlertData2 = new AlertModel
+        {
+            IsVisible = true,
+            Style = AlertTypeEnum.Information,
+            Title = "Success",
+            Message = "Category created successfully!",
+            Position = AlertStylePositionEnum.BottomRight
+        };
     }
 
-
+    private void OnCancelCreate() => IsCreatingCategory = false;
 
     private async Task FetchCategoriesAsync()
     {
-        CategoriesPaginatedRequest request = new()
+        var request = new CategoriesPaginatedRequest
         {
             Page = Page,
             PageSize = PageSize,
@@ -146,8 +158,7 @@
             SortField = SortField
         };
 
-        CategoriesPaginatedResponse response = await CategoryService.GetAllAsync(request);
-
+        var response = await CategoryService.GetAllAsync(request);
         categories = response.Items ?? new List<Category>();
         TotalCount = response.TotalCount;
         StateHasChanged();
@@ -180,7 +191,7 @@
 
     private async Task OnSortChanged(ChangeEventArgs e)
     {
-        string? selected = e.Value?.ToString();
+        var selected = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(selected))
         {
             SortField = selected.Replace("Asc", "").Replace("Desc", "");
@@ -209,23 +220,10 @@
 
     private async Task DeleteCategory(int categoryId)
     {
-        if (AlertData.OkText == "Delete" && AlertData.IsVisible)
+        var response = await CategoryService.DeleteAsync(categoryId);
+
+        if (response.StatusCode > 200 && response.StatusCode < 299)
         {
-            Response response = await CategoryService.DeleteAsync(categoryId);
-
-            if (response.StatusCode <= 200 && response.StatusCode >= 299)
-            {
-                AlertData2 = new AlertModel
-                {
-                    IsVisible = true,
-                    Style = AlertTypeEnum.Danger,
-                    Message = response.Message ?? "Failed to delete category.",
-                    Title = "Error",
-                    Position = AlertStylePositionEnum.BottomRight
-                };
-                return;
-            }
-
             AlertData2 = new AlertModel
             {
                 IsVisible = true,
@@ -236,6 +234,17 @@
             };
 
             await FetchCategoriesAsync();
+        }
+        else
+        {
+            AlertData2 = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Message = response.Message ?? "Failed to delete category.",
+                Title = "Error",
+                Position = AlertStylePositionEnum.BottomRight
+            };
         }
     }
 }
