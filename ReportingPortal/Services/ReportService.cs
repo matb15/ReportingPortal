@@ -3,9 +3,9 @@ using System.Net.Http.Json;
 
 namespace ReportingPortal.Services
 {
-    public class ReportService(HttpClient http)
+    public class ReportService(IHttpClientFactory factory)
     {
-        private readonly HttpClient _http = http;
+        private readonly HttpClient _http = factory.CreateClient("AuthorizedClient");
 
         public async Task<ReportsPaginatedResponse> GetAllAsync(ReportsPaginatedRequest request)
         {

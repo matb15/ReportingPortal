@@ -64,17 +64,6 @@ namespace Models.http
         public string LocationDetail { get; set; } = default!;
     }
 
-    public class ReportsPaginatedRequest : PagedRequest
-    {
-        public ReportStatusEnum? Status { get; set; } = default!;
-    }
-
-    public class UsersPaginatedRequest : PagedRequest
-    {
-        public UserRoleEnum? Role { get; set; } = default!;
-        public bool? EmailConfirmed { get; set; } = default!;
-    }
-
     public class NotificationConnectRequest : Request
     {
         [Required]
@@ -88,16 +77,6 @@ namespace Models.http
 
         [Required]
         public string Auth { get; set; } = default!;
-    }
-
-    public class NotificationsPaginatedRequest : PagedRequest
-    {
-        public NotificationStatusEnum? Status { get; set; } = default!;
-    }
-
-    public class CategoriesPaginatedRequest : PagedRequest
-    {
-
     }
 
     public class ReadNotificationRequest : Request
@@ -138,5 +117,26 @@ namespace Models.http
         public int NotificationId { get; set; } = default!;
         public string Title { get; set; } = default!;
         public string Message { get; set; } = default!;
+    }
+
+    public class ReportsPaginatedRequest : PagedRequest
+    {
+        public ReportStatusEnum? Status { get; set; } = default!;
+    }
+
+    public class UsersPaginatedRequest : PagedRequest
+    {
+        public UserRoleEnum? Role { get; set; } = default!;
+        public bool? EmailConfirmed { get; set; } = default!;
+    }
+
+    public class NotificationsPaginatedRequest : PagedRequest
+    {
+        public NotificationStatusEnum? Status { get; set; } = default!;
+    }
+
+    public class CategoriesPaginatedRequest : PagedRequest
+    {
+
     }
 }

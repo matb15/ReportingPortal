@@ -29,7 +29,6 @@
                     }
                 </div>
 
-                <!-- Right: Fields -->
                 <div class="md:w-2/3">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -90,7 +89,7 @@
     {
         if (OnSubmit.HasDelegate)
         {
-            var model = new ReportFormModel
+            ReportFormModel model = new()
             {
                 Location = Location,
                 Description = Description,

@@ -39,23 +39,27 @@
 </div>
 
 @code {
-    [Parameter] public EventCallback OnCreated { get; set; }
+    [Parameter] public EventCallback<Category> OnCreated { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
 
     private Category NewCategory { get; set; } = new();
 
     private async Task HandleValidSubmit()
     {
-        var response = await CategoryService.CreateAsync(NewCategory);
-        if (response.StatusCode >= 200 && response.StatusCode < 300)
+        if (OnCreated.HasDelegate)
         {
-            await OnCreated.InvokeAsync();
-            NewCategory = new(); // Reset form
+            await OnCreated.InvokeAsync(NewCategory);
+            ResetForm();
         }
     }
 
     private async Task OnCancelClicked()
     {
         await OnCancel.InvokeAsync();
+    }
+
+    public void ResetForm()
+    {
+        NewCategory = new Category();
     }
 }

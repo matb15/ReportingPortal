@@ -147,13 +147,13 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            NotificationResponse response = _notificationService.CreateNotification(jwt, request.UserId, request.Message, _context);
+            NotificationResponse response = _notificationService.CreateNotification(jwt, request, _context);
 
             return response;
         }
 
-        [HttpDelete]
-        public NotificationResponse DeleteNotification([FromQuery] int notificationId)
+        [HttpDelete("{notificationId}")]
+        public NotificationResponse DeleteNotification(int notificationId)
         {
             if (notificationId <= 0)
             {

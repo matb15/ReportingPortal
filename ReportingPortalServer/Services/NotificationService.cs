@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Models;
 using Models.enums;
 using Models.http;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,7 +15,7 @@ namespace ReportingPortalServer.Services
 
         NotificationsPaginatedResponse GetNotifications(string jwt, NotificationsPaginatedRequest request, ApplicationDbContext context);
         NotificationResponse ReadNotification(string jwt, int notificationId, ApplicationDbContext context);
-        NotificationResponse CreateNotification(string jwt, int UserId, string Message, ApplicationDbContext context);
+        NotificationResponse CreateNotification(string jwt, CreateNotificationRequest request, ApplicationDbContext context);
         NotificationResponse DeleteNotification(string jwt, int notificationId, ApplicationDbContext context);
         NotificationResponse UpdateNotification(string jwt, int notificationId, string title, string message, ApplicationDbContext context);
     }
@@ -95,24 +96,60 @@ namespace ReportingPortalServer.Services
             }
 
             List<Notification> notifications = [];
+            int totalCount = 0;
 
             if (currentUser.Role != UserRoleEnum.Admin)
             {
                 notifications = [.. context.Notifications
-                .Where(n => n.UserId == parsedUserId)
-                .OrderByDescending(n => n.CreatedAt)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)];
+                    .Where(n => n.UserId == parsedUserId)
+                    .OrderByDescending(n => n.CreatedAt)
+                    .Skip((request.Page - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .Include(n => n.User)
+                ];
+
+                totalCount = context.Notifications.Count(n => n.UserId == parsedUserId);
             }
             else
             {
-                notifications = [.. context.Notifications
-                .OrderByDescending(n => n.CreatedAt)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)];
+                bool asc = request.SortAscending ?? true;
+
+                IQueryable<Notification> query = context.Notifications.AsQueryable();
+
+                if (request.Status.HasValue)
+                {
+                    query = query.Where(n => n.Status == request.Status.Value);
+                }
+
+                if (!string.IsNullOrEmpty(request.Search))
+                {
+                    query = query.Where(n =>
+                        n.Title.ToLower().Contains(request.Search.ToLower()));
+                }
+
+                if (!string.IsNullOrEmpty(request.SortField))
+                {
+                    if (asc)
+                    {
+                        query = query.OrderBy(u => EF.Property<object>(u, request.SortField));
+                    }
+                    else
+                    {
+                        query = query.OrderByDescending(u => EF.Property<object>(u, request.SortField));
+                    }
+                }
+
+                notifications = [.. query
+                    .Skip((request.Page - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .Include(n => n.User)
+                    .AsEnumerable()
+                    .Select(n => { n.User.Password = "baldman"; return n; })
+                ];
+
+                totalCount = context.Notifications.Count();
             }
 
-            int totalCount = context.Notifications.Count(n => n.UserId == parsedUserId);
             return new NotificationsPaginatedResponse
             {
                 Items = notifications,
@@ -173,7 +210,7 @@ namespace ReportingPortalServer.Services
                 Message = "Notification marked as read."
             };
         }
-        public NotificationResponse CreateNotification(string jwt, int UserId, string Message, ApplicationDbContext context)
+        public NotificationResponse CreateNotification(string jwt, CreateNotificationRequest request, ApplicationDbContext context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -207,17 +244,17 @@ namespace ReportingPortalServer.Services
             {
                 return new NotificationResponse
                 {
-                    StatusCode = (int)System.Net.HttpStatusCode.Forbidden,
-                    Message = "Solo gli amministratori possono accedere a questa risorsa."
+                    StatusCode = (int)HttpStatusCode.Forbidden,
+                    Message = "Not Authorized"
                 };
             }
             Notification notification = new()
             {
-                UserId = UserId,
-                Title = "New Notification",
-                Message = Message,
-                Status = NotificationStatusEnum.Unread,
-                Channel = NotificationChannelEnum.App,
+                UserId = request.UserId,
+                Title = request.Title,
+                Message = request.Message,
+                Status = request.Status,
+                Channel = request.Channel,
                 CreatedAt = DateTime.UtcNow
             };
             context.Notifications.Add(notification);

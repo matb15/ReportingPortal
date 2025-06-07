@@ -45,7 +45,7 @@
     @if (IsCreatingCategory)
     {
         <div class="mb-6 border rounded-lg p-6 bg-gray-50 shadow-sm">
-            <AddCategoryForm OnCreated="@OnCategoryCreated" OnCancel="@OnCancelCreate" />
+            <AddCategoryForm OnCreated="@(EventCallback.Factory.Create<Category>(this, OnCategoryCreated))" OnCancel="@OnCancelCreate" />
         </div>
     }
 
@@ -131,10 +131,12 @@
 
     private void ShowCreateCategoryForm() => IsCreatingCategory = true;
 
-    private async Task OnCategoryCreated()
+    private async Task OnCategoryCreated(Category request)
     {
         IsCreatingCategory = false;
+
         await FetchCategoriesAsync();
+
         AlertData2 = new AlertModel
         {
             IsVisible = true,

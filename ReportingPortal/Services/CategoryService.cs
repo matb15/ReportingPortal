@@ -4,10 +4,9 @@ using System.Net.Http.Json;
 
 namespace ReportingPortal.Services
 {
-    public class CategoryService(HttpClient http)
+    public class CategoryService(IHttpClientFactory factory)
     {
-        private readonly HttpClient _http = http;
-
+        private readonly HttpClient _http = factory.CreateClient("AuthorizedClient");
         public async Task<CategoriesPaginatedResponse> GetAllAsync(CategoriesPaginatedRequest request)
         {
             string url = $"api/Category?page={request.Page}&pageSize={request.PageSize}";

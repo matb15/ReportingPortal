@@ -60,7 +60,9 @@
     @if (IsCreatingNotification)
     {
         <div class="my-6 border rounded-lg p-6 bg-gray-50 shadow-inner">
-            <AddNotificationForm OnSubmit="@OnNotificationCreated" OnCancel="@OnCancelCreate" />
+            <AddNotificationForm OnCancel="@OnCancelCreate"
+                                 OnSubmit="@(EventCallback.Factory.Create<CreateNotificationRequest>(this, OnNotificationCreated))" />
+
         </div>
     }
 
@@ -80,7 +82,17 @@
                 @foreach (var notification in PagedNotifications)
                 {
                     <tr class="border-b last:border-b-0 hover:bg-gray-100 transition">
-                        <td class="px-6 py-4 text-gray-800">@notification.User.Name @notification.User.Surname</td>
+                        <td class="px-6 py-4 text-gray-800">
+                            @if (notification.User != null)
+                            {
+                                @($"{notification.User.Email}")
+                            }
+                            else
+                            {
+                                <em>Unknown user</em>
+                            }
+                        </td>
+
                         <td class="px-6 py-4 text-gray-800">@notification.Title</td>
                         <td class="px-6 py-4 text-gray-800">@notification.Status</td>
                         <td class="px-6 py-4 text-gray-800">@notification.Channel</td>
@@ -145,19 +157,34 @@
 
     private void ShowCreateNotificationForm() => IsCreatingNotification = true;
 
-    private async Task OnNotificationCreated()
+    private async Task OnNotificationCreated(CreateNotificationRequest request)
     {
         IsCreatingNotification = false;
-        await FetchNotificationAsync();
 
-        AlertData2 = new AlertModel
+        NotificationResponse result = await NotificationService.CreateAsync(request);
+        if (result.StatusCode >= 200 && result.StatusCode < 300)
         {
-            IsVisible = true,
-            Style = AlertTypeEnum.Information,
-            Title = "Success",
-            Message = "Report created successfully!",
-            Position = AlertStylePositionEnum.BottomRight
-        };
+            AlertData2 = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Information,
+                Title = "Success",
+                Message = "Notification created successfully!",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+            await FetchNotificationAsync();
+        }
+        else
+        {
+            AlertData2 = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Title = "Error",
+                Message = result.Message ?? "Failed to create notification.",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+        }
     }
 
     private void OnCancelCreate() => IsCreatingNotification = false;
