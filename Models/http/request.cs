@@ -66,7 +66,7 @@ namespace Models.http
 
     public class ReportsPaginatedRequest : PagedRequest
     {
-
+        public ReportStatusEnum? Status { get; set; } = default!;
     }
 
     public class UsersPaginatedRequest : PagedRequest
@@ -92,11 +92,12 @@ namespace Models.http
 
     public class NotificationsPaginatedRequest : PagedRequest
     {
+        public NotificationStatusEnum? Status { get; set; } = default!;
     }
 
     public class CategoriesPaginatedRequest : PagedRequest
     {
-    
+
     }
 
     public class ReadNotificationRequest : Request
