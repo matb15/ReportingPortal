@@ -9,10 +9,12 @@ namespace ReportingPortalServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController(ILogger<UserController> logger, IUserService userService, ApplicationDbContext context) : Controller
+    public class UserController(ILogger<UserController> logger, IUserService userService, IConfiguration configuration, IEmailService emailService, ApplicationDbContext context) : Controller
     {
         private readonly ILogger<UserController> _logger = logger;
         private readonly IUserService _userService = userService;
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IEmailService _emailService = emailService;
         private readonly ApplicationDbContext context = context;
 
         [HttpGet("me")]
@@ -150,6 +152,43 @@ namespace ReportingPortalServer.Controllers
                 };
             }
             return _userService.DeleteUserAsync(jwt, userId, context);
+        }
+
+        [HttpPost("reset-password")]
+        public Response CreateResetPassword(ResetPasswordRequest request)
+        {
+            _logger.LogInformation("Reset password request received");
+
+            return _userService.CreateResetPasswordRequestAsync(request.Email, context, _configuration, _emailService);
+        }
+
+        [HttpGet("reset-password/{token}")]
+        public Response VerifyToken(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return new Response
+                {
+                    Message = "Token is required.",
+                    StatusCode = 400
+                };
+            }
+
+            return _userService.VerifyResetPasswordAsync(token, context);
+        }
+
+        [HttpPost("reset-password/{token}")]
+        public Response ResetPassword(string token, ResetPasswordFormModel resetPasswordForm)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return new Response
+                {
+                    Message = "Token is required.",
+                    StatusCode = 400
+                };
+            }
+            return _userService.ResetPasswordAsync(token, resetPasswordForm.NewPassword, context);
         }
     }
 }

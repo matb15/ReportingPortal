@@ -3,6 +3,7 @@ using Models;
 using Models.enums;
 using Models.front;
 using Models.http;
+using ReportingPortalServer.Services.Helpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -14,11 +15,13 @@ namespace ReportingPortalServer.Services
         public UserResponse UpdateMeAsync(string JWT, UserPutModel updatedUser, ApplicationDbContext context);
         public Response UpdateMePasswordAsync(string JWT, string oldPassword, string newPassword, ApplicationDbContext context);
         public Response DeleteMeAsync(string JWT, ApplicationDbContext context);
-
         public UserResponse GetUserAsync(string JWT, int id, ApplicationDbContext context);
         public UserResponse UpdateUserAsync(string JWT, int id, UserPutModel updatedUser, ApplicationDbContext context);
         public Response DeleteUserAsync(string JWT, int id, ApplicationDbContext context);
         public PagedResponse<User> GetUserPaginationAsync(string JWT, UsersPaginatedRequest request, ApplicationDbContext context);
+        public Response CreateResetPasswordRequestAsync(string email, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService);
+        public Response VerifyResetPasswordAsync(string token, ApplicationDbContext context);
+        public Response ResetPasswordAsync(string token, string newPassword, ApplicationDbContext context);
     }
 
     public class UserService : IUserService
@@ -494,6 +497,116 @@ namespace ReportingPortalServer.Services
                 PageSize = request.PageSize,
                 TotalCount = users.Count,
                 StatusCode = (int)System.Net.HttpStatusCode.OK
+            };
+        }
+
+        public Response CreateResetPasswordRequestAsync(string email, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
+        {
+            User? user = context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                return new Response
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.NotFound,
+                    Message = "User not found."
+                };
+            }
+
+            ResetPasswordToken? existingToken = context.PasswordResetTokens
+              .FirstOrDefault(t => t.UserId == user.Id && t.ExpiresAt > DateTime.UtcNow);
+            if (existingToken != null)
+            {
+                context.PasswordResetTokens.Remove(existingToken);
+                context.SaveChanges();
+            }
+
+            Utils.GenerateNewResetPasswordToken(user, context, configuration, emailService);
+
+            return new Response
+            {
+                StatusCode = (int)System.Net.HttpStatusCode.OK,
+                Message = "Reset password request created successfully."
+            };
+        }
+
+        public Response VerifyResetPasswordAsync(string token, ApplicationDbContext context)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return new UserResponse
+                {
+                    Message = "Token is required.",
+                    StatusCode = 400
+                };
+            }
+
+            ResetPasswordToken? resetPasswordToken = context.PasswordResetTokens
+                .FirstOrDefault(t => t.Token == token && t.ExpiresAt > DateTime.UtcNow);
+
+            if (resetPasswordToken != null)
+            {
+                resetPasswordToken.ExpiresAt = DateTime.UtcNow;
+
+                User? user = context.Users
+                    .FirstOrDefault(u => u.Id == resetPasswordToken.UserId);
+
+                if (user != null)
+                {
+                    user.EmailConfirmed = true;
+                    context.Users.Update(user);
+                }
+
+                context.PasswordResetTokens.Update(resetPasswordToken);
+                context.SaveChanges();
+
+                return new UserResponse
+                {
+                    Message = "Token valid.",
+                    StatusCode = 200
+                };
+            }
+
+            return new UserResponse
+            {
+                Message = "Invalid token.",
+                StatusCode = 400
+            };
+        }
+
+        public Response ResetPasswordAsync(string token, string newPassword, ApplicationDbContext context)
+        {
+            ResetPasswordToken? resetPasswordToken = context.PasswordResetTokens
+                 .FirstOrDefault(t => t.Token == token && t.ExpiresAt < DateTime.UtcNow);
+
+            if (resetPasswordToken == null)
+            {
+                return new Response
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid or expired token."
+                };
+            }
+
+            User? user = context.Users.FirstOrDefault(u => u.Id == resetPasswordToken.UserId);
+            if (user == null)
+            {
+                return new Response
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.NotFound,
+                    Message = "User not found."
+                };
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.EmailConfirmed = true;
+            context.Users.Update(user);
+            context.PasswordResetTokens.Remove(resetPasswordToken);
+            context.SaveChanges();
+
+            return new Response
+            {
+                StatusCode = (int)System.Net.HttpStatusCode.OK,
+                Message = "Password reset successfully."
             };
         }
     }
