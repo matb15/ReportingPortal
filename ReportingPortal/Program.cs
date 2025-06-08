@@ -28,7 +28,6 @@ namespace ReportingPortal
 
             builder.Services.AddTransient<AuthHeaderHandler>();
 
-
             builder.Services.AddHttpClient("AuthorizedClient", client =>
             {
                 client.BaseAddress = new Uri(apiBase);
