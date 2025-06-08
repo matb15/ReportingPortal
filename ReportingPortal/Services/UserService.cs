@@ -214,5 +214,88 @@ namespace ReportingPortal.Services
                 };
             }
         }
+
+        public async Task<UserResponse> CreateResetPasswordAsync(string email)
+        {
+            try
+            {
+                HttpResponseMessage response = await _http.PostAsJsonAsync("api/User/reset-password", new ResetPasswordRequest() { Email = email });
+                UserResponse? content = await response.Content.ReadFromJsonAsync<UserResponse>();
+                if (response.IsSuccessStatusCode && content != null)
+                {
+                    return content;
+                }
+                return new UserResponse
+                {
+                    Message = content?.Message ?? "Error resetting password",
+                    StatusCode = content?.StatusCode ?? (int)response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UserResponse
+                {
+                    Message = $"Request failed: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
+
+        public async Task<UserResponse> VerifyResetPasswordTokenAsync(string token)
+        {
+            try
+            {
+                HttpResponseMessage response = await _http.GetAsync($"api/User/reset-password/{Uri.EscapeDataString(token)}");
+                UserResponse? content = await response.Content.ReadFromJsonAsync<UserResponse>();
+                if (response.IsSuccessStatusCode && content != null)
+                {
+                    return content;
+                }
+                return new UserResponse
+                {
+                    Message = content?.Message ?? "Error verifying reset password token",
+                    StatusCode = content?.StatusCode ?? (int)response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UserResponse
+                {
+                    Message = $"Request failed: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
+
+        public async Task<UserResponse> ResetPasswordAsync(string token, string newPassword)
+        {
+            try
+            {
+                ResetPasswordFormModel payload = new()
+                {
+                    NewPassword = newPassword,
+                    ConfirmPassword = newPassword
+                };
+                HttpResponseMessage response = await _http.PostAsJsonAsync($"api/User/reset-password/{Uri.EscapeDataString(token)}", payload);
+                UserResponse? content = await response.Content.ReadFromJsonAsync<UserResponse>();
+                if (response.IsSuccessStatusCode && content != null)
+                {
+                    return content;
+                }
+                return new UserResponse
+                {
+                    Message = content?.Message ?? "Error resetting password",
+                    StatusCode = content?.StatusCode ?? (int)response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UserResponse
+                {
+                    Message = $"Request failed: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
     }
 }

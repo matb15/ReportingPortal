@@ -95,6 +95,11 @@ namespace Models.http
         public int UserId { get; set; } = default!;
     }
 
+    public class ResetPasswordRequest : Request
+    {
+        public string Email { get; set; } = default!;
+    }
+
     public class CreateNotificationRequest : Request
     {
         [Required]
