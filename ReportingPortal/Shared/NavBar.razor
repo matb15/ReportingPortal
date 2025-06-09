@@ -2,6 +2,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthProvider
+
 <style>
     .text-link {
         color: #66c61c;
@@ -14,124 +15,117 @@
     }
 </style>
 
-<nav class="bg-[#26272b]">
+<nav class="bg-[#26272b] shadow">
     <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
-    <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-        <div class="relative flex h-16 items-center justify-between">
-            <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                <button @onclick="ToggleMobileMenu" type="button"
-                        class="relative inline-flex items-center justify-center rounded-md p-2 text-[#66c61c] hover:bg-[#66c61c] hover:text-white focus:ring-2 focus:ring-white focus:outline-hidden focus:ring-inset"
-                        aria-controls="mobile-menu" aria-expanded="@_mobileMenuOpen">
-                    <span class="absolute -inset-0.5"></span>
-                    <span class="sr-only">Open main menu</span>
 
-                    <svg class="@(!_mobileMenuOpen ? "block" : "hidden") size-6" fill="none" viewBox="0 0 24 24"
-                         stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+            <div class="flex items-center">
+                <img class="h-8 w-auto" src="/logo.png" alt="Logo" />
+
+                <button @onclick="ToggleMobileMenu"
+                        class="ml-4 sm:hidden inline-flex items-center justify-center p-2 rounded-md text-[#66c61c] hover:bg-[#66c61c] hover:text-white focus:outline-none focus:ring-2 focus:ring-white">
+                    <span class="sr-only">Open menu</span>
+                    <svg class="@(!_mobileMenuOpen ? "block" : "hidden") h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
-
-                    <svg class="@(_mobileMenuOpen ? "block" : "hidden") size-6" fill="none" viewBox="0 0 24 24"
-                         stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    <svg class="@(_mobileMenuOpen ? "block" : "hidden") h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            <div class="hidden sm:flex sm:ml-6 sm:items-center sm:justify-between w-full max-w-7xl mx-auto px-2">
-                <div class="flex items-center space-x-4">
-                    <div class="flex shrink-0 items-center">
-                        <img class="h-8 w-auto text-[#66c61c]"
-                             src="/logo.png"
-                             alt="Reporting Portal" />
-                    </div>
-                    <AuthorizeView>
-                        <Authorized>
-                            <NavLink href="/home"
-                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                                     activeClass="active-text-link">
-                                <i class="fa-solid fa-house"></i>
-                                Home
-                            </NavLink>
-                        </Authorized>
-                    </AuthorizeView>
-                    <AuthorizeView>
-                        <NotAuthorized>
-                            <NavLink href="/register"
-                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                                     activeClass="active-text-link">
-                                <i class="fa-solid fa-right-to-bracket"></i>
-                                Register
-                            </NavLink>
-                            <NavLink href="/login"
-                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                                     activeClass="active-text-link">
-                                <i class="fa-solid fa-right-to-bracket"></i>
-                                Login
-                            </NavLink>
-                        </NotAuthorized>
-                    </AuthorizeView>
-                </div>
+            <div class="hidden sm:flex items-center space-x-6">
+                <AuthorizeView>
+                    <Authorized>
+                        <NavLink href="/home"
+                                 class="flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-link hover:bg-gray-900"
+                                 activeClass="active-text-link">
+                            <i class="fa-solid fa-house"></i>
+                            <span>Home</span>
+                        </NavLink>
+                    </Authorized>
+                    <NotAuthorized>
+                        <NavLink href="/register"
+                                 class="flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-link hover:bg-gray-900"
+                                 activeClass="active-text-link">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Register</span>
+                        </NavLink>
+                        <NavLink href="/login"
+                                 class="flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-link hover:bg-gray-900"
+                                 activeClass="active-text-link">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            <span>Login</span>
+                        </NavLink>
+                    </NotAuthorized>
+                </AuthorizeView>
 
-                <div class="flex items-center space-x-4">
-                    <AuthorizeView>
-                        <Authorized>
-                            <NavLink href="/notifications"
-                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                                     activeClass="active-text-link">
-                                <i class="fa-solid fa-bell"></i>
-                                Notifications
-                            </NavLink>
+                <AuthorizeView>
+                    <Authorized>
+                        <NavLink href="/notifications"
+                                 class="flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-link hover:bg-gray-900"
+                                 activeClass="active-text-link">
+                            <i class="fa-solid fa-bell"></i>
+                            <span>Notifications</span>
+                        </NavLink>
+                        <NavLink href="/profile"
+                                 class="flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-link hover:bg-gray-900"
+                                 activeClass="active-text-link">
+                            <i class="fa-solid fa-user"></i>
+                            <span>Profile</span>
+                        </NavLink>
+                        <button @onclick="LogOut"
+                                class="flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-link hover:bg-gray-900">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Logout</span>
+                        </button>
+                    </Authorized>
+                </AuthorizeView>
 
-                            <NavLink href="/profile"
-                                     class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                                     activeClass="active-text-link">
-                                <i class="fa-solid fa-user"></i>
-                                Profile
-                            </NavLink>
-
-                            <button @onclick="LogOut"
-                                    class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link">
-                                <i class="fa-solid fa-right-from-bracket"></i>
-                                LogOut
-                            </button>
-                        </Authorized>
-                    </AuthorizeView>
-
-                    <NavLink href="/"
-                             class="flex flex-col items-center justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-900 text-link"
-                             activeClass="active-text-link" Match=NavLinkMatch.All>
-                        <i class="fa-solid fa-backward"></i>
-                        Go Back
-                    </NavLink>
-                </div>
+                <NavLink href="/"
+                         class="flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-link hover:bg-gray-900"
+                         activeClass="active-text-link"
+                         Match="NavLinkMatch.All">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Access Portal</span>
+                </NavLink>
             </div>
         </div>
     </div>
 
-    <div class="@(_mobileMenuOpen ? "flex" : "hidden") sm:hidden" id="mobile-menu">
-        <div class="flex w-full px-2 pt-2 pb-3 gap-4">
-            <div class="flex flex-col w-1/2 space-y-1 order-2">
+    <div class="@(_mobileMenuOpen ? "block" : "hidden") sm:hidden px-4 pt-4 pb-6 space-y-2">
+        <AuthorizeView>
+            <Authorized>
                 <NavLink href="/home"
-                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                         class="block rounded-md px-4 py-2 text-base font-medium text-link hover:bg-gray-800"
                          activeClass="active-text-link">Home</NavLink>
-                <NavLink href="/register"
-                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
-                         activeClass="active-text-link">Register</NavLink>
-                <NavLink href="/login"
-                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
-                         activeClass="active-text-link">Login</NavLink>
-            </div>
-
-            <div class="flex flex-col w-1/2 space-y-1 order-1">
                 <NavLink href="/notifications"
-                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                         class="block rounded-md px-4 py-2 text-base font-medium text-link hover:bg-gray-800"
                          activeClass="active-text-link">Notifications</NavLink>
                 <NavLink href="/profile"
-                         class="block rounded-md px-3 py-2 text-base font-medium hover:bg-gray-700 hover:text-white text-link"
+                         class="block rounded-md px-4 py-2 text-base font-medium text-link hover:bg-gray-800"
                          activeClass="active-text-link">Profile</NavLink>
-            </div>
-        </div>
+                <button @onclick="LogOut"
+                        class="block w-full text-left rounded-md px-4 py-2 text-base font-medium text-link hover:bg-gray-800">
+                    Logout
+                </button>
+            </Authorized>
+            <NotAuthorized>
+                <NavLink href="/register"
+                         class="block rounded-md px-4 py-2 text-base font-medium text-link hover:bg-gray-800"
+                         activeClass="active-text-link">Register</NavLink>
+                <NavLink href="/login"
+                         class="block rounded-md px-4 py-2 text-base font-medium text-link hover:bg-gray-800"
+                         activeClass="active-text-link">Login</NavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+
+        <NavLink href="/"
+                 class="block rounded-md px-4 py-2 text-base font-medium text-link hover:bg-gray-800"
+                 activeClass="active-text-link" Match="NavLinkMatch.All">Access Portal</NavLink>
     </div>
 </nav>
 
@@ -139,15 +133,13 @@
     private bool _mobileMenuOpen = false;
     private AlertModel AlertData = new();
 
-    private void ToggleMobileMenu()
-    {
-        _mobileMenuOpen = !_mobileMenuOpen;
-    }
+    private void ToggleMobileMenu() => _mobileMenuOpen = !_mobileMenuOpen;
 
     private async Task LogOut()
     {
         await LocalStorage.RemoveItemAsync("token");
         await LocalStorage.RemoveItemAsync("user");
+
         if (AuthProvider is CustomAuthStateProvider customProvider)
         {
             customProvider.NotifyUserLogout();

@@ -21,14 +21,19 @@
         align-items: center;
         justify-content: center;
         border: 2px solid white;
+        transition: transform 0.2s ease-in-out;
     }
+
+        .map-link:hover {
+            transform: scale(1.1);
+        }
 </style>
 
 <div class="w-full relative">
     <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="92vh" width="100%"></RealTimeMap>
 
     <NavLink href="/home" class="map-link">
-        <i class="fa-solid fa-arrow-left"></i>
+        <i class="fa-solid fa-compress"></i>
     </NavLink>
 </div>
 
