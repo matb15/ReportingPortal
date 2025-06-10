@@ -1,34 +1,106 @@
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using Models.http;
 using ReportingPortalServer.Services;
-using ReportingPortalServer.Data;
+using ReportingPortalServer.Services.Helpers;
 
 namespace ReportingPortalServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CategoryController(ICategoryService categoryService, ApplicationDbContext context) : ControllerBase
+    public class CategoryController(ILogger<CategoryController> logger, ICategoryService categoryService, ApplicationDbContext context) : Controller
     {
+        private readonly ILogger<CategoryController> _logger = logger;
         private readonly ICategoryService _categoryService = categoryService;
-        private readonly ApplicationDbContext _context = context;
-
-        [HttpGet]
-        public IActionResult GetAll()
-            => Ok(_categoryService.GetAll(_context));
+        private readonly ApplicationDbContext context = context;
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public CategoryResponse GetCategory(int id)
         {
-            var category = _categoryService.GetById(id, _context);
-            if (category == null) return NotFound();
-            return Ok(category);
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new CategoryResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            _logger.LogInformation($"GetCategory request received for ID: {id}");
+            return _categoryService.GetCategory(id, context);
+        }
+
+        [HttpGet]
+        public CategoriesPaginatedResponse GetPaginatedCategories([FromQuery] CategoriesPaginatedRequest request)
+        {
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new CategoriesPaginatedResponse
+                {
+                    StatusCode = (int)System.Net.HttpStatusCode.Unauthorized,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            _logger.LogInformation($"GetPaginatedCategories request received: Page={request.Page}, PageSize={request.PageSize}");
+            return _categoryService.GetPaginatedCategories(request, context);
         }
 
         [HttpPost]
-        public IActionResult Add(Category category)
+        public Response CreateCategory([FromBody] Category category)
         {
-            var created = _categoryService.Add(category, _context);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            _logger.LogInformation("CreateCategory request received");
+
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new Response
+                {
+                    StatusCode = 401,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            return _categoryService.CreateCategory(category, context, jwt);
+        }
+
+        [HttpPut("{id}")]
+        public Response UpdateCategory(int id, [FromBody] Category category)
+        {
+            _logger.LogInformation($"UpdateCategory request received for ID: {id}");
+
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new Response
+                {
+                    StatusCode = 401,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            category.Id = id;
+            return _categoryService.UpdateCategory(category, context, jwt);
+        }
+
+        [HttpDelete("{id}")]
+        public Response DeleteCategory(int id)
+        {
+            _logger.LogInformation($"DeleteCategory request received for ID: {id}");
+
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new Response
+                {
+                    StatusCode = 401,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+
+            return _categoryService.DeleteCategory(id, context, jwt);
         }
     }
 }

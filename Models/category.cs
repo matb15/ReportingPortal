@@ -14,7 +14,11 @@ namespace Models
         [MaxLength(100)]
         public string IconClass { get; set; } = "fa-solid fa-circle-exclamation";
 
+        [DataType(DataType.DateTime)]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [DataType(DataType.DateTime)]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<Report> Reports { get; set; } = [];
     }
-
 }

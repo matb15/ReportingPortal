@@ -55,7 +55,7 @@
                 <tr>
                     <th class="text-left px-6 py-4 font-semibold">Icon</th>
                     <th class="text-left px-6 py-4 font-semibold">Name</th>
-                    <th class="text-center px-6 py-4 font-semibold">Actions</th>
+                    <th class="text-left px-6 py-4 font-semibold">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,7 +66,7 @@
                             <i class="@category.IconClass text-xl text-green-600"></i>
                         </td>
                         <td class="px-6 py-4 font-medium text-gray-900">@category.Name</td>
-                        <td class="text-center px-6 py-4">
+                        <td class="px-6 py-4">
                             <button class="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition"
                                     @onclick="() => ConfirmDeleteCategory(category.Id)" title="Delete Category">
                                 <i class="fa-solid fa-trash"></i>
@@ -133,25 +133,40 @@
 
     private async Task OnCategoryCreated(Category request)
     {
-        IsCreatingCategory = false;
-
-        await FetchCategoriesAsync();
-
-        AlertData2 = new AlertModel
+        CategoryResponse response = await CategoryService.CreateAsync(request);
+        if(response.StatusCode >= 200 && response.StatusCode < 300)
         {
-            IsVisible = true,
-            Style = AlertTypeEnum.Information,
-            Title = "Success",
-            Message = "Category created successfully!",
-            Position = AlertStylePositionEnum.BottomRight
-        };
+            IsCreatingCategory = false;
+
+            await FetchCategoriesAsync();
+
+            AlertData2 = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Information,
+                Message = "Category created successfully.",
+                Title = "Success",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+        }
+        else
+        {
+            AlertData2 = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Message = response.Message ?? "Failed to create category.",
+                Title = "Error",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+        }
     }
 
     private void OnCancelCreate() => IsCreatingCategory = false;
 
     private async Task FetchCategoriesAsync()
     {
-        var request = new CategoriesPaginatedRequest
+        CategoriesPaginatedRequest request = new()
         {
             Page = Page,
             PageSize = PageSize,
@@ -222,9 +237,9 @@
 
     private async Task DeleteCategory(int categoryId)
     {
-        var response = await CategoryService.DeleteAsync(categoryId);
+        CategoryResponse response = await CategoryService.DeleteAsync(categoryId);
 
-        if (response.StatusCode > 200 && response.StatusCode < 299)
+        if (response.StatusCode >= 200 && response.StatusCode < 300)
         {
             AlertData2 = new AlertModel
             {

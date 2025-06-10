@@ -10,5 +10,30 @@ namespace ReportingPortalServer.Services
         public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
         public DbSet<ResetPasswordToken> PasswordResetTokens { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
+        public DbSet<Category> Categories { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReportReply>()
+                .HasOne(rr => rr.User)
+                .WithMany()
+                .HasForeignKey(rr => rr.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReportReply>()
+                .HasOne(rr => rr.Report)
+                .WithMany(r => r.Replies)
+                .HasForeignKey(rr => rr.ReportId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
     }
 }

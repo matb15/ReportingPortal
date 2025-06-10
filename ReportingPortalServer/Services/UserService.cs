@@ -18,7 +18,7 @@ namespace ReportingPortalServer.Services
         public UserResponse GetUserAsync(string JWT, int id, ApplicationDbContext context);
         public UserResponse UpdateUserAsync(string JWT, int id, UserPutModel updatedUser, ApplicationDbContext context);
         public Response DeleteUserAsync(string JWT, int id, ApplicationDbContext context);
-        public PagedResponse<User> GetUserPaginationAsync(string JWT, UsersPaginatedRequest request, ApplicationDbContext context);
+        public UsersPaginatedResponse GetUserPaginationAsync(string JWT, UsersPaginatedRequest request, ApplicationDbContext context);
         public Response CreateResetPasswordRequestAsync(string email, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService);
         public Response VerifyResetPasswordAsync(string token, ApplicationDbContext context);
         public Response ResetPasswordAsync(string token, string newPassword, ApplicationDbContext context);
@@ -408,12 +408,12 @@ namespace ReportingPortalServer.Services
             };
         }
 
-        public PagedResponse<User> GetUserPaginationAsync(string JWT, UsersPaginatedRequest request, ApplicationDbContext context)
+        public UsersPaginatedResponse GetUserPaginationAsync(string JWT, UsersPaginatedRequest request, ApplicationDbContext context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(JWT))
             {
-                return new PagedResponse<User>
+                return new UsersPaginatedResponse
                 {
                     StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
                     Message = "JWT not valid."
@@ -425,7 +425,7 @@ namespace ReportingPortalServer.Services
 
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
-                return new PagedResponse<User>
+                return new UsersPaginatedResponse
                 {
                     StatusCode = (int)System.Net.HttpStatusCode.BadRequest,
                     Message = "JWT does not contain user ID."
@@ -435,7 +435,7 @@ namespace ReportingPortalServer.Services
             User? currentUser = context.Users.FirstOrDefault(u => u.Id == userId);
             if (currentUser == null)
             {
-                return new PagedResponse<User>
+                return new UsersPaginatedResponse
                 {
                     StatusCode = (int)System.Net.HttpStatusCode.NotFound,
                     Message = "Authenticated user not found."
@@ -444,7 +444,7 @@ namespace ReportingPortalServer.Services
 
             if (currentUser.Role != UserRoleEnum.Admin)
             {
-                return new PagedResponse<User>
+                return new UsersPaginatedResponse
                 {
                     StatusCode = (int)System.Net.HttpStatusCode.Forbidden,
                     Message = "Solo gli amministratori possono accedere a questa risorsa."
@@ -490,7 +490,7 @@ namespace ReportingPortalServer.Services
                 .AsEnumerable()
                 .Select(u => { u.Password = "baldman"; return u; })];
 
-            return new PagedResponse<User>
+            return new UsersPaginatedResponse
             {
                 Items = users,
                 Page = request.Page,

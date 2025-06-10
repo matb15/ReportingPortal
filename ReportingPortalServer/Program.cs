@@ -43,6 +43,7 @@ namespace ReportingPortalServer
             builder.Services.AddHostedService<JobSchedulerService>();
             builder.Services.AddSingleton<IAppwriteClient, AppwriteClient>();
             builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddSingleton<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<ITokenVerificationService, TokenVerificationService>();

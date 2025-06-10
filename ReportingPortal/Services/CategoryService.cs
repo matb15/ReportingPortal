@@ -72,20 +72,20 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<Response> DeleteAsync(int id)
+        public async Task<CategoryResponse> DeleteAsync(int id)
         {
             string url = $"api/Category/{id}";
             try
             {
                 HttpResponseMessage response = await _http.DeleteAsync(url);
-                Response? content = await response.Content.ReadFromJsonAsync<Response>();
+                CategoryResponse? content = await response.Content.ReadFromJsonAsync<CategoryResponse>();
                 if (content != null && response.IsSuccessStatusCode)
                 {
                     return content;
                 }
                 else
                 {
-                    return new Response
+                    return new CategoryResponse
                     {
                         Message = content?.Message ?? "Failed to delete category.",
                         StatusCode = (int)response.StatusCode
@@ -94,7 +94,7 @@ namespace ReportingPortal.Services
             }
             catch (Exception ex)
             {
-                return new Response
+                return new CategoryResponse
                 {
                     Message = $"Request failed: {ex.Message}",
                     StatusCode = 500
