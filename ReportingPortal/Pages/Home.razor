@@ -93,55 +93,55 @@
 
         @if (selectedTab == "reports")
         {
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 mt-4">
                 @foreach (var report in reports)
                 {
                     <div class="bg-white rounded-xl shadow p-4 flex flex-col">
-    <!-- Image -->
-    <div class="w-full h-48 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
-        <img src="https://placehold.co/600x400"
-             alt="Report image"
-             class="w-full h-full object-cover" />
-    </div>
+                    <!-- Image -->
+                    <div class="w-full h-48 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
+                        <img src="https://placehold.co/600x400"
+                            alt="Report image"
+                            class="w-full h-full object-cover" />
+                    </div>
 
-    <!-- Info -->
-    <div class="flex-1 text-sm text-gray-700">
-        <h3 class="text-base font-semibold text-gray-800 mb-2 line-clamp-1">@report.Title ?? "Untitled Report"</h3>
+                    <!-- Info -->
+                    <div class="flex-1 text-sm text-gray-700">
+                        <h3 class="text-base font-semibold text-gray-800 mb-2 line-clamp-1">@report.Title ?? "Untitled Report"</h3>
 
-        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            <div>
-                <span class="font-semibold text-gray-800">Location:</span>
-                <span class="ml-1 text-gray-600">@report.Location ?? "Unknown"</span>
-            </div>
-            <div>
-                <span class="font-semibold text-gray-800">Category:</span>
-                <span class="ml-1 text-gray-600">@report.Category?.Name ?? "N/A"</span>
-            </div>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                            <div>
+                                <span class="font-semibold text-gray-800">Location:</span>
+                                <span class="ml-1 text-gray-600">@report.Location ?? "Unknown"</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-800">Category:</span>
+                                <span class="ml-1 text-gray-600">@report.Category?.Name ?? "N/A"</span>
+                            </div>
 
-            <div>
-                <span class="font-semibold text-gray-800">Date:</span>
-                <span class="ml-1 text-gray-600">@report.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
-            </div>
-            <div>
-                <span class="font-semibold text-gray-800">Status:</span>
-                <span class="ml-1 inline-block px-2 py-0.5 text-xs font-semibold rounded-full
-                    @(report.Status switch {
-                        ReportStatusEnum.Resolved => "bg-green-100 text-green-700",
-                        ReportStatusEnum.Pending => "bg-yellow-100 text-yellow-700",
-                        _ => "bg-gray-100 text-gray-700"
-                    })">
-                    @report.Status
-                </span>
-            </div>
-        </div>
-    </div>
+                            <div>
+                                <span class="font-semibold text-gray-800">Date:</span>
+                                <span class="ml-1 text-gray-600">@report.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-800">Status:</span>
+                                <span class="ml-1 inline-block px-2 py-0.5 text-xs font-semibold rounded-full
+                                    @(report.Status switch {
+                                        ReportStatusEnum.Resolved => "bg-green-100 text-green-700",
+                                        ReportStatusEnum.Pending => "bg-yellow-100 text-yellow-700",
+                                        _ => "bg-gray-100 text-gray-700"
+                                    })">
+                                    @report.Status
+                                </span>
+                            </div>
+                        </div>
+                    </div>
 
-    <!-- Full-width Button -->
-    <button @onclick="@(() => GoToReportDetail(report.Id))"
-            class="mt-4 w-full bg-[#66c61c] hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2">
-        <i class="fa-solid fa-right-to-bracket"></i> View Detail
-    </button>
-</div>
+                    <!-- Full-width Button -->
+                    <button @onclick="@(() => GoToReportDetail(report.Id))"
+                            class="mt-4 w-full bg-[#66c61c] hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> View Detail
+                    </button>
+                </div>
 
                 }
     
