@@ -15,7 +15,7 @@ namespace ReportingPortalServer.Services.Helpers
             return authHeader["Bearer ".Length..].Trim();
         }
 
-        public static void GenerateNewVerificationToken(User user, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
+        public static async Task GenerateNewVerificationToken(User user, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
         {
             EmailVerificationToken emailVerificationToken = new()
             {
@@ -109,10 +109,10 @@ namespace ReportingPortalServer.Services.Helpers
                 </html>
                 ";
 
-            emailService.SendEmail(user.Email, "Confirm your email", emailBody);
+            await emailService.SendEmailAsync(user.Email, "Confirm your email", emailBody);
         }
 
-        public static void GenerateNewResetPasswordToken(User user, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
+        public static async Task GenerateNewResetPasswordToken(User user, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
         {
             ResetPasswordToken resetPasswordToken = new()
             {
@@ -206,7 +206,7 @@ namespace ReportingPortalServer.Services.Helpers
                 </html>
                 ";
 
-            emailService.SendEmail(user.Email, "Reset Password", emailBody);
+            await emailService.SendEmailAsync(user.Email, "Reset Password", emailBody);
         }
 
     }

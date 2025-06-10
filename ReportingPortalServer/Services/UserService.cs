@@ -19,7 +19,7 @@ namespace ReportingPortalServer.Services
         public UserResponse UpdateUserAsync(string JWT, int id, UserPutModel updatedUser, ApplicationDbContext context);
         public Response DeleteUserAsync(string JWT, int id, ApplicationDbContext context);
         public UsersPaginatedResponse GetUserPaginationAsync(string JWT, UsersPaginatedRequest request, ApplicationDbContext context);
-        public Response CreateResetPasswordRequestAsync(string email, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService);
+        public Task<Response> CreateResetPasswordRequestAsync(string email, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService);
         public Response VerifyResetPasswordAsync(string token, ApplicationDbContext context);
         public Response ResetPasswordAsync(string token, string newPassword, ApplicationDbContext context);
     }
@@ -500,7 +500,7 @@ namespace ReportingPortalServer.Services
             };
         }
 
-        public Response CreateResetPasswordRequestAsync(string email, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
+        public async Task<Response> CreateResetPasswordRequestAsync(string email, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
         {
             User? user = context.Users.FirstOrDefault(u => u.Email == email);
             if (user == null)
@@ -520,7 +520,7 @@ namespace ReportingPortalServer.Services
                 context.SaveChanges();
             }
 
-            Utils.GenerateNewResetPasswordToken(user, context, configuration, emailService);
+            await Utils.GenerateNewResetPasswordToken(user, context, configuration, emailService);
 
             return new Response
             {

@@ -7,12 +7,12 @@ namespace ReportingPortalServer.Services
     public interface ITokenVerificationService
     {
         VerificationTokenResponse VerifyToken(string token, ApplicationDbContext context);
-        VerificationTokenRetryReponse GenerateNewVerificationToken(User user, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService);
+        Task<VerificationTokenRetryReponse> GenerateNewVerificationToken(User user, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService);
     }
 
     public class TokenVerificationService : ITokenVerificationService
     {
-        public VerificationTokenRetryReponse GenerateNewVerificationToken(User user, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
+        public async Task<VerificationTokenRetryReponse> GenerateNewVerificationToken(User user, ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
         {
             if (user.EmailConfirmed)
             {
@@ -31,7 +31,7 @@ namespace ReportingPortalServer.Services
                 context.SaveChanges();
             }
 
-            Utils.GenerateNewVerificationToken(user, context, configuration, emailService);
+            await Utils.GenerateNewVerificationToken(user, context, configuration, emailService);
 
             return new VerificationTokenRetryReponse
             {

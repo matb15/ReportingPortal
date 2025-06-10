@@ -11,8 +11,7 @@ namespace ReportingPortalServer.Services
 {
     public interface INotificationService
     {
-        bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration);
-
+        Task<bool> SendNotificationPushUserAsync(int userId, string message, ApplicationDbContext context, IConfiguration configuration);
         NotificationsPaginatedResponse GetNotifications(string jwt, NotificationsPaginatedRequest request, ApplicationDbContext context);
         NotificationResponse ReadNotification(string jwt, int notificationId, ApplicationDbContext context);
         NotificationResponse CreateNotification(string jwt, CreateNotificationRequest request, ApplicationDbContext context);
@@ -22,14 +21,15 @@ namespace ReportingPortalServer.Services
 
     public class NotificationService() : INotificationService
     {
-        public bool SendNotificationPushUser(int userId, string message, ApplicationDbContext context, IConfiguration configuration)
+        public async Task<bool> SendNotificationPushUserAsync(int userId, string message, ApplicationDbContext context, IConfiguration configuration)
         {
-            User? user = context.Users.Find(userId);
+            User? user = await context.Users.FindAsync(userId);
             if (user == null) return false;
 
-            List<WebPush.PushSubscription> subscriptions = [.. context.PushSubscriptions
+            List<WebPush.PushSubscription> subscriptions = await context.PushSubscriptions
                 .Where(s => s.UserId == userId)
-                .Select(s => new WebPush.PushSubscription(s.Endpoint, s.P256dh, s.Auth))];
+                .Select(s => new WebPush.PushSubscription(s.Endpoint, s.P256dh, s.Auth))
+                .ToListAsync();
 
             string? subject = configuration["VAPID:subject"];
             string? publicKey = configuration["VAPID:publicKey"];
@@ -41,25 +41,27 @@ namespace ReportingPortalServer.Services
                 return false;
             }
 
+            VapidDetails vapidDetails = new(subject, publicKey, privateKey);
+            WebPushClient webPushClient = new();
+
+            bool anySuccess = false;
+
             foreach (WebPush.PushSubscription subscription in subscriptions)
             {
-                VapidDetails vapidDetails = new(subject, publicKey, privateKey);
-                WebPushClient webPushClient = new();
                 try
                 {
-                    webPushClient.SendNotification(subscription, message, vapidDetails);
-                    return true;
+                    await Task.Run(() => webPushClient.SendNotification(subscription, message, vapidDetails));
+                    anySuccess = true;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error sending push notification: {ex.Message}");
                     if (ex.InnerException != null)
                         Console.WriteLine("Inner: " + ex.InnerException.Message);
-                    return false;
                 }
             }
 
-            return true;
+            return anySuccess;
         }
 
         public NotificationsPaginatedResponse GetNotifications(string JWT, NotificationsPaginatedRequest request, ApplicationDbContext context)

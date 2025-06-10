@@ -155,7 +155,7 @@ namespace ReportingPortalServer.Controllers
         }
 
         [HttpPost("reset-password")]
-        public Response CreateResetPassword(ResetPasswordRequest request)
+        public Task<Response> CreateResetPassword(ResetPasswordRequest request)
         {
             _logger.LogInformation("Reset password request received");
 

@@ -10,7 +10,7 @@ namespace ReportingPortalServer.Services
     public interface IAuthService
     {
         public LoginResponse LoginAsync(string email, string password, ApplicationDbContext context);
-        public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context);
+        public Task<RegisterResponse> RegisterAsync(RegisterRequest request, ApplicationDbContext context);
     }
 
     public class AuthService(IEmailService emailService, IConfiguration configuration) : IAuthService
@@ -53,7 +53,7 @@ namespace ReportingPortalServer.Services
             };
         }
 
-        public RegisterResponse RegisterAsync(RegisterRequest request, ApplicationDbContext context)
+        public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, ApplicationDbContext context)
         {
             User? existingUser = context.Users.FirstOrDefault(u => u.Email == request.Email);
             if (existingUser != null)
@@ -79,7 +79,7 @@ namespace ReportingPortalServer.Services
             context.Users.Add(user);
             context.SaveChanges();
 
-            Utils.GenerateNewVerificationToken(user, context, _configuration, _emailService);
+            await Utils.GenerateNewVerificationToken(user, context, _configuration, _emailService);
 
             return new RegisterResponse
             {

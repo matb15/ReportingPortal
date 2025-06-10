@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Models;
 using Models.enums;
 namespace ReportingPortalServer.Services.Jobs
 {
@@ -12,43 +13,51 @@ namespace ReportingPortalServer.Services.Jobs
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            using var scope = _scopeFactory.CreateScope();
+            using IServiceScope scope = _scopeFactory.CreateScope();
 
             ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             IEmailService emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-            List<Notification> pendingEmails = [.. context.Notifications
-                .Where(e => e.Channel == NotificationChannelEnum.Email)
-                .OrderBy(e => e.EmailSent == false || e.EmailSent == null)
-                .Take(50)];
+            List<Notification> pendingEmails = await context.Notifications
+                .Where(e => e.Channel == NotificationChannelEnum.Email && (e.EmailSent == false || e.EmailSent == null))
+                .OrderBy(e => e.CreatedAt)
+                .Take(50)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             _logger.LogInformation("Sending {Count} pending emails...", pendingEmails.Count);
 
             foreach (Notification email in pendingEmails)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
-                    User? user = context.Users.Find(email.UserId);
-                    if (user == null) {
+                    User? user = await context.Users.FindAsync([email.UserId], cancellationToken).ConfigureAwait(false);
+                    if (user == null)
+                    {
                         email.EmailSent = true;
-
                         context.Notifications.Update(email);
                         continue;
                     }
 
-                    emailService.SendEmail(user.Email, email.Title, email.Message);
+                    await emailService.SendEmailAsync(user.Email, email.Title, email.Message).ConfigureAwait(false);
 
                     email.EmailSent = true;
                     email.EmailSentAt = DateTime.UtcNow;
+
+                    context.Notifications.Update(email);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send email to {Email}", email.UserId);
+                    _logger.LogError(ex, "Failed to send email to user {UserId}", email.UserId);
                     email.EmailSent = true;
                     email.EmailSentAt = DateTime.UtcNow;
+                    context.Notifications.Update(email);
                 }
             }
-            await context.SaveChangesAsync(cancellationToken);
+
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

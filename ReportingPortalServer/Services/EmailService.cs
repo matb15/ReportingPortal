@@ -14,13 +14,14 @@ namespace ReportingPortalServer.Services
 
     public interface IEmailService
     {
-        bool SendEmail(string to, string subject, string body);
+        Task<bool> SendEmailAsync(string to, string subject, string body);
     }
+
     public class EmailService(IOptions<EmailSettings> options) : IEmailService
     {
         private readonly EmailSettings _settings = options.Value;
 
-        public bool SendEmail(string to, string subject, string body)
+        public async Task<bool> SendEmailAsync(string to, string subject, string body)
         {
             using SmtpClient client = new(_settings.SmtpServer, _settings.Port)
             {
@@ -28,11 +29,12 @@ namespace ReportingPortalServer.Services
                 EnableSsl = true
             };
 
-            MailMessage mail = new(_settings.FromEmail, to, subject, body)
+            using MailMessage mail = new(_settings.FromEmail, to, subject, body)
             {
                 IsBodyHtml = true
             };
-            client.Send(mail);
+
+            await client.SendMailAsync(mail).ConfigureAwait(false);
 
             return true;
         }

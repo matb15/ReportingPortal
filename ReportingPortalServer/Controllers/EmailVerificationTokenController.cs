@@ -31,7 +31,7 @@ namespace ReportingPortalServer.Controllers
         }
 
         [HttpPost("resend")]
-        public VerificationTokenRetryReponse RetrySendTokenAsync(VerificationTokenRetryRequest verificationTokenRetryRequest)
+        public async Task<VerificationTokenRetryReponse> RetrySendTokenAsync(VerificationTokenRetryRequest verificationTokenRetryRequest)
         {
             if (verificationTokenRetryRequest.UserId <= 0)
             {
@@ -52,7 +52,7 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            return _tokenVerificationService.GenerateNewVerificationToken(user, _context, _configuration, _emailService);
+            return await _tokenVerificationService.GenerateNewVerificationToken(user, _context, _configuration, _emailService);
         }
     }
 }

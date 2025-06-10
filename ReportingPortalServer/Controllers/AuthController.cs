@@ -21,7 +21,7 @@ namespace ReportingPortalServer.Controllers
         }
 
         [HttpPost("register")]
-        public RegisterResponse Register(RegisterRequest request)
+        public Task<RegisterResponse> Register(RegisterRequest request)
         {
             _logger.LogInformation("Register request received for user: {Email}", request.Email);
 

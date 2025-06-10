@@ -6,7 +6,7 @@ namespace ReportingPortalServer.Services
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider;
         private readonly ILogger<JobSchedulerService> _logger = logger;
-        private readonly List<(IScheduledJob job, DateTime nextRun)> _jobs = [];
+        private readonly List<(IScheduledJob job, DateTime nextRun)> _jobs = new();
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -27,7 +27,7 @@ namespace ReportingPortalServer.Services
                         try
                         {
                             _logger.LogInformation("Executing job: {Job}", job.JobName);
-                            await job.ExecuteAsync(stoppingToken);
+                            await job.ExecuteAsync(stoppingToken).ConfigureAwait(false);
                             _jobs.Remove((job, nextRun));
                             _jobs.Add((job, DateTime.UtcNow.Add(job.Interval)));
                         }
@@ -38,9 +38,8 @@ namespace ReportingPortalServer.Services
                     }
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken).ConfigureAwait(false);
             }
         }
     }
-
 }
