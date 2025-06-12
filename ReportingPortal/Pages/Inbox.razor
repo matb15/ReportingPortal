@@ -38,6 +38,7 @@
     }
 </style>
 
+<Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
 <div class="p-6 mx-auto">
     <h2 class="text-3xl font-bold text-gray-900 mb-3">Inbox</h2>
 
@@ -56,11 +57,6 @@
                     @onclick=MarkSelectedAsRead>
                     <i class="fa-solid fa-envelope-open mr-2"></i> Mark as Read
                 </button>
-                <button
-                    class="inline-flex items-center bg-yellow-100 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-200 text-sm transition"
-                    @onclick=MarkSelectedAsUnread>
-                    <i class="fa-solid fa-envelope mr-2"></i> Mark as Unread
-                </button>
             </div>
         }
     </div>
@@ -75,7 +71,7 @@
         }
         else
         {
-            @foreach (var notification in Notifications)
+            @foreach (Notification notification in Notifications)
             {
                 <div class="bg-white shadow-sm rounded-lg p-4 flex items-center hover:bg-gray-50 transition">
                     <div class="flex-shrink-0">
@@ -124,11 +120,19 @@
 
 
 @code {
+
     private int Page = 1;
     private int PageSize = 10;
     private int TotalCount;
     private List<Notification> Notifications = new();
     private HashSet<int> SelectedIds = new();
+
+    private AlertModel AlertData = new()
+    {
+        IsVisible = false,
+        Message = string.Empty,
+        Title = string.Empty,
+    };
 
     private bool IsFirstPage => Page == 1;
     private bool IsLastPage => Page * PageSize >= TotalCount;
@@ -165,7 +169,7 @@
             TotalCount = 0;
             return;
         }
-       
+
         Notifications = response.Items;
         TotalCount = response.TotalCount;
     }
@@ -212,25 +216,26 @@
         }
     }
 
-    private Task MarkSelectedAsRead()
+    private async Task MarkSelectedAsRead()
     {
-        foreach (var n in Notifications.Where(n => SelectedIds.Contains(n.Id)))
+        foreach(Notification n in Notifications.Where(n => SelectedIds.Contains(n.Id)))
         {
-            n.Status = NotificationStatusEnum.Read;
-            n.ReadAt ??= DateTime.UtcNow;
+
+            NotificationResponse response = await NotificationService.MarkAsReadAsync(n.Id);
+            if (response.StatusCode < 200 && response.StatusCode >= 300)
+            {
+                AlertData = new AlertModel
+                {
+                    IsVisible = true,
+                    Style = AlertTypeEnum.Danger,
+                    Message = $"Failed to mark notification '{n.Title}' as read. Status code: {response.StatusCode}",
+                    Title = "Error",
+                    Position = AlertStylePositionEnum.BottomRight,
+                };
+            }
         }
 
-        return Task.CompletedTask;
-    }
-
-    private Task MarkSelectedAsUnread()
-    {
-        foreach (var n in Notifications.Where(n => SelectedIds.Contains(n.Id)))
-        {
-            n.Status = NotificationStatusEnum.Unread;
-            n.ReadAt = null;
-        }
-
-        return Task.CompletedTask;
+        SelectedIds.Clear();
+        await LoadNotifications();
     }
 }

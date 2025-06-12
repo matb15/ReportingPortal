@@ -166,5 +166,35 @@ namespace ReportingPortal.Services
                 };
             }
         }
+
+        public async Task<NotificationResponse> MarkAsReadAsync(int notificationId)
+        {
+            string url = $"api/Notification/read/{notificationId}";
+            try
+            {
+                HttpResponseMessage response = await _http.PutAsync(url, null);
+                NotificationResponse? content = await response.Content.ReadFromJsonAsync<NotificationResponse>();
+                if (content != null && response.IsSuccessStatusCode)
+                {
+                    return content;
+                }
+                else
+                {
+                    return new NotificationResponse
+                    {
+                        Message = content?.Message ?? "Failed to mark notification as read.",
+                        StatusCode = (int)response.StatusCode
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new NotificationResponse
+                {
+                    Message = $"Request failed: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
     }
 }

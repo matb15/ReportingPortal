@@ -96,10 +96,10 @@ namespace ReportingPortalServer.Controllers
             return response;
         }
 
-        [HttpPut("read")]
-        public NotificationResponse MarkNotificationAsRead([FromBody] ReadNotificationRequest request)
+        [HttpPut("read/{notificationId}")]
+        public NotificationResponse MarkNotificationAsRead(int notificationId)
         {
-            if (request == null || request.NotificationId <= 0)
+            if (notificationId <= 0)
             {
                 return new NotificationResponse
                 {
@@ -108,7 +108,7 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            _logger.LogInformation($"PutRead request received for notification: {request.NotificationId}, userId: {request.UserId}");
+            _logger.LogInformation($"PutRead request received for notification: {notificationId}");
             string? jwt = Utils.GetJwt(HttpContext);
             if (string.IsNullOrEmpty(jwt))
             {
@@ -119,7 +119,7 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            NotificationResponse response = _notificationService.ReadNotification(jwt, request.NotificationId, _context);
+            NotificationResponse response = _notificationService.ReadNotification(jwt, notificationId, _context);
 
             return response;
         }
