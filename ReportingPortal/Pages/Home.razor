@@ -55,13 +55,6 @@
 
 
 <div class="p-4 bg-gray-50 space-y-4">
-    <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-gray-800">Home</h1>
-        <button class="bg-[#66c61c] hover:bg-green-600 text-white px-4 py-2 rounded-full" @onclick="ShowAddReportForm">
-            Add Report
-        </button>
-    </div>
-
     @if (showAddReportForm)
     {
         <AddReportForm OnCancel="HideAddReportForm" OnSubmit="HandleAddReportSubmit" />
@@ -82,11 +75,10 @@
         @if (selectedTab == "map")
         {
             <div class="relative mt-4">
-                <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="728px" width="100%" />
+                <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="83vh" width="100%" />
                 <NavLink href="/map"
                          class="map-link">
                     <i class="fa-solid fa-expand"></i>
-
                 </NavLink>
             </div>
         }
@@ -97,54 +89,48 @@
                 @foreach (var report in reports)
                 {
                     <div class="bg-white rounded-xl shadow p-4 flex flex-col">
-    <!-- Image -->
-    <div class="w-full h-48 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
-        <img src="https://placehold.co/600x400"
-             alt="Report image"
-             class="w-full h-full object-cover" />
-    </div>
+                    <div class="w-full h-48 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
+                        <img src="https://placehold.co/600x400"
+                             alt="Report image"
+                             class="w-full h-full object-cover" />
+                    </div>
 
-    <!-- Info -->
-    <div class="flex-1 text-sm text-gray-700">
-        <h3 class="text-base font-semibold text-gray-800 mb-2 line-clamp-1">@report.Title ?? "Untitled Report"</h3>
+                    <div class="flex-1 text-sm text-gray-700">
+                        <h3 class="text-base font-semibold text-gray-800 mb-2 line-clamp-1">@report.Title ?? "Untitled Report"</h3>
 
-        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            <div>
-                <span class="font-semibold text-gray-800">Location:</span>
-                <span class="ml-1 text-gray-600">@report.Location ?? "Unknown"</span>
-            </div>
-            <div>
-                <span class="font-semibold text-gray-800">Category:</span>
-                <span class="ml-1 text-gray-600">@report.Category?.Name ?? "N/A"</span>
-            </div>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                            <div>
+                                <span class="font-semibold text-gray-800">Location:</span>
+                                <span class="ml-1 text-gray-600">@report.Location ?? "Unknown"</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-800">Category:</span>
+                                <span class="ml-1 text-gray-600">@report.Category?.Name ?? "N/A"</span>
+                            </div>
 
-            <div>
-                <span class="font-semibold text-gray-800">Date:</span>
-                <span class="ml-1 text-gray-600">@report.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
-            </div>
-            <div>
-                <span class="font-semibold text-gray-800">Status:</span>
-                <span class="ml-1 inline-block px-2 py-0.5 text-xs font-semibold rounded-full
-                    @(report.Status switch {
-                        ReportStatusEnum.Resolved => "bg-green-100 text-green-700",
-                        ReportStatusEnum.Pending => "bg-yellow-100 text-yellow-700",
-                        _ => "bg-gray-100 text-gray-700"
-                    })">
-                    @report.Status
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Full-width Button -->
-    <button @onclick="@(() => GoToReportDetail(report.Id))"
-            class="mt-4 w-full bg-[#66c61c] hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2">
-        <i class="fa-solid fa-right-to-bracket"></i> View Detail
-    </button>
-</div>
-
+                            <div>
+                                <span class="font-semibold text-gray-800">Date:</span>
+                                <span class="ml-1 text-gray-600">@report.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-800">Status:</span>
+                                <span class="ml-1 inline-block px-2 py-0.5 text-xs font-semibold rounded-full
+                                    @(report.Status switch {
+                                        ReportStatusEnum.Resolved => "bg-green-100 text-green-700",
+                                        ReportStatusEnum.Pending => "bg-yellow-100 text-yellow-700",
+                                        _ => "bg-gray-100 text-gray-700"
+                                    })">
+                                    @report.Status
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <button @onclick="@(() => GoToReportDetail(report.Id))"
+                            class="mt-4 w-full bg-[#66c61c] hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> View Detail
+                    </button>
+                </div>
                 }
-    
             </div>
         }   
     }
@@ -218,7 +204,6 @@
             if (showDemo)
             {
                 AddDemoReports();
-                AddDemoUsers();
                 StateHasChanged();
             }
         }
@@ -238,14 +223,6 @@
         for (int i = 0; i < 37; i++)
         {
             reports.Add(new Report { });
-        }
-    }
-
-    private void AddDemoUsers()
-    {
-        for (int i = 0; i < 5; i++)
-        {
-            users.Add(new User { });
         }
     }
 }

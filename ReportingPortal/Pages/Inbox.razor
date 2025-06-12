@@ -39,6 +39,11 @@
 </style>
 
 <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
+<InboxModal Notification="SelectedNotification"
+            IsVisible="IsModalOpen"
+            OnClose="CloseModal"
+            OnMarkAsRead="MarkSingleAsRead" />
+
 <div class="p-6 mx-auto">
     <h2 class="text-3xl font-bold text-gray-900 mb-3">Inbox</h2>
 
@@ -49,16 +54,15 @@
             <label for="selectAll" class="text-sm text-gray-700 font-medium cursor-pointer">Select All</label>
         </div>
 
-        @if (SelectedIds.Any())
-        {
-            <div class="flex flex-wrap items-center gap-2">
-                <button
-                    class="inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 text-sm transition"
-                    @onclick=MarkSelectedAsRead>
+        <div class="flex flex-wrap items-center min-h-[40px]">
+            @if (SelectedIds.Any())
+            {
+                <button class="inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 text-sm transition"
+                        @onclick=MarkSelectedAsRead>
                     <i class="fa-solid fa-envelope-open mr-2"></i> Mark as Read
                 </button>
-            </div>
-        }
+            }
+        </div>
     </div>
 
     <div class="space-y-3">
@@ -73,7 +77,8 @@
         {
             @foreach (Notification notification in Notifications)
             {
-                <div class="bg-white shadow-sm rounded-lg p-4 flex items-center hover:bg-gray-50 transition">
+                <div class="bg-white shadow-sm rounded-lg p-4 flex items-center hover:bg-gray-50 transition cursor-pointer"
+                     @onclick="@(() => OpenModal(notification))">
                     <div class="flex-shrink-0">
                         <input type="checkbox" class="form-checkbox w-4 h-4 mt-0.5" value="@notification.Id"
                             checked="@SelectedIds.Contains(notification.Id)"
@@ -236,6 +241,27 @@
         }
 
         SelectedIds.Clear();
+        await LoadNotifications();
+    }
+
+    private Notification? SelectedNotification;
+    private bool IsModalOpen = false;
+
+    private void OpenModal(Notification notification)
+    {
+        SelectedNotification = notification;
+        IsModalOpen = true;
+    }
+
+    private void CloseModal()
+    {
+        IsModalOpen = false;
+        SelectedNotification = null;
+    }
+
+    private async Task MarkSingleAsRead(int notificationId)
+    {
+        await NotificationService.MarkAsReadAsync(notificationId);
         await LoadNotifications();
     }
 }
