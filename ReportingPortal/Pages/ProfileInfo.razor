@@ -11,7 +11,7 @@
 @inject NavigationManager Navigation
 
 <Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
-<div class="max-w-4xl mx-auto p-8 bg-gray-50">
+<div class="max-w-6xl mx-auto p-8 bg-gray-50">
     <h2 class="text-4xl font-extrabold text-gray-900 mb-8 tracking-wide flex items-center gap-3">
         <svg class="w-10 h-10 text-lime-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -19,84 +19,93 @@
         Profile Settings
     </h2>
 
-    <div class="bg-white rounded-3xl shadow-lg p-8 mb-5 border border-gray-200">
-        <h3 class="text-2xl font-semibold text-gray-800 mb-5 border-b border-gray-200 pb-3 flex items-center gap-2">
-            <svg class="w-7 h-7 text-lime-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    <div class="flex flex-col md:flex-row bg-white shadow-lg rounded-3xl border border-gray-200 overflow-hidden">
+        <div class="w-full md:w-1/4 bg-gray-100 border-r border-gray-200 p-6 space-y-4">
+            <button class="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-left font-semibold text-gray-700 hover:bg-lime-100 focus:outline-none focus:bg-lime-200"
+                @onclick="SetEditActiveTab">
+                ✏️ Edit Profile
+            </button>
+            <button class="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-left font-semibold text-gray-700 hover:bg-lime-100 focus:outline-none focus:bg-lime-200"
+                    @onclick="() => ChangePasswordVisible = true">
+                🔒 Reset Password
+            </button>
+            <button class="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-left font-semibold text-red-600 hover:bg-red-100 focus:outline-none"
+                    @onclick="ShowDeleteConfirm">
+                🗑️ Delete Account
+            </button>
+        </div>
+
+        <div class="w-full md:w-3/4 p-8">
+            @if (ActiveTab == "edit")
+            {
+                <h3 class="text-2xl font-semibold text-gray-800 mb-5 border-b border-gray-200 pb-3 flex items-center gap-2">
+                    <svg class="w-7 h-7 text-lime-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Edit Profile
+                </h3>
+
+                <EditForm Model="_user" OnValidSubmit="UpdateProfile" class="space-y-8">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block mb-2 text-sm font-semibold text-gray-700">Name</label>
+                            <input type="text" @bind="_user.Name"
+                                   class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:border-lime-500 transition" />
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-semibold text-gray-700">Surname</label>
+                            <input type="text" @bind="_user.Surname"
+                                   class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:border-lime-500 transition" />
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block mb-2 text-sm font-semibold text-gray-700">Email</label>
+                            <input type="email" @bind="email" disabled
+                                   class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-100 placeholder-gray-400 text-gray-500 transition" />
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <button type="submit"
+                                class="flex items-center gap-2 bg-gradient-to-r from-lime-500 to-lime-600 text-white px-8 py-3 rounded-2xl font-semibold shadow-md hover:from-lime-600 hover:to-lime-700 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Save Changes
+                        </button>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+
+    <div class="mt-12 text-center text-gray-500 text-sm space-y-1 font-light">
+        <p class="flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-lime-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 01-8 0"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v4"/>
             </svg>
-            Edit Profile
-        </h3>
-
-        <EditForm Model="_user" OnValidSubmit="UpdateProfile" class="space-y-8">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <label class="block mb-2 text-sm font-semibold text-gray-700 flex items-center gap-1">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        Name
-                    </label>
-                    <input type="text" @bind="_user.Name"
-                           class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:border-lime-500 transition" />
-                </div>
-                <div>
-                    <label class="block mb-2 text-sm font-semibold text-gray-700 flex items-center gap-1">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        Surname
-                    </label>
-                    <input type="text" @bind="_user.Surname"
-                           class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:border-lime-500 transition" />
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block mb-2 text-sm font-semibold text-gray-700 flex items-center gap-1">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 12a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V8a4 4 0 00-8 0v4m8 0v4a4 4 0 01-8 0v-4"/>
-                        </svg>
-                        Email
-                    </label>
-                    <input type="email" @bind="email" disabled
-                           class="w-full px-5 py-3 rounded-xl border border-gray-300 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:border-lime-500 transition" />
-                </div>
-            </div>
-
-            <div class="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
-                <button type="submit"
-                        class="flex items-center gap-2 bg-gradient-to-r from-lime-500 to-lime-600 text-white px-8 py-3 rounded-2xl font-semibold shadow-md hover:from-lime-600 hover:to-lime-700 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    Save Changes
-                </button>
-
-                <button class="flex items-center gap-2 text-lime-600 font-semibold hover:underline" @onclick="() => ChangePasswordVisible = true">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0-1.104.896-2 2-2s2 .896 2 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2c0-1.104.896-2 2-2z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 11V7a5 5 0 00-10 0v4"/>
-                    </svg>
-                    Change Password
-                </button>
-
-                <button type="button"
-                        class="flex items-center gap-2 text-red-600 font-semibold hover:underline"
-                        @onclick="ShowDeleteConfirm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    Delete Account
-                </button>
-            </div>
-        </EditForm>
+            <strong>Role:</strong> @_user?.Role
+        </p>
+        <p class="flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <strong>Created:</strong> @_user?.CreatedAt.ToString("yyyy-MM-dd")
+        </p>
+        <p class="flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19a7 7 0 100-14 7 7 0 000 14z"/>
+            </svg>
+            <strong>Last Updated:</strong> @_user?.UpdatedAt.ToString("yyyy-MM-dd")
+        </p>
     </div>
 
     <ChangePasswordModal IsVisible="@ChangePasswordVisible"
-                         IsVisibleChanged="@(visible => this.ChangePasswordVisible = visible)"/>
+                         IsVisibleChanged="@(visible => this.ChangePasswordVisible = visible)" />
 
     @if (DeleteConfirmVisible)
     {
@@ -122,32 +131,12 @@
             </div>
         </div>
     }
-
-    <div class="mt-12 text-center text-gray-500 text-sm space-y-1 font-light">
-        <p class="flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 text-lime-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 01-8 0"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v4"/>
-            </svg>
-            <strong>Role:</strong> @_user?.Role
-        </p>
-        <p class="flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-            <strong>Created:</strong> @_user?.CreatedAt.ToString("yyyy-MM-dd")
-        </p>
-        <p class="flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19a7 7 0 100-14 7 7 0 000 14z"/>
-            </svg>
-            <strong>Last Updated:</strong> @_user?.UpdatedAt.ToString("yyyy-MM-dd")
-        </p>
-    </div>
 </div>
 
+
 @code {
+    string ActiveTab = "edit";
+
     private UserPutModel _user = new();
     private string email = string.Empty;
     private bool ChangePasswordVisible { get; set; } = false;
@@ -275,4 +264,10 @@
 
         Navigation.NavigateTo("/login", true);
     }
+
+    void SetEditActiveTab()
+    {
+        ActiveTab = "edit";
+    }
+
 }
