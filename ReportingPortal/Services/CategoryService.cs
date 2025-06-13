@@ -9,7 +9,7 @@ namespace ReportingPortal.Services
         private readonly HttpClient _http = factory.CreateClient("AuthorizedClient");
         public async Task<CategoriesPaginatedResponse> GetAllAsync(CategoriesPaginatedRequest request)
         {
-            string url = $"api/Category?page={request.Page}&pageSize={request.PageSize}";
+            string url = $"api/Category?page={request.Page}&pageSize={request.PageSize}&search={Uri.EscapeDataString(request.Search ?? string.Empty)}&sortField={Uri.EscapeDataString(request.SortField ?? string.Empty)}&sortAscending={request.SortAscending}";
             try
             {
                 HttpResponseMessage response = await _http.GetAsync(url);
