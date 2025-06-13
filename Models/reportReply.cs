@@ -29,5 +29,9 @@ namespace Models
 
         [ForeignKey(nameof(UserId))]
         public User User { get; set; } = default!;
+
+        public List<UploadFile>? Attachments { get; set; } = null;
+
+        public List<int>? AttachmentIds { get; set; } = null;
     }
 }
