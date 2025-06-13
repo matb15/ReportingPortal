@@ -44,8 +44,12 @@ namespace Models
 
         [Required]
         public double Longitude { get; set; } = 0.0;
-
+        
         public List<ReportReply> Replies { get; set; } = [];
+
+        public UploadFile? file { get; set; } = null;
+
+        public int? FileId { get; set; } = null;
     }
 
 }
