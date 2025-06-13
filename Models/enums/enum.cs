@@ -41,5 +41,14 @@
         Center,
     }
 
+    public enum FormatEnum
+    {
+        Png,
+        Jpeg,
+        Gif,
+        Webp,
+        Pdf,
+        Unknown
+    }
 }
 
