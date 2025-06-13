@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.enums;
 using Models.http;
@@ -39,8 +40,27 @@ namespace ReportingPortalServer.Services
         public CategoriesPaginatedResponse GetPaginatedCategories(CategoriesPaginatedRequest request, ApplicationDbContext context)
         {
             IQueryable<Category> query = context.Categories.AsQueryable();
+            bool asc = request.SortAscending ?? true;
 
-            int total = query.Count();
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                query = query.Where(u =>
+                    u.Name.ToLower().Contains(request.Search.ToLower())
+                );
+            }
+
+            if (!string.IsNullOrEmpty(request.SortField))
+            {
+                if (asc)
+                {
+                    query = query.OrderBy(u => EF.Property<object>(u, request.SortField));
+                }
+                else
+                {
+                    query = query.OrderByDescending(u => EF.Property<object>(u, request.SortField));
+                }
+            }
+
             List<Category> items = [.. query
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)];
@@ -48,7 +68,7 @@ namespace ReportingPortalServer.Services
             return new CategoriesPaginatedResponse
             {
                 Items = items,
-                TotalCount = total,
+                TotalCount = items.Count,
                 Page = request.Page,
                 PageSize = request.PageSize,
                 StatusCode = 200
