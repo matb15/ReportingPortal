@@ -11,6 +11,7 @@ namespace ReportingPortalServer.Services
         public DbSet<ResetPasswordToken> PasswordResetTokens { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<UploadFile> UploadFiles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
