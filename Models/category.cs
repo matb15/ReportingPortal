@@ -19,6 +19,5 @@ namespace Models
 
         [DataType(DataType.DateTime)]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-        public ICollection<Report> Reports { get; set; } = [];
     }
 }

@@ -68,7 +68,7 @@ namespace ReportingPortalServer.Services
             return new CategoriesPaginatedResponse
             {
                 Items = items,
-                TotalCount = items.Count,
+                TotalCount = query.Count(),
                 Page = request.Page,
                 PageSize = request.PageSize,
                 StatusCode = 200

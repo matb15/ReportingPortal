@@ -44,6 +44,7 @@ namespace ReportingPortalServer
             builder.Services.AddSingleton<IAppwriteClient, AppwriteClient>();
             builder.Services.AddSingleton<IUserService, UserService>();
             builder.Services.AddSingleton<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<ITokenVerificationService, TokenVerificationService>();

@@ -1,22 +1,20 @@
-﻿using Appwrite.Models;
-using Appwrite;
+﻿using Microsoft.EntityFrameworkCore;
 using Models;
+using Models.enums;
 using Models.http;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
-using Models.enums;
 
 namespace ReportingPortalServer.Services
 {
     public interface IReportService
     {
         public ReportResponse GetReportById(string jwt, int id, ApplicationDbContext context);
-        public ReportsPaginatedResponse GetPaginatedReports(string jwt, int page, int pageSize, ApplicationDbContext context);
-        public ReportResponse CreateReport(ReportRequest reportRequest, string jwt, ApplicationDbContext _context);
+        public ReportsPaginatedResponse GetPaginatedReports(string jwt, ReportsPaginatedRequest request, ApplicationDbContext context);
+        public ReportResponse CreateReport(Report reportRequest, string jwt, ApplicationDbContext _context);
         public ReportResponse DeleteReport(int idRep, int idUser, string jwt, ApplicationDbContext _context);
-        public ReportResponse UpdateReport(int idRep, ReportRequest updateRequest, string jwt, ApplicationDbContext _context);
+        public ReportResponse UpdateReport(int idRep, Report updateRequest, string jwt, ApplicationDbContext _context);
     }
 
     public class ReportService : IReportService
@@ -73,7 +71,7 @@ namespace ReportingPortalServer.Services
                 };
             }
         }
-        public ReportsPaginatedResponse GetPaginatedReports(string jwt, int page, int pageSize, ApplicationDbContext context)
+        public ReportsPaginatedResponse GetPaginatedReports(string jwt, ReportsPaginatedRequest request, ApplicationDbContext context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -105,38 +103,52 @@ namespace ReportingPortalServer.Services
             }
 
             List<Report> reports = [..context.Reports
-                .Skip(page * pageSize)
-                .Take(pageSize)];
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Include(n => n.User)
+                .Include(n => n.Category)
+                ];
 
             int totalCount = context.Reports.Count();
             return new ReportsPaginatedResponse
             {
                 StatusCode = (int)HttpStatusCode.OK,
                 Message = "Reports retrieved successfully.",
-                Page = page,
-                PageSize = pageSize,
+                Page = request.Page,
+                PageSize = request.PageSize,
                 TotalCount = totalCount,
                 Items = reports
             };
         }
-        public ReportResponse CreateReport(ReportRequest reportRequest, string jwt, ApplicationDbContext _context)
+        public ReportResponse CreateReport(Report reportRequest, string jwt, ApplicationDbContext _context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
             {
-                throw new ArgumentException("JWT not valid.");
+                return new ReportResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                };
             }
+
             JwtSecurityToken token = handler.ReadJwtToken(jwt);
             Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int parsedUserId))
             {
-                throw new ArgumentException("JWT does not contain user ID.");
+                return new ReportResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                };
             }
+
             Models.User? currentUser = _context.Users.FirstOrDefault(u => u.Id == parsedUserId);
             if (currentUser == null)
             {
-                throw new ArgumentException("Authenticated user not found.");
+                return new ReportResponse { StatusCode = (int)HttpStatusCode.BadRequest, Message = "Authenticated user not found." };
             }
+
             Report report = new()
             {
                 Title = reportRequest.Title,
@@ -144,11 +156,15 @@ namespace ReportingPortalServer.Services
                 CategoryId = reportRequest.CategoryId,
                 Location = reportRequest.Location,
                 LocationDetail = reportRequest.LocationDetail,
+                Latitude = reportRequest.Latitude,
+                Longitude = reportRequest.Longitude,
                 UserId = currentUser.Id,
                 CreatedAt = DateTime.UtcNow
             };
+
             _context.Reports.Add(report);
             _context.SaveChanges();
+
             return new ReportResponse
             {
                 StatusCode = (int)HttpStatusCode.Created,
@@ -218,7 +234,7 @@ namespace ReportingPortalServer.Services
                 Report = report
             };
         }
-        public ReportResponse UpdateReport(int idRep, ReportRequest updateRequest, string jwt, ApplicationDbContext _context)
+        public ReportResponse UpdateReport(int idRep, Report updateRequest, string jwt, ApplicationDbContext _context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -265,14 +281,19 @@ namespace ReportingPortalServer.Services
                     Message = "Report not found."
                 };
             }
-            // Aggiorna i campi del report
+
             report.Title = updateRequest.Title;
             report.Description = updateRequest.Description;
             report.CategoryId = updateRequest.CategoryId;
             report.Location = updateRequest.Location;
             report.LocationDetail = updateRequest.LocationDetail;
+            report.Latitude = updateRequest.Latitude;
+            report.Longitude = updateRequest.Longitude;
+
             _context.Reports.Update(report);
+
             _context.SaveChanges();
+
             return new ReportResponse
             {
                 StatusCode = (int)HttpStatusCode.OK,

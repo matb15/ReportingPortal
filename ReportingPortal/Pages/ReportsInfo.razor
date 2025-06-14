@@ -61,7 +61,7 @@
                     <th class="text-left px-6 py-4 font-semibold">Reporter</th>
                     <th class="text-left px-6 py-4 font-semibold">Submitted</th>
                     <th class="text-left px-6 py-4 font-semibold">Status</th>
-                    <th class="text-center px-6 py-4 font-semibold"></th>
+                    <th class="text-center px-6 py-4 font-semibold">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,15 +72,16 @@
                         <tr class="border-b last:border-b-0 hover:bg-gray-50 transition">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
-                                    <i class="@report.Category.IconClass text-xl text-green-600"></i>
-                                    <span class="text-gray-900 font-medium">@report.Category.Name</span>
+                                    <i class="@report.Category?.IconClass text-xl text-green-600"></i>
+                                    <span class="text-gray-900 font-medium">@report.Category?.Name</span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-gray-700">
-                                @report.Location <br />
-                                <span class="text-gray-500 text-xs">@report.LocationDetail</span>
+                            <td class="px-6 py-4 text-gray-700 max-w-xs truncate" title="@report.Location">
+                                <span class="cursor-pointer" onclick="navigator.clipboard.writeText('@report.Location')">
+                                    @report.Location
+                                </span>
                             </td>
-                            <td class="px-6 py-4 text-gray-700">@report.User.Email</td>
+                            <td class="px-6 py-4 text-gray-700">@report.User?.Email</td>
                             <td class="px-6 py-4 text-gray-700">
                                 @report.CreatedAt.ToString("d MMM yyyy") <br />
                                 <span class="text-xs text-gray-500">@report.CreatedAt.ToString("h:mm tt")</span>
@@ -151,19 +152,35 @@
 
     private void ShowCreateReportForm() => IsCreatingReport = true;
 
-    private async Task OnReportCreated()
+    private async Task OnReportCreated(Report report)
     {
-        IsCreatingReport = false;
-        await FetchReportsAsync();
-
-        AlertData2 = new AlertModel
+        ReportResponse response = await ReportsService.CreateAsync(report);
+        if(response.StatusCode >= 200 && response.StatusCode < 300)
         {
-            IsVisible = true,
-            Style = AlertTypeEnum.Information,
-            Title = "Success",
-            Message = "Report created successfully!",
-            Position = AlertStylePositionEnum.BottomRight
-        };
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Information,
+                Title = "Success",
+                Message = "Report created successfully!",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+
+            IsCreatingReport = false;
+        }
+        else
+        {
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Title = "Error",
+                Message = response.Message ?? "An error occurred while creating the report.",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+        }
+
+        await FetchReportsAsync();
     }
 
     private void OnCancelCreate() => IsCreatingReport = false;

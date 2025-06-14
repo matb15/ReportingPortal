@@ -1,7 +1,6 @@
 ﻿@page "/home"
 @attribute [Authorize]
 
-@using LeafletForBlazor
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Models.front
@@ -62,10 +61,11 @@
     else
     {
         <div class="flex space-x-2 border-b border-gray-200">
-            <button @onclick="@(() => selectedTab = "map")"
-                    class="@($"px-4 py-2 font-medium text-sm border-b-2 { (selectedTab == "map" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500") }")">
-                Map
-            </button>
+            <button @onclick="SelectMapTab"
+        class="@($"px-4 py-2 font-medium text-sm border-b-2 { (selectedTab == "map" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500") }")">
+    Map
+</button>
+
             <button @onclick="@(() => selectedTab = "reports")"
                     class="@($"px-4 py-2 font-medium text-sm border-b-2 { (selectedTab == "reports" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500") }")">
                 Reports
@@ -74,8 +74,7 @@
 
         @if (selectedTab == "map")
         {
-            <div class="relative mt-4">
-                <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="83vh" width="100%" />
+            <div class="relative mt-4 h-[84vh]" id="map">
                 <NavLink href="/map"
                          class="map-link">
                     <i class="fa-solid fa-expand"></i>
@@ -138,7 +137,6 @@
 
 
 @code {
-    RealTimeMap realTimeMap = new RealTimeMap();
     private static Home? _instance;
     private string selectedTab = "map";
 
@@ -166,29 +164,12 @@
         StateHasChanged();
     }
 
-    RealTimeMap.LoadParameters parameters = new()
-    {
-        location = new RealTimeMap.Location
-        {
-            latitude = 45.6982642,
-            longitude = 9.6772698,
-        },
-        zoomLevel = 18
-    };
-
-    RealTimeMap.MapOptions options = new()
-    {
-        interactionOptions = new RealTimeMap.InteractionOptions
-        {
-            doubleClickZoom = true,
-            shiftBoxZoom = false,
-        }
-    };
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            await JSRuntime.InvokeVoidAsync("MAP.initMap");
+
             _instance = this;
 
             string? userJson = await localStorage.GetItemAsync<string>("user");
@@ -224,5 +205,12 @@
         {
             reports.Add(new Report { });
         }
+    }
+
+    private async Task SelectMapTab()
+    {
+        selectedTab = "map";
+        await Task.Delay(50);
+        await JSRuntime.InvokeVoidAsync("MAP.initMap");
     }
 }

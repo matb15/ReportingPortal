@@ -7,109 +7,126 @@
 {
     <div class="fixed inset-0 bg-black/50 z-40"></div>
 
-    <div class="fixed inset-0 flex justify-center items-center z-50 p-4 overflow-y-auto">
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 md:p-10 relative max-h-[95vh] overflow-y-auto">
-            <h2 class="text-3xl font-bold text-gray-800 mb-8">Submit a Report</h2>
+    <div class="fixed inset-0 z-50 p-4">
+        <div class="flex justify-center items-center min-h-screen">
+            <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 md:p-10 relative max-h-[90vh] overflow-y-auto">
+                <h2 class="text-3xl font-bold text-gray-800 mb-8">Submit a Report</h2>
 
-            <EditForm Model="ReportModel" OnValidSubmit="HandleFormSubmit">
-                <div class="grid md:grid-cols-3 gap-8">
+                @if (MapVisible)
+                {
+                    <LeafletMapReport OnConfirm="OnMapConfirm" OnCancel="OnMapCancel" />
+                }
+                else
+                {
+                    <EditForm Model="ReportModel" OnValidSubmit="HandleFormSubmit">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="col-span-1 flex flex-col">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                                <input type="text" class="w-full mb-3 px-3 py-2 border rounded-md" placeholder="Search..."
+                                       @oninput="OnSearchChanged" />
 
-                    <!-- Category Selector -->
-                    <div class="col-span-1">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
-                        <input type="text" class="w-full mb-3 px-3 py-2 border rounded-md" placeholder="Search..."
-                            @oninput="OnSearchChanged" />
-
-                        <div class="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2">
-                            @foreach (var category in Categories)
-                            {
-                                <button type="button"
-                                    class="border px-3 py-2 rounded-md text-sm flex flex-col items-center
-                                                               transition hover:bg-gray-100
-                                                               @(ReportModel.CategoryId == category.Id ? "bg-green-600 text-white" : "bg-white")"
-                                    @onclick="() => SelectCategory(category)">
-                                    <span class="text-xl"><i class="@category.IconClass"></i></span>
-                                    <span>@category.Name</span>
-                                </button>
-                            }
-                        </div>
-
-                        @if (HasMoreCategories)
-                        {
-                            <button class="mt-2 text-sm text-blue-600 hover:underline" @onclick="LoadMoreCategories">Load
-                                more...</button>
-                        }
-                    </div>
-
-                    <!-- Form Fields -->
-                    <div class="col-span-2 space-y-5">
-
-                        <!-- Title -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Title</label>
-                            <InputText class="w-full px-4 py-2 border rounded-md" @bind-Value="ReportModel.Title"
-                                required />
-                        </div>
-
-                        <!-- Description -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-                            <InputTextArea rows="5" class="w-full px-4 py-2 border rounded-md"
-                                @bind-Value="ReportModel.Description" />
-                        </div>
-
-                        <!-- Location Picker -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Location</label>
-                            <div class="flex gap-2 items-center">
-                                <InputText class="w-full px-3 py-2 border rounded-md bg-gray-100"
-                                    @bind-Value="ReportModel.LocationDetail" readonly />
-                                <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                                    @onclick="OpenMap">
-                                    📍 Pick on Map
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Image Upload -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Photos</label>
-                            <InputFile OnChange="HandlePhotoUpload" multiple />
-                            @if (UploadedPhotos.Any())
-                            {
-                                <div class="grid grid-cols-3 gap-4 mt-4">
-                                    @foreach (var photo in UploadedPhotos)
+                                <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 overflow-y-auto pr-2 h-100">
+                                    @foreach (var category in Categories)
                                     {
-                                        <img src="@photo.PreviewUrl" class="w-full h-24 object-cover rounded-lg" />
+                                        <button type="button"
+                                                class="w-full border px-3 py-2 rounded-md text-sm flex flex-col items-center transition hover:bg-green-500
+                                                               @(ReportModel.CategoryId == category.Id ? "bg-green-600 text-white" : "bg-white")"
+                                                @onclick="() => SelectCategory(category)">
+                                            <span class="text-xl"><i class="@category.IconClass"></i></span>
+                                            <span>@category.Name</span>
+                                        </button>
                                     }
                                 </div>
-                            }
-                        </div>
 
-                        <!-- Actions -->
-                        <div class="flex justify-between mt-6">
-                            <button type="button" class="px-4 py-2 border rounded-full text-gray-600 hover:bg-gray-100"
-                                @onclick="HandleCancelClick">
-                                Cancel
-                            </button>
-                            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
-                                disabled="@(!CanSubmit)">
-                                Submit
-                            </button>
+                                @if (HasMoreCategories)
+                                {
+                                    <button type="button" class="mt-2 text-sm text-blue-600 hover:underline" @onclick="LoadMoreCategories">
+                                        Load more...
+                                    </button>
+                                }
+                            </div>
+
+                            <div class="col-span-2 space-y-5">
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+                                    <InputText class="w-full px-4 py-2 border rounded-md" @bind-Value="ReportModel.Title" required />
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                                    <InputTextArea rows="5" class="w-full px-4 py-2 border rounded-md"
+                                                   @bind-Value="ReportModel.Description" />
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Location</label>
+                                    <div>
+                                        <InputText class="w-full px-3 py-2 border rounded-md bg-gray-100"
+                                                   @bind-Value="ReportModel.Location" readonly />
+
+                                        <div class="flex gap-4 items-center mt-2">
+                                            <p class="m-0">Lat: @ReportModel.Latitude</p>
+                                            <p class="m-0">Lng: @ReportModel.Longitude</p>
+
+                                            <button type="button"
+                                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700
+                           flex items-center justify-center min-h-[38px] min-w-[44px]"
+                                                    @onclick="OpenMap"
+                                                    aria-label="Pick location on map">
+                                                📍
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Photos</label>
+                                    <label for="photo-upload"
+                                           class="inline-block cursor-pointer px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 select-none">
+                                        + Add Photo
+                                    </label>
+                                    <InputFile id="photo-upload" class="hidden" OnChange="HandlePhotoUpload" />
+
+                                    @if (UploadedPhoto != null)
+                                    {
+                                        <div class="relative rounded-lg overflow-hidden shadow-md border border-gray-200 w-28 h-28 mt-4">
+                                            <img src="@UploadedPhoto.PreviewUrl" class="w-full h-full object-cover" />
+                                            <button type="button" class="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-opacity-75"
+                                                    @onclick="() => UploadedPhoto = null">
+                                                &times;
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="flex justify-between mt-6">
+                                    <button type="button" class="px-4 py-2 border rounded-full text-gray-600 hover:bg-gray-100"
+                                            @onclick="HandleCancelClick">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                                           >
+                                        Submit
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </EditForm>
+                    </EditForm>
+                }
+            </div>
         </div>
     </div>
 }
 
 @code {
-    // --- Parameters
+
+
+
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback<Report> OnSubmit { get; set; }
 
-    // --- Form Model
     private Report ReportModel = new();
 
     private List<Category> Categories = new();
@@ -120,8 +137,9 @@
         Search = ""
     };
     private bool HasMoreCategories = true;
-    private List<PhotoUpload> UploadedPhotos = new();
+    private PhotoUpload? UploadedPhoto = null;
     private bool IsVisible = true;
+    private bool MapVisible = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -153,34 +171,34 @@
     private void ResetForm()
     {
         ReportModel = new();
-        UploadedPhotos.Clear();
+        UploadedPhoto = null;
         IsVisible = false;
     }
 
     private async Task HandlePhotoUpload(InputFileChangeEventArgs e)
     {
-        foreach (var file in e.GetMultipleFiles())
-        {
-            var buffer = new byte[file.Size];
-            await file.OpenReadStream().ReadAsync(buffer);
-            var base64 = Convert.ToBase64String(buffer);
+        IBrowserFile? file = e.File;
+        if (file == null)
+            return;
 
-            UploadedPhotos.Add(new PhotoUpload
-            {
-                File = file,
-                PreviewUrl = $"data:{file.ContentType};base64,{base64}"
-            });
-        }
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+        var base64 = Convert.ToBase64String(buffer);
+
+        UploadedPhoto = new PhotoUpload
+        {
+            File = file,
+            PreviewUrl = $"data:{file.ContentType};base64,{base64}"
+        };
     }
 
     private bool CanSubmit => !string.IsNullOrWhiteSpace(ReportModel.Title)
     && !string.IsNullOrWhiteSpace(ReportModel.LocationDetail)
     && ReportModel.CategoryId != 0;
 
-    // --- Location Picker
     private void OpenMap()
     {
-
+        MapVisible = true;
     }
 
     private async Task LoadCategories()
@@ -213,12 +231,29 @@
     private void SelectCategory(Category category)
     {
         ReportModel.CategoryId = category.Id;
+
+        Console.WriteLine(ReportModel.CategoryId);
     }
 
-    // --- Helper Models
     public class PhotoUpload
     {
         public IBrowserFile File { get; set; } = default!;
         public string PreviewUrl { get; set; } = "";
+    }
+
+    private void OnMapConfirm(MarkerData markerData)
+    {
+        if (markerData is not null)
+        {
+            ReportModel.Location = markerData.Address.ToString();
+            ReportModel.Latitude = markerData.Lat;
+            ReportModel.Longitude = markerData.Lng;
+            MapVisible = false;
+        }
+    }
+
+    private void OnMapCancel()
+    {
+
     }
 }

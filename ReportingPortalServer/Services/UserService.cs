@@ -495,7 +495,7 @@ namespace ReportingPortalServer.Services
                 Items = users,
                 Page = request.Page,
                 PageSize = request.PageSize,
-                TotalCount = users.Count,
+                TotalCount = query.Count(),
                 StatusCode = (int)System.Net.HttpStatusCode.OK
             };
         }

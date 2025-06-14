@@ -2,7 +2,8 @@
 @attribute [Authorize]
 
 @using Microsoft.AspNetCore.Authorization
-@using LeafletForBlazor
+
+@inject IJSRuntime JSRuntime
 
 <style>
     .map-link {
@@ -29,9 +30,7 @@
         }
 </style>
 
-<div class="w-full relative">
-    <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="92vh" width="100%"></RealTimeMap>
-
+<div class="w-full relative h-[93vh]" id="map">
     <NavLink href="/home" class="map-link">
         <i class="fa-solid fa-compress"></i>
     </NavLink>
@@ -39,24 +38,11 @@
 
 
 @code {
-    RealTimeMap realTimeMap = new RealTimeMap();
-
-    RealTimeMap.LoadParameters parameters = new RealTimeMap.LoadParameters()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            location = new RealTimeMap.Location()
-            {
-                latitude = 45.6982642,
-                longitude = 9.6772698,
-            },
-            zoomLevel = 18
-        };
-
-    RealTimeMap.MapOptions options = new RealTimeMap.MapOptions()
-        {
-            interactionOptions = new RealTimeMap.InteractionOptions()
-            {
-                doubleClickZoom = true,
-                shiftBoxZoom = false,
-            },
-        };
+            await JSRuntime.InvokeVoidAsync("MAP.initMap");
+        }
+    }
 }

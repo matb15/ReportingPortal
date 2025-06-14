@@ -18,14 +18,11 @@ namespace Models
         [Required]
         public int CategoryId { get; set; }
 
-        [ForeignKey(nameof(CategoryId))]
-        public Category Category { get; set; } = default!;
 
         [Required]
         public int UserId { get; set; }
 
-        [ForeignKey(nameof(UserId))]
-        public User User { get; set; } = default!;
+
 
         [Required, MaxLength(200)]
         public string Location { get; set; } = string.Empty;
@@ -44,12 +41,17 @@ namespace Models
 
         [Required]
         public double Longitude { get; set; } = 0.0;
-        
+
         public List<ReportReply> Replies { get; set; } = [];
         public int? FileId { get; set; } = null;
 
         [ForeignKey(nameof(FileId))]
         public UploadFile? File { get; set; } = null;
-    }
 
+        [ForeignKey(nameof(UserId))]
+        public User? User { get; set; } = default!;
+
+        [ForeignKey(nameof(CategoryId))]
+        public Category? Category { get; set; } = default!;
+    }
 }

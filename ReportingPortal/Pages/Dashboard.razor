@@ -3,7 +3,6 @@
 
 @using Microsoft.AspNetCore.Authorization
 @using Models.front
-@using LeafletForBlazor
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject UserService UserService
@@ -62,8 +61,8 @@
         </button>
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <RealTimeMap Parameters="parameters" Options="options" @ref="realTimeMap" height="450px" width="100%" />
+    <div class="bg-white rounded-lg shadow overflow-hidden" id="map">
+        
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -178,8 +177,6 @@
 </div>
 
 @code {
-    RealTimeMap realTimeMap = new();
-
     private string selectedCategory = "All";
     private string selectedDistrict = "All";
     private string selectedStatus = "All";
@@ -187,17 +184,6 @@
     private List<string> categories = new() { "All", "Incendio", "Furto", "Inondazione" };
     private List<string> districts = new() { "All", "Centro", "San Paolo", "Navigli", "Isola" };
     private List<string> statuses = Enum.GetNames(typeof(ReportStatusEnum)).Prepend("All").ToList();
-
-    RealTimeMap.LoadParameters parameters = new()
-    {
-        location = new() { latitude = 45.6982642, longitude = 9.6772698 },
-        zoomLevel = 18
-    };
-
-    RealTimeMap.MapOptions options = new()
-    {
-        interactionOptions = new() { doubleClickZoom = true, shiftBoxZoom = false }
-    };
 
     private List<Report> reports = new();
     private List<User> users = new();
@@ -207,6 +193,8 @@
     {
         if (firstRender)
         {
+            await JSRuntime.InvokeVoidAsync("MAP.initMap");
+
             if (showDemo)
                 AddDemoReports();
 
