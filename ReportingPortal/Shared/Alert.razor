@@ -80,7 +80,7 @@
 
     private string AlertWrapperClasses => AlertData.Position switch
     {
-        AlertStylePositionEnum.BottomRight => $"fixed bottom-6 right-6 z-500 " +
+        AlertStylePositionEnum.BottomRight => $"fixed top-6 right-6 z-500 " +
                           $"{(IsAnimatingOut ? "slide-out-right" : "slide-in-right")}",
         AlertStylePositionEnum.Center => "fixed inset-0 min-h-screen z-500 flex items-center justify-center bg-black/50 transition-opacity duration-300 ease-in-out",
         _ => "fixed inset-0 z-500 flex items-center justify-center bg-black/30"

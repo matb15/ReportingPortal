@@ -1,3 +1,5 @@
+using Models.enums;
+
 namespace Models.http
 {
     public class Response
@@ -34,9 +36,40 @@ namespace Models.http
         public Category Category { get; set; } = default!;
     }
 
+    public class ReportDto : Request
+    {
+        public int Id { get; set; }
+
+        public string Title { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
+
+        public int CategoryId { get; set; }
+
+        public int UserId { get; set; }
+
+        public string Location { get; set; } = string.Empty;
+
+        public string LocationDetail { get; set; } = string.Empty;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public ReportStatusEnum Status { get; set; } = ReportStatusEnum.Pending;
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+
+        public int? FileId { get; set; } = null;
+
+        public UploadFile? File { get; set; } = null;
+
+        public User? User { get; set; } = default!;
+
+        public Category? Category { get; set; } = default!;
+    }
+
     public class ReportResponse : Response
     {
-        public Report Report { get; set; } = default!;
+        public ReportDto Report { get; set; } = default!;
     }
     public class NotificationResponse : Response
     {
@@ -56,7 +89,7 @@ namespace Models.http
     {
     }
 
-    public class ReportsPaginatedResponse : PagedResponse<Report>
+    public class ReportsPaginatedResponse : PagedResponse<ReportDto>
     {
 
     }

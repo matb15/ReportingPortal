@@ -1,5 +1,4 @@
-﻿using Models;
-using Models.http;
+﻿using Models.http;
 using System.Net.Http.Json;
 
 namespace ReportingPortal.Services
@@ -10,25 +9,40 @@ namespace ReportingPortal.Services
 
         public async Task<ReportsPaginatedResponse> GetAllAsync(ReportsPaginatedRequest request)
         {
-            string url = $"api/report?page={request.Page}&pageSize={request.PageSize}";
+            List<string> queryParams =
+            [
+                $"page={request.Page}",
+                $"pageSize={request.PageSize}"
+            ];
+
+            if (!string.IsNullOrWhiteSpace(request.Search))
+                queryParams.Add($"search={Uri.EscapeDataString(request.Search)}");
+
+            if (!string.IsNullOrWhiteSpace(request.SortField))
+                queryParams.Add($"sortField={Uri.EscapeDataString(request.SortField)}");
+
+            if (request.SortAscending.HasValue)
+                queryParams.Add($"sortAscending={request.SortAscending.Value.ToString().ToLower()}");
+
+            if (request.Status.HasValue)
+                queryParams.Add($"status={(int)request.Status.Value}");
+
+            string url = $"api/report?{string.Join("&", queryParams)}";
+
             try
             {
                 HttpResponseMessage response = await _http.GetAsync(url);
                 ReportsPaginatedResponse? content = await response.Content.ReadFromJsonAsync<ReportsPaginatedResponse>();
-                if (content != null && response.IsSuccessStatusCode)
-                {
-                    return content;
-                }
-                else
-                {
-                    return new ReportsPaginatedResponse
+
+                return content != null && response.IsSuccessStatusCode
+                    ? content
+                    : new ReportsPaginatedResponse
                     {
                         Message = content?.Message ?? "Failed to fetch reports.",
                         StatusCode = (int)response.StatusCode,
                         Page = request.Page,
                         PageSize = request.PageSize
                     };
-                }
             }
             catch (Exception ex)
             {
@@ -42,6 +56,7 @@ namespace ReportingPortal.Services
                 };
             }
         }
+
 
         public async Task<ReportResponse> GetByIdAsync(int id)
         {
@@ -72,10 +87,9 @@ namespace ReportingPortal.Services
                     StatusCode = 500
                 };
             }
-
         }
 
-        public async Task<ReportResponse> CreateAsync(Report model)
+        public async Task<ReportResponse> CreateAsync(CreateReportRequest model)
         {
             string url = "api/report";
             try
@@ -106,9 +120,9 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<ReportResponse> UpdateAsync(int id, Report model)
+        public async Task<ReportResponse> UpdateAsync(CreateReportRequest model)
         {
-            string url = $"api/report/{id}";
+            string url = $"api/report/{model.Id}";
             try
             {
                 HttpResponseMessage response = await _http.PutAsJsonAsync(url, model);
@@ -137,25 +151,22 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<Response> DeleteAsync(int id)
+        public async Task<ReportResponse> DeleteAsync(int id)
         {
             string url = $"api/report/{id}";
             try
             {
                 HttpResponseMessage response = await _http.DeleteAsync(url);
-                if (response.IsSuccessStatusCode)
+                ReportResponse? content = await response.Content.ReadFromJsonAsync<ReportResponse>();
+                if (content != null && response.IsSuccessStatusCode)
                 {
-                    return new Response
-                    {
-                        Message = "Report deleted successfully.",
-                        StatusCode = (int)response.StatusCode
-                    };
+                    return content;
                 }
                 else
                 {
-                    return new Response
+                    return new ReportResponse
                     {
-                        Message = "Failed to delete report.",
+                        Message = content?.Message ?? "Failed to update report.",
                         StatusCode = (int)response.StatusCode
                     };
                 }
@@ -163,7 +174,7 @@ namespace ReportingPortal.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to delete report: {ex.Message}");
-                return new Response
+                return new ReportResponse
                 {
                     Message = $"Request failed: {ex.Message}",
                     StatusCode = 500

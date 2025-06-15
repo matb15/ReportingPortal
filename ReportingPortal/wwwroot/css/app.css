@@ -264,3 +264,26 @@ code {
         #marker-confirm-panel button.cancel {
             background-color: #ef4444;
         }
+
+.map-link {
+    background-color: #22c55e;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: white !important;
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    transition: transform 0.2s ease-in-out;
+}
+
+    .map-link:hover {
+        transform: scale(1.1);
+    }

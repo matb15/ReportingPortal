@@ -117,6 +117,18 @@ namespace Models.http
         public NotificationChannelEnum Channel { get; set; } = NotificationChannelEnum.App;
     }
 
+    public class CreateReportRequest : Request
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int CategoryId { get; set; }
+        public string Location { get; set; } = string.Empty;
+        public string LocationDetail { get; set; } = string.Empty;
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+
     public class UpdateNotificationRequest : Request
     {
         public int NotificationId { get; set; } = default!;

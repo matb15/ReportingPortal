@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Models;
 using Models.http;
 using ReportingPortalServer.Services;
 using ReportingPortalServer.Services.Helpers;
@@ -42,7 +41,7 @@ namespace ReportingPortalServer.Controllers
         }
 
         [HttpGet]
-        public ReportsPaginatedResponse GetPaginated([FromQuery] ReportsPaginatedRequest req)
+        public async Task<ReportsPaginatedResponse> GetPaginated([FromQuery] ReportsPaginatedRequest req)
         {
             _logger.LogInformation($"GetPaginated request received with Page={req.Page}, PageSize={req.PageSize}");
 
@@ -65,11 +64,11 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            return _reportService.GetPaginatedReports(jwt, req, _context);
+            return await _reportService.GetPaginatedReports(jwt, req, _context);
         }
 
         [HttpPost]
-        public ReportResponse CreateReport([FromBody] Report reportRequest)
+        public ReportResponse CreateReport([FromBody] CreateReportRequest reportRequest)
         {
             _logger.LogInformation("CreateReport request received");
 
@@ -96,9 +95,9 @@ namespace ReportingPortalServer.Controllers
         }
 
         [HttpDelete("{id}")]
-        public ReportResponse DeleteReport(int id, [FromQuery] int? idUser = null)
+        public ReportResponse DeleteReport(int id)
         {
-            _logger.LogInformation($"DeleteReport request received for idRep: {id}, idUser: {idUser}");
+            _logger.LogInformation($"DeleteReport request received for idRep: {id}");
 
             if (id <= 0)
             {
@@ -106,15 +105,6 @@ namespace ReportingPortalServer.Controllers
                 {
                     StatusCode = 400,
                     Message = "Invalid report ID."
-                };
-            }
-
-            if (idUser == null || idUser <= 0)
-            {
-                return new ReportResponse
-                {
-                    StatusCode = 400,
-                    Message = "Invalid user ID."
                 };
             }
 
@@ -128,11 +118,11 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            return _reportService.DeleteReport(id, idUser.Value, jwt, _context);
+            return _reportService.DeleteReport(id, jwt, _context);
         }
 
         [HttpPut("{id}")]
-        public ReportResponse UpdateReport(int id, [FromBody] Report updateRequest)
+        public ReportResponse UpdateReport(int id, [FromBody] CreateReportRequest updateRequest)
         {
             _logger.LogInformation($"UpdateReport request received for idRep: {id}");
 

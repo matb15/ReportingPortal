@@ -1,4 +1,5 @@
 ﻿using Models.enums;
+using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,11 +19,8 @@ namespace Models
         [Required]
         public int CategoryId { get; set; }
 
-
         [Required]
         public int UserId { get; set; }
-
-
 
         [Required, MaxLength(200)]
         public string Location { get; set; } = string.Empty;
@@ -37,13 +35,11 @@ namespace Models
         public ReportStatusEnum Status { get; set; } = ReportStatusEnum.Pending;
 
         [Required]
-        public double Latitude { get; set; } = 0.0;
+        public Point GeoPoint { get; set; } = new Point(0.0, 0.0) { SRID = 4326 };
 
-        [Required]
-        public double Longitude { get; set; } = 0.0;
+        public int? FileId { get; set; } = null;
 
         public List<ReportReply> Replies { get; set; } = [];
-        public int? FileId { get; set; } = null;
 
         [ForeignKey(nameof(FileId))]
         public UploadFile? File { get; set; } = null;

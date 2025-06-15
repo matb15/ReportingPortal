@@ -11,10 +11,10 @@ namespace ReportingPortalServer.Services
     public interface IReportService
     {
         public ReportResponse GetReportById(string jwt, int id, ApplicationDbContext context);
-        public ReportsPaginatedResponse GetPaginatedReports(string jwt, ReportsPaginatedRequest request, ApplicationDbContext context);
-        public ReportResponse CreateReport(Report reportRequest, string jwt, ApplicationDbContext _context);
-        public ReportResponse DeleteReport(int idRep, int idUser, string jwt, ApplicationDbContext _context);
-        public ReportResponse UpdateReport(int idRep, Report updateRequest, string jwt, ApplicationDbContext _context);
+        public Task<ReportsPaginatedResponse> GetPaginatedReports(string jwt, ReportsPaginatedRequest request, ApplicationDbContext context);
+        public ReportResponse CreateReport(CreateReportRequest reportRequest, string jwt, ApplicationDbContext _context);
+        public ReportResponse DeleteReport(int idRep, string jwt, ApplicationDbContext _context);
+        public ReportResponse UpdateReport(int idRep, CreateReportRequest updateRequest, string jwt, ApplicationDbContext _context);
     }
 
     public class ReportService : IReportService
@@ -67,11 +67,27 @@ namespace ReportingPortalServer.Services
                 {
                     StatusCode = (int)HttpStatusCode.OK,
                     Message = "Report retrieved successfully.",
-                    Report = report
+                    Report = new ReportDto()
+                    {
+                        Id = report.Id,
+                        Title = report.Title,
+                        Description = report.Description,
+                        CategoryId = report.CategoryId,
+                        Location = report.Location,
+                        LocationDetail = report.LocationDetail,
+                        Latitude = report.GeoPoint.Y,
+                        Longitude = report.GeoPoint.X,
+                        UserId = report.UserId,
+                        CreatedAt = report.CreatedAt,
+                        Status = report.Status,
+                        User = report.User,
+                        Category = report.Category,
+                        File = report.File,
+                    }
                 };
             }
         }
-        public ReportsPaginatedResponse GetPaginatedReports(string jwt, ReportsPaginatedRequest request, ApplicationDbContext context)
+        public async Task<ReportsPaginatedResponse> GetPaginatedReports(string jwt, ReportsPaginatedRequest request, ApplicationDbContext context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -102,14 +118,63 @@ namespace ReportingPortalServer.Services
                 };
             }
 
-            List<Report> reports = [..context.Reports
+            IQueryable<Report> query = context.Reports
+             .Include(r => r.User)
+             .Include(r => r.Category)
+             .AsQueryable();
+
+            if (request.Status.HasValue)
+            {
+                query = query.Where(r => r.Status == request.Status.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                string search = request.Search.ToLower();
+                query = query.Where(r =>
+                    r.Title.ToLower().Contains(search) ||
+                    r.Description.ToLower().Contains(search));
+            }
+
+            bool asc = request.SortAscending ?? true;
+
+            if (!string.IsNullOrEmpty(request.SortField))
+            {
+                if (asc)
+                {
+                    query = query.OrderBy(u => EF.Property<object>(u, request.SortField));
+                }
+                else
+                {
+                    query = query.OrderByDescending(u => EF.Property<object>(u, request.SortField));
+                }
+            }
+
+            int totalCount = await query.CountAsync();
+
+            List<ReportDto> reports = await query
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
-                .Include(n => n.User)
-                .Include(n => n.Category)
-                ];
+                .Select(report => new ReportDto
+                {
+                    Id = report.Id,
+                    Title = report.Title,
+                    Description = report.Description,
+                    CategoryId = report.CategoryId,
+                    Location = report.Location,
+                    LocationDetail = report.LocationDetail,
+                    Latitude = report.GeoPoint.Y,
+                    Longitude = report.GeoPoint.X,
+                    UserId = report.UserId,
+                    CreatedAt = report.CreatedAt,
+                    Status = report.Status,
+                    User = report.User,
+                    Category = report.Category,
+                    File = report.File,
+                })
+                .ToListAsync();
 
-            int totalCount = context.Reports.Count();
+
             return new ReportsPaginatedResponse
             {
                 StatusCode = (int)HttpStatusCode.OK,
@@ -120,7 +185,7 @@ namespace ReportingPortalServer.Services
                 Items = reports
             };
         }
-        public ReportResponse CreateReport(Report reportRequest, string jwt, ApplicationDbContext _context)
+        public ReportResponse CreateReport(CreateReportRequest reportRequest, string jwt, ApplicationDbContext _context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -156,8 +221,10 @@ namespace ReportingPortalServer.Services
                 CategoryId = reportRequest.CategoryId,
                 Location = reportRequest.Location,
                 LocationDetail = reportRequest.LocationDetail,
-                Latitude = reportRequest.Latitude,
-                Longitude = reportRequest.Longitude,
+                GeoPoint = new NetTopologySuite.Geometries.Point(reportRequest.Longitude, reportRequest.Latitude)
+                {
+                    SRID = 4326
+                },
                 UserId = currentUser.Id,
                 CreatedAt = DateTime.UtcNow
             };
@@ -169,10 +236,26 @@ namespace ReportingPortalServer.Services
             {
                 StatusCode = (int)HttpStatusCode.Created,
                 Message = "Report created successfully.",
-                Report = report
+                Report = new ReportDto()
+                {
+                    Id = report.Id,
+                    Title = report.Title,
+                    Description = report.Description,
+                    CategoryId = report.CategoryId,
+                    Location = report.Location,
+                    LocationDetail = report.LocationDetail,
+                    Latitude = report.GeoPoint.Y,
+                    Longitude = report.GeoPoint.X,
+                    UserId = report.UserId,
+                    CreatedAt = report.CreatedAt,
+                    Status = report.Status,
+                    User = report.User,
+                    Category = report.Category,
+                    File = report.File,
+                }
             };
         }
-        public ReportResponse DeleteReport(int idRep, int idUser, string jwt, ApplicationDbContext _context)
+        public ReportResponse DeleteReport(int idRep, string jwt, ApplicationDbContext _context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -231,10 +314,26 @@ namespace ReportingPortalServer.Services
             {
                 StatusCode = (int)HttpStatusCode.OK,
                 Message = "Report deleted successfully.",
-                Report = report
+                Report = new ReportDto()
+                {
+                    Id = report.Id,
+                    Title = report.Title,
+                    Description = report.Description,
+                    CategoryId = report.CategoryId,
+                    Location = report.Location,
+                    LocationDetail = report.LocationDetail,
+                    Latitude = report.GeoPoint.Y,
+                    Longitude = report.GeoPoint.X,
+                    UserId = report.UserId,
+                    CreatedAt = report.CreatedAt,
+                    Status = report.Status,
+                    User = report.User,
+                    Category = report.Category,
+                    File = report.File,
+                }
             };
         }
-        public ReportResponse UpdateReport(int idRep, Report updateRequest, string jwt, ApplicationDbContext _context)
+        public ReportResponse UpdateReport(int idRep, CreateReportRequest updateRequest, string jwt, ApplicationDbContext _context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -287,8 +386,7 @@ namespace ReportingPortalServer.Services
             report.CategoryId = updateRequest.CategoryId;
             report.Location = updateRequest.Location;
             report.LocationDetail = updateRequest.LocationDetail;
-            report.Latitude = updateRequest.Latitude;
-            report.Longitude = updateRequest.Longitude;
+            report.GeoPoint = new NetTopologySuite.Geometries.Point(updateRequest.Longitude, updateRequest.Latitude) { SRID = 4326 };
 
             _context.Reports.Update(report);
 
@@ -298,7 +396,23 @@ namespace ReportingPortalServer.Services
             {
                 StatusCode = (int)HttpStatusCode.OK,
                 Message = "Report updated successfully.",
-                Report = report
+                Report = new ReportDto()
+                {
+                    Id = report.Id,
+                    Title = report.Title,
+                    Description = report.Description,
+                    CategoryId = report.CategoryId,
+                    Location = report.Location,
+                    LocationDetail = report.LocationDetail,
+                    Latitude = report.GeoPoint.Y,
+                    Longitude = report.GeoPoint.X,
+                    UserId = report.UserId,
+                    CreatedAt = report.CreatedAt,
+                    Status = report.Status,
+                    User = report.User,
+                    Category = report.Category,
+                    File = report.File,
+                }
             };
         }
     }

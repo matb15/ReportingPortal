@@ -2,7 +2,7 @@
     _mapInstance: null,
     _tempMarker: null,
 
-    initMap: function () {
+    initMap: function (clickEnabled = false) {
         const container = document.getElementById('map');
         if (!container) return;
 
@@ -21,9 +21,11 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        map.on('dblclick', (e) => {
-            this._placeTempMarker(map, e.latlng);
-        });
+        if (clickEnabled) {
+            map.on('dblclick', (e) => {
+                this._placeTempMarker(map, e.latlng);
+            });
+        }
 
         this._mapInstance = map;
 
