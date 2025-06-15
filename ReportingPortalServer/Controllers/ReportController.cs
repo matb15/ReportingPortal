@@ -156,5 +156,29 @@ namespace ReportingPortalServer.Controllers
 
             return _reportService.UpdateReport(id, updateRequest, jwt, _context);
         }
+
+        [HttpGet("cluster")]
+        public async Task<ClusterResponse> GetCluster([FromQuery] ClusterRequest req)
+        {
+            _logger.LogInformation($"GetCluster request received with MinLat={req.MinLat}, MinLng={req.MinLng}, MaxLat={req.MaxLat}, MaxLng={req.MaxLng}, Zoom={req.Zoom}");
+            if (req.MinLat < -90 || req.MaxLat > 90 || req.MinLng < -180 || req.MaxLng > 180)
+            {
+                return new ClusterResponse
+                {
+                    StatusCode = 400,
+                    Message = "Invalid latitude or longitude values."
+                };
+            }
+            //string? jwt = Utils.GetJwt(HttpContext);
+            //if (string.IsNullOrEmpty(jwt))
+            //{
+            //    return new ClusterResponse
+            //    {
+            //        StatusCode = 401,
+            //        Message = "Authorization header is missing or invalid."
+            //    };
+            //}
+            return await _reportService.GetClusteredReports(/*jwt,*/ req, _context);
+        }
     }
 }

@@ -2,6 +2,7 @@
 using Models;
 using Models.enums;
 using Models.http;
+using ReportingPortalServer.Services.Helpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -15,6 +16,7 @@ namespace ReportingPortalServer.Services
         public ReportResponse CreateReport(CreateReportRequest reportRequest, string jwt, ApplicationDbContext _context);
         public ReportResponse DeleteReport(int idRep, string jwt, ApplicationDbContext _context);
         public ReportResponse UpdateReport(int idRep, CreateReportRequest updateRequest, string jwt, ApplicationDbContext _context);
+        public Task<ClusterResponse> GetClusteredReports(/*string jwt,*/ ClusterRequest request, ApplicationDbContext context);
     }
 
     public class ReportService : IReportService
@@ -413,6 +415,84 @@ namespace ReportingPortalServer.Services
                     Category = report.Category,
                     File = report.File,
                 }
+            };
+        }
+
+        public async Task<ClusterResponse> GetClusteredReports(ClusterRequest request, ApplicationDbContext context)
+        {
+            // Optional: JWT parsing logic (left commented out)
+            /*
+            JwtSecurityTokenHandler handler = new();
+            if (!handler.CanReadToken(jwt))
+            {
+                return new ClusterResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                };
+            }
+
+            JwtSecurityToken token = handler.ReadJwtToken(jwt);
+            Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int parsedUserId))
+            {
+                return new ClusterResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                };
+            }
+
+            Models.User? currentUser = await context.Users.FindAsync(parsedUserId);
+            if (currentUser == null)
+            {
+                return new ClusterResponse
+                {
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Message = "Authenticated user not found."
+                };
+            }
+            */
+
+            var query = context.Reports
+                .Include(r => r.User)
+                .Include(r => r.Category)
+                .AsQueryable();
+
+            if (request.Status.HasValue)
+            {
+                query = query.Where(r => r.Status == request.Status.Value);
+            }
+
+            bool hasAny = await query.AnyAsync();
+            if (!hasAny)
+            {
+                return new ClusterResponse
+                {
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Message = "No reports found."
+                };
+            }
+
+            List<Report> reports = await query.ToListAsync();
+
+            List<ReportCluster> clusters = Utils.ClusterReports(reports, request.Zoom);
+
+            return new ClusterResponse
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+                Message = "Clustered reports retrieved successfully.",
+                Clusters = clusters.Select(c => new Cluster<ReportDto>
+                {
+                    Items = c.Reports?.Select(r => new ReportDto
+                    {
+                        Id = r.Id,
+                        Title = r.Title,
+                        Status = r.Status,
+                        Longitude = r.Longitude,
+                        Latitude = r.Latitude
+                    }).ToList() ?? []
+                }).ToList()
             };
         }
     }

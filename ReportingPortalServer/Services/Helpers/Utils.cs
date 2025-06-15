@@ -1,4 +1,7 @@
 ﻿using Models;
+using Models.http;
+using NetTopologySuite;
+using NetTopologySuite.Geometries;
 
 namespace ReportingPortalServer.Services.Helpers
 {
@@ -207,6 +210,77 @@ namespace ReportingPortalServer.Services.Helpers
                 ";
 
             await emailService.SendEmailAsync(user.Email, "Reset Password", emailBody);
+        }
+
+        public static List<ReportCluster> ClusterReports(List<Report> reports, int zoom)
+        {
+            if (zoom >= 15)
+            {
+                return [.. reports.Select(r => new ReportCluster
+                {
+                    Count = 1,
+                    CenterLat = r.GeoPoint.Y,
+                    CenterLng = r.GeoPoint.X,
+                    Reports =
+                    [
+                        new() {
+                            Id = r.Id,
+                            Title = r.Title,
+                            Status = r.Status,
+                            Latitude = r.GeoPoint.Y,
+                            Longitude = r.GeoPoint.X
+                        }
+                    ]
+                })];
+            }
+
+            int gridSize = zoom switch
+            {
+                >= 13 => 64,
+                >= 10 => 128,
+                >= 5 => 256,
+                _ => 512
+            };
+
+            var clusters = reports
+                .GroupBy(r => new
+                {
+                    X = (int)(r.GeoPoint.X * gridSize),
+                    Y = (int)(r.GeoPoint.Y * gridSize)
+                })
+                .Select(g => new ReportCluster
+                {
+                    Count = g.Count(),
+                    CenterLat = g.Average(r => r.GeoPoint.Y),
+                    CenterLng = g.Average(r => r.GeoPoint.X),
+                    Reports = g.Count() <= 5 ? g.Select(r => new ReportSummaryDto
+                    {
+                        Id = r.Id,
+                        Title = r.Title,
+                        Status = r.Status,
+                        Latitude = r.GeoPoint.Y,
+                        Longitude = r.GeoPoint.X
+                    }).ToList() : null
+                })
+                .ToList();
+
+            return clusters;
+        }
+
+
+        public static Polygon CreatePolygon(double southLat, double westLng, double northLat, double eastLng)
+        {
+            var coordinates = new[]
+            {
+            new Coordinate(westLng, southLat),
+            new Coordinate(eastLng, southLat),
+            new Coordinate(eastLng, northLat),
+            new Coordinate(westLng, northLat),
+            new Coordinate(westLng, southLat) // close polygon
+            };
+
+            var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+            return geometryFactory.CreatePolygon(coordinates);
         }
 
     }

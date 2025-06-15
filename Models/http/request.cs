@@ -8,6 +8,18 @@ namespace Models.http
 
     }
 
+    public class ClusterRequest : Request
+    {
+        public double MinLat { get; set; }
+        public double MinLng { get; set; }
+        public double MaxLat { get; set; }
+        public double MaxLng { get; set; }
+        public int Zoom { get; set; }
+        public int? CategoryId { get; set; } = null;
+        public int? UserId { get; set; } = null;
+        public ReportStatusEnum? Status { get; set; } = null;
+    }
+
     public class PagedRequest
     {
         [Range(1, int.MaxValue)]

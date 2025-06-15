@@ -7,6 +7,35 @@ namespace Models.http
         public string Message { get; set; } = string.Empty;
         public int StatusCode { get; set; }
     }
+
+    public class Cluster<T>
+    {
+        public List<T> Items { get; set; } = [];
+    }
+    public class ClusterResponse : Response
+    {
+        public List<Cluster<ReportDto>> Clusters { get; set; } = [];
+    }
+
+    public class ReportSummaryDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public ReportStatusEnum Status { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+
+
+    public class ReportCluster
+    {
+        public int Count { get; set; }
+        public double CenterLat { get; set; }
+        public double CenterLng { get; set; }
+        public List<ReportSummaryDto>? Reports { get; set; } // null if > 5 reports
+    }
+
+
     public class PagedResponse<T> : Response
     {
         public int Page { get; set; }
