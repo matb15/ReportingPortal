@@ -77,6 +77,7 @@ namespace ReportingPortalServer
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<ITokenVerificationService, TokenVerificationService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IReportReplyService, ReportReplyService>();
 
             builder.Services.AddScoped<IScheduledJob, NotificationEmailSender>();
             builder.Services.AddScoped<IScheduledJob, NotificationPushSender>();

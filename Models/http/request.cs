@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Models.enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Models.http
 {
@@ -174,5 +175,24 @@ namespace Models.http
     public class CategoriesPaginatedRequest : PagedRequest
     {
 
+    }
+
+    public class CreateReportReplyRequest : Request
+    {
+        public int Id { get; set; }
+        public int ReportId { get; set; }
+        public int UserId { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
+    public class UpdateReportReplyRequest : Request
+    {
+        public int ReportReplyId { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
+    public class ReportsReplyPaginatedRequest : PagedRequest
+    {
+        public int ReportId { get; set; }
     }
 }

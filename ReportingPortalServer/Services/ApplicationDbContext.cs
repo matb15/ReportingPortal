@@ -13,6 +13,7 @@ namespace ReportingPortalServer.Services
         public DbSet<Category> Categories { get; set; }
         public DbSet<UploadFile> UploadFiles { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<ReportReply> ReportReplies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
