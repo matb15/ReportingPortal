@@ -17,7 +17,7 @@ namespace ReportingPortalServer.Controllers
             private readonly IReportReplyService _reportReplyService = reportReplyService;
 
             [HttpPost]
-            public ReportReplyResponse CreateReport([FromBody] CreateReportReplyRequest req)
+            public ReportReplyResponse CreateReportReply([FromBody] CreateReportReplyRequest req)
             {
                 _logger.LogInformation("CreateReport request received");
 
@@ -41,6 +41,30 @@ namespace ReportingPortalServer.Controllers
                 }
 
                 return _reportReplyService.CreateReportReply(req, _context, jwt);
+            }
+
+            [HttpPost]
+            public ReportReplyResponse DeleteReportReply([FromBody] DeleteReportReplyRequest req)
+            {
+                _logger.LogInformation($"DeleteReportReply request received for id: {req.ReportReplyId}");
+                if (req.ReportReplyId <= 0)
+                {
+                    return new ReportReplyResponse
+                    {
+                        StatusCode = 400,
+                        Message = "Invalid report reply ID."
+                    };
+                }
+                string? jwt = Utils.GetJwt(HttpContext);
+                if (string.IsNullOrEmpty(jwt))
+                {
+                    return new ReportReplyResponse
+                    {
+                        StatusCode = 401,
+                        Message = "Authorization header is missing or invalid."
+                    };
+                }
+                return _reportReplyService.DeleteReportReply(req.ReportReplyId, req.UserId, jwt, _context);
             }
         }
     }
