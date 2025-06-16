@@ -3,11 +3,11 @@ using System.Net.Http.Json;
 
 namespace ReportingPortal.Services
 {
-    public class ReportService(IHttpClientFactory factory)
+    public class ReportReplyService(IHttpClientFactory factory)
     {
         private readonly HttpClient _http = factory.CreateClient("AuthorizedClient");
 
-        public async Task<ReportsPaginatedResponse> GetAllAsync(ReportsPaginatedRequest request)
+        public async Task<ReportRepliesPaginatedResponse> GetAllAsync(ReportsReplyPaginatedRequest request)
         {
             List<string> queryParams =
             [
@@ -15,28 +15,16 @@ namespace ReportingPortal.Services
                 $"pageSize={request.PageSize}"
             ];
 
-            if (!string.IsNullOrWhiteSpace(request.Search))
-                queryParams.Add($"search={Uri.EscapeDataString(request.Search)}");
-
-            if (!string.IsNullOrWhiteSpace(request.SortField))
-                queryParams.Add($"sortField={Uri.EscapeDataString(request.SortField)}");
-
-            if (request.SortAscending.HasValue)
-                queryParams.Add($"sortAscending={request.SortAscending.Value.ToString().ToLower()}");
-
-            if (request.Status.HasValue)
-                queryParams.Add($"status={(int)request.Status.Value}");
-
             string url = $"api/report?{string.Join("&", queryParams)}";
 
             try
             {
                 HttpResponseMessage response = await _http.GetAsync(url);
-                ReportsPaginatedResponse? content = await response.Content.ReadFromJsonAsync<ReportsPaginatedResponse>();
+                ReportRepliesPaginatedResponse? content = await response.Content.ReadFromJsonAsync<ReportRepliesPaginatedResponse>();
 
                 return content != null && response.IsSuccessStatusCode
                     ? content
-                    : new ReportsPaginatedResponse
+                    : new ReportRepliesPaginatedResponse
                     {
                         Message = content?.Message ?? "Failed to fetch reports.",
                         StatusCode = (int)response.StatusCode,
@@ -47,7 +35,7 @@ namespace ReportingPortal.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to fetch reports: {ex.Message}");
-                return new ReportsPaginatedResponse
+                return new ReportRepliesPaginatedResponse
                 {
                     Message = $"Request failed: {ex.Message}",
                     StatusCode = 500,
@@ -58,20 +46,20 @@ namespace ReportingPortal.Services
         }
 
 
-        public async Task<ReportResponse> GetByIdAsync(int id)
+        public async Task<ReportReplyResponse> GetByIdAsync(int id)
         {
             string url = $"api/report/{id}";
             try
             {
                 HttpResponseMessage response = await _http.GetAsync(url);
-                ReportResponse? content = await response.Content.ReadFromJsonAsync<ReportResponse>();
+                ReportReplyResponse? content = await response.Content.ReadFromJsonAsync<ReportReplyResponse>();
                 if (content != null && response.IsSuccessStatusCode)
                 {
                     return content;
                 }
                 else
                 {
-                    return new ReportResponse
+                    return new ReportReplyResponse
                     {
                         Message = content?.Message ?? "Failed to fetch report.",
                         StatusCode = (int)response.StatusCode
@@ -81,7 +69,7 @@ namespace ReportingPortal.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to fetch report: {ex.Message}");
-                return new ReportResponse
+                return new ReportReplyResponse
                 {
                     Message = $"Request failed: {ex.Message}",
                     StatusCode = 500
@@ -89,20 +77,20 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<ReportResponse> CreateAsync(MultipartFormDataContent model)
+        public async Task<ReportReplyResponse> CreateAsync(MultipartFormDataContent model)
         {
             string url = "api/report";
             try
             {
                 HttpResponseMessage response = await _http.PostAsync(url, model);
-                ReportResponse? content = await response.Content.ReadFromJsonAsync<ReportResponse>();
+                ReportReplyResponse? content = await response.Content.ReadFromJsonAsync<ReportReplyResponse>();
                 if (content != null && response.IsSuccessStatusCode)
                 {
                     return content;
                 }
                 else
                 {
-                    return new ReportResponse
+                    return new ReportReplyResponse
                     {
                         Message = content?.Message ?? "Failed to create report.",
                         StatusCode = (int)response.StatusCode
@@ -112,7 +100,7 @@ namespace ReportingPortal.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to create report: {ex.Message}");
-                return new ReportResponse
+                return new ReportReplyResponse
                 {
                     Message = $"Request failed: {ex.Message}",
                     StatusCode = 500
@@ -120,20 +108,21 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<ReportResponse> UpdateAsync(int id, MultipartFormDataContent model)
+        public async Task<ReportReplyResponse> UpdateAsync(MultipartFormDataContent model)
         {
-            string url = $"api/report/{id}";
+            //string url = $"api/report/{model.Id}";
+            string url = "api/report"; // Assuming the model contains the ID and other necessary data
             try
             {
-                HttpResponseMessage response = await _http.PutAsync(url, model);
-                ReportResponse? content = await response.Content.ReadFromJsonAsync<ReportResponse>();
+                HttpResponseMessage response = await _http.PutAsJsonAsync(url, model);
+                ReportReplyResponse? content = await response.Content.ReadFromJsonAsync<ReportReplyResponse>();
                 if (content != null && response.IsSuccessStatusCode)
                 {
                     return content;
                 }
                 else
                 {
-                    return new ReportResponse
+                    return new ReportReplyResponse
                     {
                         Message = content?.Message ?? "Failed to update report.",
                         StatusCode = (int)response.StatusCode
@@ -143,7 +132,7 @@ namespace ReportingPortal.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to update report: {ex.Message}");
-                return new ReportResponse
+                return new ReportReplyResponse
                 {
                     Message = $"Request failed: {ex.Message}",
                     StatusCode = 500
@@ -151,20 +140,20 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<ReportResponse> DeleteAsync(int id)
+        public async Task<ReportReplyResponse> DeleteAsync(int id)
         {
             string url = $"api/report/{id}";
             try
             {
                 HttpResponseMessage response = await _http.DeleteAsync(url);
-                ReportResponse? content = await response.Content.ReadFromJsonAsync<ReportResponse>();
+                ReportReplyResponse? content = await response.Content.ReadFromJsonAsync<ReportReplyResponse>();
                 if (content != null && response.IsSuccessStatusCode)
                 {
                     return content;
                 }
                 else
                 {
-                    return new ReportResponse
+                    return new ReportReplyResponse
                     {
                         Message = content?.Message ?? "Failed to update report.",
                         StatusCode = (int)response.StatusCode
@@ -174,7 +163,7 @@ namespace ReportingPortal.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to delete report: {ex.Message}");
-                return new ReportResponse
+                return new ReportReplyResponse
                 {
                     Message = $"Request failed: {ex.Message}",
                     StatusCode = 500

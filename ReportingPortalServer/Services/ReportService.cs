@@ -410,7 +410,7 @@ namespace ReportingPortalServer.Services
             report.Description = updateRequest.Description;
             report.CategoryId = updateRequest.CategoryId;
             report.Location = updateRequest.Location;
-            report.LocationDetail = updateRequest.LocationDetail;
+            report.LocationDetail = updateRequest.LocationDetail ?? "";
             report.GeoPoint = new NetTopologySuite.Geometries.Point(updateRequest.Longitude, updateRequest.Latitude) { SRID = 4326 };
 
             _context.Reports.Update(report);

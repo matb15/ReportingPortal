@@ -64,7 +64,7 @@
     }
     @if (IsEditingReport && ReportBeingEdited != null)
     {
-        @* <AddReportForm ReportModel="ReportBeingEdited" OnSubmit="@OnReportUpdated" OnCancel="@OnCancelEdit" /> *@
+        <AddReportForm ReportModel="ReportBeingEdited" OnSubmit="@OnReportUpdated" OnCancel="@OnCancelEdit" />
     }
 
     <div class="w-full overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
@@ -215,9 +215,9 @@
         }
     }
 
-    private async Task OnReportCreated(MultipartFormDataContent report)
+    private async Task OnReportCreated((MultipartFormDataContent content, int id) report)
     {
-        ReportResponse response = await ReportsService.CreateAsync(report);
+        ReportResponse response = await ReportsService.CreateAsync(report.content);
         if(response.StatusCode >= 200 && response.StatusCode < 300)
         {
             AlertData = new AlertModel
@@ -385,9 +385,9 @@
         }
     }
 
-    private async Task OnReportUpdated(CreateReportRequest updatedReport)
+    private async Task OnReportUpdated((MultipartFormDataContent content, int id) updatedReport)
     {
-        ReportResponse response = await ReportsService.UpdateAsync(updatedReport);
+        ReportResponse response = await ReportsService.UpdateAsync(updatedReport.id, updatedReport.content);
 
         if (response.StatusCode >= 200 && response.StatusCode < 300)
         {

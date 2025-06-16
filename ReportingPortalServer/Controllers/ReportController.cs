@@ -125,7 +125,7 @@ namespace ReportingPortalServer.Controllers
         }
 
         [HttpPut("{id}")]
-        public ReportResponse UpdateReport(int id, [FromBody] CreateReportRequest updateRequest)
+        public ReportResponse UpdateReport(int id, [FromForm] CreateReportRequest updateRequest)
         {
             _logger.LogInformation($"UpdateReport request received for idRep: {id}");
 

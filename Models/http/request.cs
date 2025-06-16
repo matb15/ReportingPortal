@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Models.enums;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Models.http
 {
@@ -141,7 +140,7 @@ namespace Models.http
         public string? LocationDetail { get; set; } = string.Empty;
         public double Latitude { get; set; }
         public double Longitude { get; set; }
-        public IFormFile File { get; set; } = default!;
+        public IFormFile? File { get; set; } = default!;
     }
 
     public class UploadFileRequest
