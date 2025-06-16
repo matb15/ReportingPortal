@@ -183,4 +183,9 @@ namespace Models.http
         public int ReportReplyId { get; set; }
         public string Message { get; set; } = string.Empty;
     }
+
+    public class ReportsReplyPaginatedRequest : PagedRequest
+    {
+        public int ReportId { get; set; }
+    }
 }

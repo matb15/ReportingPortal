@@ -13,6 +13,7 @@ namespace ReportingPortalServer.Services
         public ReportReplyResponse CreateReportReply(CreateReportReplyRequest request, ApplicationDbContext context, string jwt);
         public ReportReplyResponse DeleteReportReply(int idRep, string jwt, ApplicationDbContext _context);
         public ReportReplyResponse UpdateReportReply(int idRep, string mess, string jwt, ApplicationDbContext _context);
+        public Task<ReportRepliesPaginatedResponse> GetPaginatedReportsReplies(string jwt, ReportsReplyPaginatedRequest request, ApplicationDbContext context);
     }
 
     public class ReportReplyService : IReportReplyService
@@ -60,7 +61,6 @@ namespace ReportingPortalServer.Services
                 reportReply = reply 
             };
         }
-
         public ReportReplyResponse DeleteReportReply(int idRep, string jwt, ApplicationDbContext _context)
         {
             if (string.IsNullOrEmpty(jwt))
@@ -131,7 +131,6 @@ namespace ReportingPortalServer.Services
                 Message = "Report reply deleted successfully."
             };
         }
-
         public ReportReplyResponse UpdateReportReply(int idRep, string mess, string jwt, ApplicationDbContext _context)
         {
             if (string.IsNullOrEmpty(jwt))
@@ -200,6 +199,78 @@ namespace ReportingPortalServer.Services
                 StatusCode = 200,
                 Message = "Report reply updated successfully."
             };
+        }
+        public Task<ReportRepliesPaginatedResponse> GetPaginatedReportsReplies(string jwt, ReportsReplyPaginatedRequest request, ApplicationDbContext context)
+        {
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return Task.FromResult(new ReportRepliesPaginatedResponse
+                {
+                    StatusCode = 401,
+                    Message = "Authorization header is missing or invalid."
+                });
+            }
+            if (request.PageSize <= 0 || request.Page < 0)
+            {
+                return Task.FromResult(new ReportRepliesPaginatedResponse
+                {
+                    StatusCode = 400,
+                    Message = "Invalid pagination parameters."
+                });
+            }
+            var handler = new JwtSecurityTokenHandler();
+            if (!handler.CanReadToken(jwt))
+            {
+                return Task.FromResult(new ReportRepliesPaginatedResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                });
+            }
+            var token = handler.ReadJwtToken(jwt);
+            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int parsedUserId))
+            {
+                return Task.FromResult(new ReportRepliesPaginatedResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                });
+            }
+            var currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
+            if (currentUser == null)
+            {
+                return Task.FromResult(new ReportRepliesPaginatedResponse
+                {
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Message = "Authenticated user not found."
+                });
+            }
+            if (request.PageSize > 100)
+            {
+                return Task.FromResult(new ReportRepliesPaginatedResponse
+                {
+                    StatusCode = 400,
+                    Message = "Page size cannot exceed 100."
+                });
+            }
+            IQueryable<ReportReply> query = context.ReportReplies;
+            if (currentUser.Role != UserRoleEnum.Admin)
+            {
+                query = query.Where(r => r.UserId == currentUser.Id);
+            }
+            int totalCount = query.Count();
+            List<ReportReply> repliesList = query
+                .Skip(request.Page * request.PageSize)
+                .Take(request.PageSize)
+                .ToList();
+            return Task.FromResult(new ReportRepliesPaginatedResponse
+            {
+                StatusCode = 200,
+                Message = "Report replies retrieved successfully.",
+                TotalCount = totalCount,
+                Items = repliesList
+            });
         }
     }
 }

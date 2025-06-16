@@ -140,4 +140,7 @@ namespace Models.http
         public ReportReply reportReply { get; set; } = default!;
     }
 
+    public class ReportRepliesPaginatedResponse : PagedResponse<ReportReply>
+    {
+    }
 }

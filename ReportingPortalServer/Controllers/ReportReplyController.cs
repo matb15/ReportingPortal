@@ -90,6 +90,30 @@ namespace ReportingPortalServer.Controllers
                 }
                 return _reportReplyService.UpdateReportReply(req.ReportReplyId, req.Message, jwt, _context);
             }
+
+            [HttpPost]
+            public async Task<ReportRepliesPaginatedResponse> GetPaginatedReportReply([FromBody] ReportsReplyPaginatedRequest req)
+            {
+                _logger.LogInformation($"GetPaginatedReportReply request received with Page={req.Page}, PageSize={req.PageSize}");
+                if (req.PageSize <= 0 || req.Page < 0)
+                {
+                    return new ReportRepliesPaginatedResponse
+                    {
+                        StatusCode = 400,
+                        Message = "Invalid pagination parameters."
+                    };
+                }
+                string? jwt = Utils.GetJwt(HttpContext);
+                if (string.IsNullOrEmpty(jwt))
+                {
+                    return new ReportRepliesPaginatedResponse
+                    {
+                        StatusCode = 401,
+                        Message = "Authorization header is missing or invalid."
+                    };
+                }
+                return await _reportReplyService.GetPaginatedReportsReplies(jwt, req, _context);
+            }
         }
     }
 }
