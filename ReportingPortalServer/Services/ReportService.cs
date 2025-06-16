@@ -2,6 +2,7 @@
 using Models;
 using Models.enums;
 using Models.http;
+using ReportingPortalServer.Services.AppwriteIO;
 using ReportingPortalServer.Services.Helpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -13,7 +14,7 @@ namespace ReportingPortalServer.Services
     {
         public ReportResponse GetReportById(string jwt, int id, ApplicationDbContext context);
         public Task<ReportsPaginatedResponse> GetPaginatedReports(string jwt, ReportsPaginatedRequest request, ApplicationDbContext context);
-        public ReportResponse CreateReport(CreateReportRequest reportRequest, string jwt, ApplicationDbContext _context);
+        public Task<ReportResponse> CreateReport(CreateReportRequest reportRequest, string jwt, ApplicationDbContext _context, IUploadFileService uploadFileService, IAppwriteClient appwriteClient);
         public ReportResponse DeleteReport(int idRep, string jwt, ApplicationDbContext _context);
         public ReportResponse UpdateReport(int idRep, CreateReportRequest updateRequest, string jwt, ApplicationDbContext _context);
         public Task<ClusterResponse> GetClusteredReports(/*string jwt,*/ ClusterRequest request, ApplicationDbContext context);
@@ -123,6 +124,7 @@ namespace ReportingPortalServer.Services
             IQueryable<Report> query = context.Reports
              .Include(r => r.User)
              .Include(r => r.Category)
+             .Include(r => r.File)
              .AsQueryable();
 
             if (request.Status.HasValue)
@@ -150,6 +152,10 @@ namespace ReportingPortalServer.Services
                 {
                     query = query.OrderByDescending(u => EF.Property<object>(u, request.SortField));
                 }
+            }
+            else
+            {
+                query = query.OrderByDescending(u => u.CreatedAt);
             }
 
             int totalCount = await query.CountAsync();
@@ -187,7 +193,7 @@ namespace ReportingPortalServer.Services
                 Items = reports
             };
         }
-        public ReportResponse CreateReport(CreateReportRequest reportRequest, string jwt, ApplicationDbContext _context)
+        public async Task<ReportResponse> CreateReport(CreateReportRequest reportRequest, string jwt, ApplicationDbContext _context, IUploadFileService uploadFileService, IAppwriteClient appwriteClient)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -216,19 +222,36 @@ namespace ReportingPortalServer.Services
                 return new ReportResponse { StatusCode = (int)HttpStatusCode.BadRequest, Message = "Authenticated user not found." };
             }
 
+
+            var response = await uploadFileService.CreateUploadFile(reportRequest, _context, jwt, appwriteClient);
+            int? fileId = null;
+            if (response.StatusCode >= 200 && response.StatusCode < 300)
+            {
+                fileId = response.File?.Id;
+            }
+            else
+            {
+                return new ReportResponse
+                {
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            }
+
             Report report = new()
             {
                 Title = reportRequest.Title,
                 Description = reportRequest.Description,
                 CategoryId = reportRequest.CategoryId,
                 Location = reportRequest.Location,
-                LocationDetail = reportRequest.LocationDetail,
+                LocationDetail = reportRequest.LocationDetail ?? "",
                 GeoPoint = new NetTopologySuite.Geometries.Point(reportRequest.Longitude, reportRequest.Latitude)
                 {
                     SRID = 4326
                 },
                 UserId = currentUser.Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                FileId = fileId,
             };
 
             _context.Reports.Add(report);

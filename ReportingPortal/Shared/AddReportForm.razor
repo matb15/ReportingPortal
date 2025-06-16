@@ -135,7 +135,7 @@
 
 @code {
     [Parameter] public EventCallback OnCancel { get; set; }
-    [Parameter] public EventCallback<CreateReportRequest> OnSubmit { get; set; }
+    [Parameter] public EventCallback<MultipartFormDataContent> OnSubmit { get; set; }
     [Parameter] public CreateReportRequest ReportModel { get; set; } = new();
 
     private List<Category> Categories = new();
@@ -159,9 +159,27 @@
     {
         if (ReportModel.CategoryId == 0) return;
 
+        using var content = new MultipartFormDataContent();
+
+        content.Add(new StringContent(ReportModel.Title ?? ""), "Title");
+        content.Add(new StringContent(ReportModel.Description ?? ""), "Description");
+        content.Add(new StringContent(ReportModel.Location ?? ""), "Location");
+        content.Add(new StringContent(ReportModel.LocationDetail ?? "Prova"), "LocationDetail");
+        content.Add(new StringContent(ReportModel.CategoryId.ToString()), "CategoryId");
+        content.Add(new StringContent(ReportModel.Latitude.ToString()), "Latitude");
+        content.Add(new StringContent(ReportModel.Longitude.ToString()), "Longitude");
+
+        if(UploadedPhoto != null)
+        {
+            var fileContent = new StreamContent(UploadedPhoto.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)); // 10MB limit
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(UploadedPhoto.File.ContentType);
+
+            content.Add(fileContent, "File", UploadedPhoto.File.Name);
+        }
+
         if (OnSubmit.HasDelegate)
         {
-            await OnSubmit.InvokeAsync(ReportModel);
+            await OnSubmit.InvokeAsync(content);
         }
 
         ResetForm();

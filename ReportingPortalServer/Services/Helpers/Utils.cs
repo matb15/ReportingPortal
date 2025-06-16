@@ -1,7 +1,6 @@
 ﻿using Models;
+using Models.enums;
 using Models.http;
-using NetTopologySuite;
-using NetTopologySuite.Geometries;
 
 namespace ReportingPortalServer.Services.Helpers
 {
@@ -266,22 +265,17 @@ namespace ReportingPortalServer.Services.Helpers
 
             return clusters;
         }
-
-
-        public static Polygon CreatePolygon(double southLat, double westLng, double northLat, double eastLng)
+        public static FormatEnum GetFormatFromFileExtension(string extension)
         {
-            var coordinates = new[]
+            return extension.ToLowerInvariant() switch
             {
-            new Coordinate(westLng, southLat),
-            new Coordinate(eastLng, southLat),
-            new Coordinate(eastLng, northLat),
-            new Coordinate(westLng, northLat),
-            new Coordinate(westLng, southLat) // close polygon
+                ".png" => FormatEnum.Png,
+                ".jpg" or ".jpeg" => FormatEnum.Jpeg,
+                ".gif" => FormatEnum.Gif,
+                ".webp" => FormatEnum.Webp,
+                ".pdf" => FormatEnum.Pdf,
+                _ => FormatEnum.Unknown
             };
-
-            var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
-            return geometryFactory.CreatePolygon(coordinates);
         }
-
     }
 }

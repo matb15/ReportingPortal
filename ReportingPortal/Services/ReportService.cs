@@ -89,12 +89,12 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<ReportResponse> CreateAsync(CreateReportRequest model)
+        public async Task<ReportResponse> CreateAsync(MultipartFormDataContent model)
         {
             string url = "api/report";
             try
             {
-                HttpResponseMessage response = await _http.PostAsJsonAsync(url, model);
+                HttpResponseMessage response = await _http.PostAsync(url, model);
                 ReportResponse? content = await response.Content.ReadFromJsonAsync<ReportResponse>();
                 if (content != null && response.IsSuccessStatusCode)
                 {

@@ -64,6 +64,10 @@ namespace Models.http
     {
         public Category Category { get; set; } = default!;
     }
+    public class UploadFileResponse : Response
+    {
+        public UploadFile File { get; set; } = default!;
+    }
 
     public class ReportDto : Request
     {

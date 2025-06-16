@@ -2,7 +2,7 @@ using Appwrite;
 using Appwrite.Models;
 using Appwrite.Services;
 using Microsoft.Extensions.Options;
-using File = Appwrite.Models.File;
+using File = System.IO.File;
 using FilePath = System.IO.File;
 
 namespace ReportingPortalServer.Services.AppwriteIO
@@ -45,6 +45,8 @@ namespace ReportingPortalServer.Services.AppwriteIO
                 .SetKey(_settings.ApiKey);
 
             _storage = new Storage(_client);
+
+            Console.WriteLine($"Appwrite storage: {_storage.ToString()}");
         }
 
         public async Task<string> GetBucketIdAsync(string bucketName)
@@ -141,30 +143,24 @@ namespace ReportingPortalServer.Services.AppwriteIO
                 throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
             }
 
-            using var inputFile = FilePath.OpenRead(filePath);
-
-            if (inputFile.Length == 0)
-            {
-                throw new ArgumentException("The file is empty.", nameof(filePath));
-            }
-
-            if (inputFile.Length > 5 * 1024 * 1024) // 5 MB limit
-            {
-                throw new ArgumentException("The file exceeds the maximum allowed size of 5 MB.", nameof(filePath));
-            }
-
             try
             {
-                File file = await _storage.CreateFile(
+                using FileStream fileStream = File.OpenRead(filePath);
+
+                InputFile inputFile = InputFile.FromStream(fileStream, fileName, string.Empty);
+
+                var file = await _storage.CreateFile(
                     bucketId: bucketId,
                     fileId: "unique()",
-                    file: InputFile.FromPath(filePath)
+                    file: inputFile,
+                    permissions: ["read(\"any\")"] // opzionale ma consigliato
                 );
+
                 return file.Id;
             }
             catch (AppwriteException ex)
             {
-                throw new Exception("Failed to upload file to Appwrite.", ex);
+                throw new Exception($"Appwrite error during file upload: {ex.Message}", ex);
             }
         }
 
