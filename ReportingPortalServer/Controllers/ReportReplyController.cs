@@ -43,11 +43,11 @@ namespace ReportingPortalServer.Controllers
                 return _reportReplyService.CreateReportReply(req, _context, jwt);
             }
 
-            [HttpPost]
-            public ReportReplyResponse DeleteReportReply([FromBody] DeleteReportReplyRequest req)
+            [HttpDelete("{id}")]
+            public ReportReplyResponse DeleteReportReply(int id)
             {
-                _logger.LogInformation($"DeleteReportReply request received for id: {req.ReportReplyId}");
-                if (req.ReportReplyId <= 0)
+                _logger.LogInformation($"DeleteReportReply request received for id: {id}");
+                if (id <= 0)
                 {
                     return new ReportReplyResponse
                     {
@@ -64,7 +64,31 @@ namespace ReportingPortalServer.Controllers
                         Message = "Authorization header is missing or invalid."
                     };
                 }
-                return _reportReplyService.DeleteReportReply(req.ReportReplyId, req.UserId, jwt, _context);
+                return _reportReplyService.DeleteReportReply(id, jwt, _context);
+            }
+
+            [HttpPost]
+            public ReportReplyResponse UpdateReportReply([FromBody] UpdateReportReplyRequest req)
+            {
+                _logger.LogInformation($"UpdateReportReply request received for id: {req.ReportReplyId}");
+                if (req.ReportReplyId <= 0 || string.IsNullOrEmpty(req.Message))
+                {
+                    return new ReportReplyResponse
+                    {
+                        StatusCode = 400,
+                        Message = "Invalid report reply data."
+                    };
+                }
+                string? jwt = Utils.GetJwt(HttpContext);
+                if (string.IsNullOrEmpty(jwt))
+                {
+                    return new ReportReplyResponse
+                    {
+                        StatusCode = 401,
+                        Message = "Authorization header is missing or invalid."
+                    };
+                }
+                return _reportReplyService.UpdateReportReply(req.ReportReplyId, req.Message, jwt, _context);
             }
         }
     }

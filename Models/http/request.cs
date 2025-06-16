@@ -178,9 +178,9 @@ namespace Models.http
         public string Message { get; set; } = string.Empty;
     }
 
-    public class DeleteReportReplyRequest : Request
+    public class UpdateReportReplyRequest : Request
     {
         public int ReportReplyId { get; set; }
-        public int UserId { get; set; }
+        public string Message { get; set; } = string.Empty;
     }
 }
