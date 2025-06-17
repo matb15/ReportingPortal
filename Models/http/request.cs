@@ -157,6 +157,7 @@ namespace Models.http
     public class ReportsPaginatedRequest : PagedRequest
     {
         public ReportStatusEnum? Status { get; set; } = default!;
+        public bool IsPersonal { get; set; } = false;
     }
 
     public class UsersPaginatedRequest : PagedRequest

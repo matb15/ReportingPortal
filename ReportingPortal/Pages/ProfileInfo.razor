@@ -271,7 +271,8 @@
         Search = string.Empty,
         Status = null,
         SortField = "CreatedAt",
-        SortAscending = false
+        SortAscending = false,
+        IsPersonal = true
     };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -281,7 +282,6 @@
             await JSRuntime.InvokeVoidAsync("addScrollListener", DotNetObjectReference.Create(this));
         }
     }
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -337,7 +337,7 @@
         Reports.Clear();
         Request.Page = 1;
         AllLoaded = false;
-}
+    }
 
     private async Task OnStatusFilterChanged(ChangeEventArgs e)
     {
@@ -514,7 +514,7 @@
 
     private async Task LoadReportAnalytics()
     {
-        var analytics = await ReportService.GetReportAnalyticsAsync();
+        var analytics = await ReportService.GetReportAnalyticsAsync(true);
         if (analytics != null && analytics.StatusCode >= 200 && analytics.StatusCode <= 299)
         {
             ReportAnalytics = analytics;

@@ -19,7 +19,7 @@ namespace ReportingPortalServer.Services
         public ReportResponse DeleteReport(int idRep, string jwt, ApplicationDbContext _context);
         public ReportResponse UpdateReport(int idRep, CreateReportRequest updateRequest, string jwt, ApplicationDbContext _context);
         public Task<ClusterResponse> GetClusteredReports(/*string jwt,*/ ClusterRequest request, ApplicationDbContext context);
-        public Task<ReportAnalyticsResponse> GetReportAnalytics(string jwt, ApplicationDbContext context);
+        public Task<ReportAnalyticsResponse> GetReportAnalytics(string jwt, bool IsPersonal, ApplicationDbContext context);
     }
 
     public class ReportService : IReportService
@@ -133,6 +133,11 @@ namespace ReportingPortalServer.Services
              .Include(r => r.Category)
              .Include(r => r.File)
              .AsQueryable();
+
+            if (request.IsPersonal && currentUser.Role == UserRoleEnum.Admin)
+            {
+                query = query.Where(r => r.UserId == currentUser.Id);
+            }
 
             if (request.Status.HasValue)
             {
@@ -519,7 +524,7 @@ namespace ReportingPortalServer.Services
             };
         }
 
-        public async Task<ReportAnalyticsResponse> GetReportAnalytics(string jwt, ApplicationDbContext context)
+        public async Task<ReportAnalyticsResponse> GetReportAnalytics(string jwt, bool IsPersonal, ApplicationDbContext context)
         {
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
@@ -552,6 +557,11 @@ namespace ReportingPortalServer.Services
             IQueryable<Report> query = context.Reports.AsQueryable();
 
             if (currentUser.Role != UserRoleEnum.Admin)
+            {
+                query = query.Where(r => r.UserId == currentUser.Id);
+            }
+
+            if (IsPersonal && currentUser.Role == UserRoleEnum.Admin)
             {
                 query = query.Where(r => r.UserId == currentUser.Id);
             }

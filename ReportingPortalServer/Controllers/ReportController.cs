@@ -185,7 +185,7 @@ namespace ReportingPortalServer.Controllers
         }
 
         [HttpGet("analytics")]
-        public async Task<ReportAnalyticsResponse> GetReportAnalytics()
+        public async Task<ReportAnalyticsResponse> GetReportAnalytics([FromQuery] bool IsPersonal)
         {
             string? jwt = Utils.GetJwt(HttpContext);
             if (string.IsNullOrEmpty(jwt))
@@ -196,7 +196,7 @@ namespace ReportingPortalServer.Controllers
                     Message = "Authorization header is missing or invalid."
                 };
             }
-            return await _reportService.GetReportAnalytics(jwt, _context);
+            return await _reportService.GetReportAnalytics(jwt, IsPersonal, _context);
         }
     }
 }

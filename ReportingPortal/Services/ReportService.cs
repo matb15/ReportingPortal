@@ -27,6 +27,9 @@ namespace ReportingPortal.Services
             if (request.Status.HasValue)
                 queryParams.Add($"status={(int)request.Status.Value}");
 
+            if (request.IsPersonal)
+                queryParams.Add($"isPersonal={request.IsPersonal}");
+
             string url = $"api/report?{string.Join("&", queryParams)}";
 
             try
@@ -182,9 +185,13 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<ReportAnalyticsResponse> GetReportAnalyticsAsync()
+        public async Task<ReportAnalyticsResponse> GetReportAnalyticsAsync(bool IsPersonal)
         {
-            string url = "api/report/analytics";
+            List<string> queryParams = [];
+            if (IsPersonal)
+                queryParams.Add($"isPersonal={IsPersonal}");
+
+            string url = $"api/report/analytics?{string.Join("&", queryParams)}";
             try
             {
                 HttpResponseMessage response = await _http.GetAsync(url);
