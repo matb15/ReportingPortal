@@ -183,5 +183,20 @@ namespace ReportingPortalServer.Controllers
             //}
             return await _reportService.GetClusteredReports(/*jwt,*/ req, _context);
         }
+
+        [HttpGet("analytics")]
+        public async Task<ReportAnalyticsResponse> GetReportAnalytics()
+        {
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return new ReportAnalyticsResponse
+                {
+                    StatusCode = 401,
+                    Message = "Authorization header is missing or invalid."
+                };
+            }
+            return await _reportService.GetReportAnalytics(jwt, _context);
+        }
     }
 }

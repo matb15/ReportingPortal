@@ -1,4 +1,5 @@
 using Models.enums;
+using Models.front;
 
 namespace Models.http
 {
@@ -109,6 +110,16 @@ namespace Models.http
     {
         public ReportDto Report { get; set; } = default!;
     }
+
+    public class ReportAnalyticsResponse : Response
+    {
+        public int TotalReports { get; set; } = 0;
+        public int PendingReports { get; set; } = 0;
+        public int ResolvedReports { get; set; } = 0;
+        public int RejectedReports { get; set; } = 0;
+
+        public List<DailyReportCount> DailyReportCounts { get; set; } = [];
+    }
     public class NotificationResponse : Response
     {
         public Notification Notification { get; set; } = default!;
@@ -144,7 +155,7 @@ namespace Models.http
     {
     }
 
-    public class ReportReplyResponse : Response 
+    public class ReportReplyResponse : Response
     {
         public ReportReply reportReply { get; set; } = default!;
     }

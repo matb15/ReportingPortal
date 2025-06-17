@@ -32,4 +32,11 @@ namespace Models.front
         public bool? PushSent { get; set; }
         public DateTime? PushSentAt { get; set; }
     }
+
+    public class DailyReportCount
+    {
+        public DateTime Date { get; set; }
+        public int Count { get; set; }
+
+    }
 }

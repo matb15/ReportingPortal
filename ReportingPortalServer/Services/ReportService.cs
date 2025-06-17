@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.enums;
+using Models.front;
 using Models.http;
 using ReportingPortalServer.Services.AppwriteIO;
 using ReportingPortalServer.Services.Helpers;
@@ -18,6 +19,7 @@ namespace ReportingPortalServer.Services
         public ReportResponse DeleteReport(int idRep, string jwt, ApplicationDbContext _context);
         public ReportResponse UpdateReport(int idRep, CreateReportRequest updateRequest, string jwt, ApplicationDbContext _context);
         public Task<ClusterResponse> GetClusteredReports(/*string jwt,*/ ClusterRequest request, ApplicationDbContext context);
+        public Task<ReportAnalyticsResponse> GetReportAnalytics(string jwt, ApplicationDbContext context);
     }
 
     public class ReportService : IReportService
@@ -507,6 +509,80 @@ namespace ReportingPortalServer.Services
                     }).ToList() ?? []
                 }).ToList()
             };
+        }
+
+        public async Task<ReportAnalyticsResponse> GetReportAnalytics(string jwt, ApplicationDbContext context)
+        {
+            JwtSecurityTokenHandler handler = new();
+            if (!handler.CanReadToken(jwt))
+            {
+                return new ReportAnalyticsResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT not valid."
+                };
+            }
+            JwtSecurityToken token = handler.ReadJwtToken(jwt);
+            Claim? userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int parsedUserId))
+            {
+                return new ReportAnalyticsResponse
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Message = "JWT does not contain user ID."
+                };
+            }
+            Models.User? currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
+            if (currentUser == null)
+            {
+                return new ReportAnalyticsResponse
+                {
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Message = "Authenticated user not found."
+                };
+            }
+            IQueryable<Report> query = context.Reports.AsQueryable();
+
+            if (currentUser.Role != UserRoleEnum.Admin)
+            {
+                query = query.Where(r => r.UserId == currentUser.Id);
+            }
+
+            var totalReports = await query.CountAsync();
+
+            var pendingReports = await query
+                .Where(r => r.Status == ReportStatusEnum.Pending)
+                .CountAsync();
+
+            var resolvedReports = await query
+                .Where(r => r.Status == ReportStatusEnum.Resolved)
+                .CountAsync();
+
+            var rejectedReports = await query
+                .Where(r => r.Status == ReportStatusEnum.Rejected)
+                .CountAsync();
+
+            var dailyReportCounts = await query
+                .GroupBy(r => r.CreatedAt.Date)
+                .Select(g => new DailyReportCount
+                {
+                    Date = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(d => d.Date)
+                .ToListAsync();
+
+            return new ReportAnalyticsResponse
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+                Message = "Report analytics retrieved successfully.",
+                TotalReports = totalReports,
+                PendingReports = pendingReports,
+                ResolvedReports = resolvedReports,
+                RejectedReports = rejectedReports,
+                DailyReportCounts = dailyReportCounts
+            };
+
         }
     }
 }

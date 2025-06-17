@@ -167,7 +167,6 @@
 
     private bool showAddReportForm = false;
     private List<ReportDto> reports = new();
-    private bool showDemo = true;
 
     private int page = 1;
     private const int pageSize = 10;
@@ -199,9 +198,8 @@
 
             await FetchInitialReports();
 
-            // Hook up infinite scroll
-            await JSRuntime.InvokeVoidAsync("infiniteScroll.observeScroll",
-                DotNetObjectReference.Create(this), "reportScrollContainer");
+            await JSRuntime.InvokeVoidAsync("addScrollListener",
+                DotNetObjectReference.Create(this));
 
             StateHasChanged();
         }
