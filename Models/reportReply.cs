@@ -24,15 +24,23 @@ namespace Models
 
         public ReportStatusEnum NewStatus { get; set; }
 
-        public List<int>? AttachmentIds { get; set; } = null;
+        public int? Attachment1Id { get; set; }
+        public int? Attachment2Id { get; set; }
+        public int? Attachment3Id { get; set; }
+
+        [ForeignKey(nameof(Attachment1Id))]
+        public UploadFile? Attachment1 { get; set; }
+
+        [ForeignKey(nameof(Attachment2Id))]
+        public UploadFile? Attachment2 { get; set; }
+
+        [ForeignKey(nameof(Attachment3Id))]
+        public UploadFile? Attachment3 { get; set; }
 
         [ForeignKey(nameof(ReportId))]
         public Report Report { get; set; } = default!;
 
         [ForeignKey(nameof(UserId))]
         public User User { get; set; } = default!;
-
-        [ForeignKey(nameof(AttachmentIds))]
-        public List<UploadFile>? Attachments { get; set; } = null;
     }
 }

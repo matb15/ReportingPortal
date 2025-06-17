@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.http;
 using ReportingPortalServer.Services.AppwriteIO;
@@ -89,8 +90,6 @@ namespace ReportingPortalServer.Services
             }
 
             var uploadedFiles = new List<UploadFile>();
-            var uploadTasks = new List<Task<UploadFileResponse>>();
-
             int uploadLimit = Math.Min(3, request.Attachments.Count);
 
             for (int i = 0; i < uploadLimit; i++)
@@ -101,18 +100,16 @@ namespace ReportingPortalServer.Services
                 }
 
                 Console.WriteLine($"Processing file: {file.FileName}, Size: {file.Length} bytes");
-                uploadTasks.Add(Utils.HandleSingleUploadAsync(file, appwriteClient, context));
-            }
 
-            var results = await Task.WhenAll(uploadTasks);
+                var result = await Utils.HandleSingleUploadAsync(file, appwriteClient, context);
 
-            Console.WriteLine($"Upload results count: {results.Length}");
-
-            foreach (var result in results)
-            {
                 if (result.StatusCode == 201 && result.File != null)
                 {
                     uploadedFiles.Add(result.File);
+                }
+                else
+                {
+                    Console.WriteLine($"Upload failed for file: {file.FileName}, message: {result.Message}");
                 }
             }
 
@@ -135,6 +132,7 @@ namespace ReportingPortalServer.Services
                 Files = uploadedFiles
             };
         }
+
 
         public async Task<Response> DeleteUploadFile(int id, ApplicationDbContext context, string jwt, IAppwriteClient appwriteClient)
         {

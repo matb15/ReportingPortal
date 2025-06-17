@@ -322,6 +322,8 @@ namespace ReportingPortalServer.Services
             {
                 // L'admin può cancellare qualsiasi report
                 report = _context.Reports.FirstOrDefault(r => r.Id == idRep);
+
+
             }
             else
             {
@@ -344,23 +346,6 @@ namespace ReportingPortalServer.Services
             {
                 StatusCode = (int)HttpStatusCode.OK,
                 Message = "Report deleted successfully.",
-                Report = new ReportDto()
-                {
-                    Id = report.Id,
-                    Title = report.Title,
-                    Description = report.Description,
-                    CategoryId = report.CategoryId,
-                    Location = report.Location,
-                    LocationDetail = report.LocationDetail,
-                    Latitude = report.GeoPoint.Y,
-                    Longitude = report.GeoPoint.X,
-                    UserId = report.UserId,
-                    CreatedAt = report.CreatedAt,
-                    Status = report.Status,
-                    User = report.User,
-                    Category = report.Category,
-                    File = report.File,
-                }
             };
         }
         public ReportResponse UpdateReport(int idRep, CreateReportRequest updateRequest, string jwt, ApplicationDbContext _context)

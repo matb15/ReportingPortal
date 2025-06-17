@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.enums;
 using Models.http;
@@ -282,7 +283,6 @@ namespace ReportingPortalServer.Services.Helpers
 
         public static async Task<UploadFileResponse> HandleSingleUploadAsync(IFormFile file, IAppwriteClient appwriteClient, ApplicationDbContext context)
         {
-            Console.WriteLine($"Handling file upload: {file.FileName}, Size: {file.Length} bytes");
             string tempDir = Path.Combine(Path.GetTempPath(), "uploads");
             Directory.CreateDirectory(tempDir);
 
@@ -308,9 +308,6 @@ namespace ReportingPortalServer.Services.Helpers
             };
 
             context.UploadFiles.Add(uploadFile);
-            context.SaveChanges();
-
-            Console.WriteLine($"File uploaded: {uploadFile.FileName} ({uploadFile.Size} bytes)");
 
             try
             {

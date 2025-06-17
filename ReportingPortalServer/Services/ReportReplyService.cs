@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Models;
 using Models.enums;
 using Models.http;
 using ReportingPortalServer.Services.AppwriteIO;
@@ -54,31 +55,25 @@ namespace ReportingPortalServer.Services
                 };
             }
 
-            var response = await uploadFileService.CreateUploadFilesAsync(request, context, jwt, appwriteClient);
             List<int> fileIds = [];
-            Console.WriteLine($"Upload response: {response.StatusCode} - {response.Message}");
-            if (response.StatusCode >= 200 && response.StatusCode < 300)
+            if(request.Attachments != null && request.Attachments.Count != 0)
             {
-                if (response.Files.Count != 0)
+                var response = await uploadFileService.CreateUploadFilesAsync(request, context, jwt, appwriteClient);
+                if (response.StatusCode >= 200 && response.StatusCode < 300)
                 {
-                    fileIds = [.. response.Files.Select(f => f.Id)];
+                    if (response.Files.Count != 0)
+                    {
+                        fileIds = [.. response.Files.Select(f => f.Id)];
+                    }
                 }
                 else
                 {
                     return new ReportReplyResponse
                     {
-                        StatusCode = 400,
-                        Message = "No files uploaded."
+                        StatusCode = response.StatusCode,
+                        Message = response.Message
                     };
                 }
-            }
-            else
-            {
-                return new ReportReplyResponse
-                {
-                    StatusCode = response.StatusCode,
-                    Message = response.Message
-                };
             }
 
             var reply = new ReportReply
@@ -88,9 +83,13 @@ namespace ReportingPortalServer.Services
                 UserId = request.UserId,
                 Message = request.Message,
                 NewStatus = request.NewStatus ?? report.Status,
+                Attachment1Id = fileIds.Count > 0 ? fileIds[0] : (int?)null,
+                Attachment2Id = fileIds.Count > 1 ? fileIds[1] : (int?)null,
+                Attachment3Id = fileIds.Count > 2 ? fileIds[2] : (int?)null,
             };
 
-            if (request.NewStatus != report.Status)
+
+            if (request.NewStatus != null && request.NewStatus != report.Status)
             {
                 Notification emailNotificaiton = new()
                 {
@@ -320,7 +319,11 @@ namespace ReportingPortalServer.Services
             int totalCount = query.Count();
             List<ReportReply> repliesList = [.. query
                 .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)];
+                .Take(request.PageSize)
+                .Include(n => n.Attachment1)
+                .Include(n => n.Attachment2)
+                .Include(n => n.Attachment3)
+            ];
 
             return Task.FromResult(new ReportRepliesPaginatedResponse
             {

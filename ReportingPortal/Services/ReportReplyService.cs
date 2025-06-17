@@ -108,10 +108,9 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<ReportReplyResponse> UpdateAsync(MultipartFormDataContent model)
+        public async Task<ReportReplyResponse> UpdateAsync(int id, MultipartFormDataContent model)
         {
-            //string url = $"api/report/{model.Id}";
-            string url = "api/reportreply"; // Assuming the model contains the ID and other necessary data
+            string url = $"api/reportreply/{id}";
             try
             {
                 HttpResponseMessage response = await _http.PutAsync(url, model);
@@ -142,7 +141,7 @@ namespace ReportingPortal.Services
 
         public async Task<ReportReplyResponse> DeleteAsync(int id)
         {
-            string url = $"api/report/{id}";
+            string url = $"api/reportreply/{id}";
             try
             {
                 HttpResponseMessage response = await _http.DeleteAsync(url);

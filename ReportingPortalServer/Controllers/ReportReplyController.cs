@@ -69,11 +69,11 @@ namespace ReportingPortalServer.Controllers
             return _reportReplyService.DeleteReportReply(id, jwt, _context);
         }
 
-        [HttpPut]
-        public ReportReplyResponse UpdateReportReply([FromBody] UpdateReportReplyRequest req)
+        [HttpPut("{id}")]
+        public ReportReplyResponse UpdateReportReply(int id, [FromForm] UpdateReportReplyRequest req)
         {
-            _logger.LogInformation($"UpdateReportReply request received for id: {req.ReportReplyId}");
-            if (req.ReportReplyId <= 0 || string.IsNullOrEmpty(req.Message))
+            _logger.LogInformation($"UpdateReportReply request received for id: {id}");
+            if (id <= 0 || string.IsNullOrEmpty(req.Message))
             {
                 return new ReportReplyResponse
                 {
@@ -90,11 +90,11 @@ namespace ReportingPortalServer.Controllers
                     Message = "Authorization header is missing or invalid."
                 };
             }
-            return _reportReplyService.UpdateReportReply(req.ReportReplyId, req.Message, jwt, _context);
+            return _reportReplyService.UpdateReportReply(id, req.Message, jwt, _context);
         }
 
         [HttpGet]
-        public async Task<ReportRepliesPaginatedResponse> GetPaginatedReportReply([FromForm] ReportsReplyPaginatedRequest req)
+        public async Task<ReportRepliesPaginatedResponse> GetPaginatedReportReply([FromQuery] ReportsReplyPaginatedRequest req)
         {
             _logger.LogInformation($"GetPaginatedReportReply request received with Page={req.Page}, PageSize={req.PageSize}");
             if (req.PageSize <= 0 || req.Page < 0)

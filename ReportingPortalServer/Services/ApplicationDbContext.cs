@@ -36,7 +36,24 @@ namespace ReportingPortalServer.Services
                 .WithMany(r => r.Replies)
                 .HasForeignKey(rr => rr.ReportId)
                 .OnDelete(DeleteBehavior.Cascade);
-        }
 
+            modelBuilder.Entity<ReportReply>()
+                .HasOne(rr => rr.Attachment1)
+                .WithMany()
+                .HasForeignKey("Attachment2Id")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ReportReply>()
+                .HasOne(rr => rr.Attachment1)
+                .WithMany()
+                .HasForeignKey("Attachment3Id")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ReportReply>()
+                .HasOne(rr => rr.Attachment1)
+                .WithMany()
+                .HasForeignKey("Attachment1Id")
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

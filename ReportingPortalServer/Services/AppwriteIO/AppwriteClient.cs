@@ -155,15 +155,24 @@ namespace ReportingPortalServer.Services.AppwriteIO
                     bucketId: bucketId,
                     fileId: "unique()",
                     file: inputFile,
-                    permissions: new List<string> { "read(\"any\")" }
+                    permissions: ["read(\"any\")"]
                 );
 
                 return file.Id;
             }
-            catch (AppwriteException ex)
+            catch (HttpRequestException httpEx)
             {
-                Console.WriteLine($"Appwrite error during file upload: {ex.Message}");
-                throw new Exception($"Appwrite error during file upload: {ex.Message}", ex);
+                Console.WriteLine($"HttpRequestException: {httpEx.Message}");
+                if (httpEx.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {httpEx.InnerException.Message}");
+                }
+                throw;
+            }
+            catch (AppwriteException appEx)
+            {
+                Console.WriteLine($"AppwriteException: {appEx.Message}");
+                throw;
             }
         }
 

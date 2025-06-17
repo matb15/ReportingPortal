@@ -35,6 +35,27 @@
         setTimeout(() => map.invalidateSize(), 100);
     },
 
+    async initMapSingle(lat, lng) {
+        if (!lat || !lng) return;
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        await delay(250);
+
+        const container = document.getElementById('mapPos');
+        if (!container) return;
+
+        const map = L.map('mapPos').setView([lat, lng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([lat, lng]).addTo(map);
+        setTimeout(() => map.invalidateSize(), 100);
+    },
+
     _placeTempMarker(latlng) {
         if (this._tempMarker) {
             this._mapInstance.removeLayer(this._tempMarker);
