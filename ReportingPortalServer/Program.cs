@@ -20,12 +20,13 @@ namespace ReportingPortalServer
                 options.AddPolicy(origins,
                     policy =>
                     {
-                        if (!string.IsNullOrEmpty(frontAddress))
-                        {
-                            policy.WithOrigins(frontAddress)
-                                  .AllowAnyHeader()
-                                  .AllowAnyMethod();
-                        }
+                        policy.WithOrigins(
+                                frontAddress ?? string.Empty,
+                                "http://reportingportal-001-site1.ktempurl.com",
+                                "http://reportingportals-001-site1.qtempurl.com")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod()
+                              .AllowCredentials();
                     });
             });
 
@@ -86,18 +87,18 @@ namespace ReportingPortalServer
 
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.MapOpenApi();
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+            //}
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
             app.UseCors("origins");
+
+            app.UseAuthorization();
 
             app.MapControllers();
 
