@@ -15,20 +15,18 @@ namespace ReportingPortalServer
 
             string origins = "origins";
             string? frontAddress = builder.Configuration["FrontAddress"];
+
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(origins,
-                    policy =>
-                    {
-                        policy.WithOrigins(
-                                frontAddress ?? string.Empty,
-                                "http://reportingportal-001-site1.ktempurl.com",
-                                "http://reportingportals-001-site1.qtempurl.com")
-                              .AllowAnyHeader()
-                              .AllowAnyMethod()
-                              .AllowCredentials();
-                    });
+                options.AddPolicy(origins, policy =>
+                {
+                    policy.WithOrigins(frontAddress ?? string.Empty)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
             });
+
 
             builder.Services.AddControllers();
 
@@ -87,16 +85,16 @@ namespace ReportingPortalServer
 
             var app = builder.Build();
 
+            app.UseCors("origins");
+
             //if (app.Environment.IsDevelopment())
             //{
-                app.MapOpenApi();
-                app.UseSwagger();
-                app.UseSwaggerUI();
+            app.MapOpenApi();
+            app.UseSwagger();
+            app.UseSwaggerUI();
             //}
 
             app.UseHttpsRedirection();
-
-            app.UseCors("origins");
 
             app.UseAuthorization();
 
