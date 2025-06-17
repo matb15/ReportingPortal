@@ -145,7 +145,7 @@ namespace Models.http
 
     public class UploadFileRequest
     {
-        public IFormFile File { get; set; } = default!;
+        public IFormFile? File { get; set; } = default!;
     }
 
     public class UpdateNotificationRequest : Request
@@ -187,7 +187,7 @@ namespace Models.http
     }
 
     public class UpdateReportReplyRequest : Request
-    {        
+    {
         public string Message { get; set; } = string.Empty;
     }
 

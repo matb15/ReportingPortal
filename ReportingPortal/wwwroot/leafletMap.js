@@ -2,6 +2,7 @@
     _mapInstance: null,
     _tempMarker: null,
     markersLayer: null,
+    heatLayer: null,
 
     initMap(clickEnabled = false) {
         const container = document.getElementById('map');
@@ -96,9 +97,20 @@
     _renderClusters(clusters) {
         this.markersLayer.clearLayers();
 
+        if (this.heatLayer) {
+            this._mapInstance.removeLayer(this.heatLayer);
+            this.heatLayer = null;
+        }
+
+        const heatPoints = [];
+
         clusters.forEach(cluster => {
             const items = cluster.items;
             if (!items || items.length === 0) return;
+
+            items.forEach(item => {
+                heatPoints.push([item.latitude, item.longitude, 5.0]);
+            });
 
             if (items.length > 1) {
                 this._createClusterMarker(items);
@@ -106,6 +118,31 @@
                 this._createReportMarker(items[0]);
             }
         });
+
+        if (heatPoints.length > 0) {
+            this.heatLayer = L.heatLayer(heatPoints, {
+                radius: 30,
+                blur: 10,
+                maxZoom: 17,
+                gradient: {
+                    0.2: 'blue',
+                    0.4: 'lime',
+                    0.6: 'yellow',
+                    0.8: 'orange',
+                    1.0: 'red'
+                }
+            }).addTo(this._mapInstance);
+        }
+    },
+
+    toggleHeatmap(show) {
+        if (!this.heatLayer) return;
+
+        if (show) {
+            this._mapInstance.addLayer(this.heatLayer);
+        } else {
+            this._mapInstance.removeLayer(this.heatLayer);
+        }
     },
 
     _createClusterMarker(items) {

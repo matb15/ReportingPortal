@@ -52,29 +52,48 @@
 
 </style>
 
-
+<Alert AlertData="@AlertData" OnDismissed="@(() => AlertData.IsVisible = false)" />
 <div class="p-4 bg-gray-50 space-y-4">
     @if (showAddReportForm)
     {
-@*         <AddReportForm OnCancel="HideAddReportForm" OnSubmit="HandleAddReportSubmit" />
- *@    }
+         <AddReportForm OnCancel="HideAddReportForm" OnSubmit="OnReportCreated" />
+     }
     else
     {
-        <div class="flex space-x-2 border-b border-gray-200">
-            <button @onclick="SelectMapTab"
-                class="@($"px-4 py-2 font-medium text-sm border-b-2 { (selectedTab == "map" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500") }")">
-                Map
+        <div class="flex items-center border-b border-gray-200 pb-2">
+            <div class="flex space-x-2">
+                <button @onclick="SelectMapTab"
+                    class="@($"px-4 py-2 font-medium text-sm border-b-2 {(selectedTab == "map" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500")}")">
+                    Map
+                </button>
+
+                <button @onclick="@(() => selectedTab = "reports")"
+                    class="@($"px-4 py-2 font-medium text-sm border-b-2 {(selectedTab == "reports" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500")}")">
+                    Reports
+                </button>
+            </div>
+
+            <button @onclick="ToggleHeatmap"
+                    class="absolute top-4 right-4 z-[5001] bg-white text-gray-800 px-3 py-1.5 border border-gray-300 rounded-md shadow hover:bg-gray-100 text-sm">
+                @(isHeatmapVisible ? "Hide Heatmap" : "Show Heatmap")
             </button>
 
-            <button @onclick="@(() => selectedTab = "reports")"
-                    class="@($"px-4 py-2 font-medium text-sm border-b-2 { (selectedTab == "reports" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500") }")">
-                Reports
+
+            <button @onclick="ShowAddReportForm"
+                class="ml-auto inline-flex items-center gap-2 bg-[#66c61c] text-white px-4 py-2 rounded-md shadow hover:bg-[#57ac16] transition"
+                title="Create a new report" aria-label="Create new report">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                New Report
             </button>
         </div>
 
+
         @if (selectedTab == "map")
         {
-            <div class="relative mt-4 h-[84vh]" id="map">
+            <div class="relative mt-4 h-[83vh]" id="map">
                 <NavLink href="/map"
                          class="map-link">
                     <i class="fa-solid fa-expand"></i>
@@ -172,9 +191,20 @@
     private const int pageSize = 10;
     private bool isLoadingMore = false;
     private bool allLoaded = false;
+    private AlertModel AlertData = new();
 
-    private void ShowAddReportForm() => showAddReportForm = true;
-    private void HideAddReportForm() => showAddReportForm = false;
+
+    private void ShowAddReportForm()
+    {
+        selectedTab = "reports";        
+        showAddReportForm = true;
+    }
+
+    private async Task HideAddReportForm()
+    {
+        await JSRuntime.InvokeVoidAsync("MAP.initMap");
+        showAddReportForm = false;
+    }
 
     private void GoToReportDetail(int? reportId) => Navigation.NavigateTo($"/report/{reportId}");
 
@@ -203,6 +233,41 @@
 
             StateHasChanged();
         }
+    }
+
+    private async Task OnReportCreated((MultipartFormDataContent content, int id) report)
+    {
+        ReportResponse response = await ReportService.CreateAsync(report.content);
+        if(response.StatusCode >= 200 && response.StatusCode < 300)
+        {
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Information,
+                Title = "Success",
+                Message = "Report created successfully!",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+
+            await HideAddReportForm();
+        }
+        else
+        {
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Title = "Error",
+                Message = response.Message ?? "An error occurred while creating the report.",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+        }
+
+        await JSRuntime.InvokeVoidAsync("MAP.initMap");
+        reports.Clear();
+        page = 1;
+
+        await FetchInitialReports();
     }
 
     private async Task FetchInitialReports()
@@ -262,4 +327,13 @@
     {
         await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
+
+    private bool isHeatmapVisible = true;
+
+    private async Task ToggleHeatmap()
+    {
+        isHeatmapVisible = !isHeatmapVisible;
+        await JSRuntime.InvokeVoidAsync("MAP.toggleHeatmap", isHeatmapVisible);
+    }
+
 }

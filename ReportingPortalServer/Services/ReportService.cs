@@ -229,20 +229,23 @@ namespace ReportingPortalServer.Services
                 return new ReportResponse { StatusCode = (int)HttpStatusCode.BadRequest, Message = "Authenticated user not found." };
             }
 
-
-            var response = await uploadFileService.CreateUploadFile(reportRequest, _context, jwt, appwriteClient);
             int? fileId = null;
-            if (response.StatusCode >= 200 && response.StatusCode < 300)
+
+            if (reportRequest.File != null)
             {
-                fileId = response.File?.Id;
-            }
-            else
-            {
-                return new ReportResponse
+                var response = await uploadFileService.CreateUploadFile(reportRequest, _context, jwt, appwriteClient);
+                if (response.StatusCode >= 200 && response.StatusCode < 300)
                 {
-                    StatusCode = response.StatusCode,
-                    Message = response.Message
-                };
+                    fileId = response.File?.Id;
+                }
+                else
+                {
+                    return new ReportResponse
+                    {
+                        StatusCode = response.StatusCode,
+                        Message = response.Message
+                    };
+                }
             }
 
             Report report = new()
