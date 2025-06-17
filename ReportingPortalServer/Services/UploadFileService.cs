@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Models;
 using Models.http;
 using ReportingPortalServer.Services.AppwriteIO;
 using ReportingPortalServer.Services.Helpers;
@@ -8,6 +9,7 @@ namespace ReportingPortalServer.Services
     public interface IUploadFileService
     {
         Task<UploadFileResponse> CreateUploadFile(dynamic request, ApplicationDbContext context, string jwt, IAppwriteClient appwriteClient);
+        Task<UploadFilesResponse> CreateUploadFilesAsync(dynamic request, ApplicationDbContext context, string jwt, IAppwriteClient appwriteClient);
         Task<Response> DeleteUploadFile(int id, ApplicationDbContext context, string jwt, IAppwriteClient appwriteClient);
     }
 
@@ -72,6 +74,65 @@ namespace ReportingPortalServer.Services
                 StatusCode = 201,
                 Message = "File uploaded successfully.",
                 File = uploadFile
+            };
+        }
+
+        public async Task<UploadFilesResponse> CreateUploadFilesAsync(dynamic request, ApplicationDbContext context, string jwt, IAppwriteClient appwriteClient)
+        {
+            if (request.Attachments == null || request.Attachments.Count == 0)
+            {
+                return new UploadFilesResponse
+                {
+                    StatusCode = 400,
+                    Message = "No files uploaded."
+                };
+            }
+
+            var uploadedFiles = new List<UploadFile>();
+            var uploadTasks = new List<Task<UploadFileResponse>>();
+
+            int uploadLimit = Math.Min(3, request.Attachments.Count);
+
+            for (int i = 0; i < uploadLimit; i++)
+            {
+                if (request.Attachments[i] is not IFormFile file)
+                {
+                    continue;
+                }
+
+                Console.WriteLine($"Processing file: {file.FileName}, Size: {file.Length} bytes");
+                uploadTasks.Add(Utils.HandleSingleUploadAsync(file, appwriteClient, context));
+            }
+
+            var results = await Task.WhenAll(uploadTasks);
+
+            Console.WriteLine($"Upload results count: {results.Length}");
+
+            foreach (var result in results)
+            {
+                if (result.StatusCode == 201 && result.File != null)
+                {
+                    uploadedFiles.Add(result.File);
+                }
+            }
+
+            if (uploadedFiles.Count > 0)
+            {
+                await context.SaveChangesAsync();
+
+                return new UploadFilesResponse
+                {
+                    StatusCode = 201,
+                    Message = "Files uploaded successfully.",
+                    Files = uploadedFiles
+                };
+            }
+
+            return new UploadFilesResponse
+            {
+                StatusCode = 500,
+                Message = "Failed to upload files.",
+                Files = uploadedFiles
             };
         }
 

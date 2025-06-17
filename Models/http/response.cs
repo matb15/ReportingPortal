@@ -69,6 +69,11 @@ namespace Models.http
         public UploadFile File { get; set; } = default!;
     }
 
+    public class UploadFilesResponse : Response
+    {
+        public List<UploadFile> Files { get; set; } = [];
+    }
+
     public class ReportDto : Request
     {
         public int Id { get; set; }

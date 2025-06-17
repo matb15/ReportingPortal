@@ -145,6 +145,8 @@ namespace ReportingPortalServer.Services.AppwriteIO
 
             try
             {
+
+                Console.WriteLine($"Uploading file '{fileName}' to bucket '{bucketId}'...");
                 using FileStream fileStream = File.OpenRead(filePath);
 
                 InputFile inputFile = InputFile.FromStream(fileStream, fileName, string.Empty);
@@ -153,13 +155,14 @@ namespace ReportingPortalServer.Services.AppwriteIO
                     bucketId: bucketId,
                     fileId: "unique()",
                     file: inputFile,
-                    permissions: ["read(\"any\")"] // opzionale ma consigliato
+                    permissions: new List<string> { "read(\"any\")" }
                 );
 
                 return file.Id;
             }
             catch (AppwriteException ex)
             {
+                Console.WriteLine($"Appwrite error during file upload: {ex.Message}");
                 throw new Exception($"Appwrite error during file upload: {ex.Message}", ex);
             }
         }

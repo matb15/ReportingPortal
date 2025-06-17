@@ -1,64 +1,78 @@
 ﻿@page "/report/{ReportId:int}"
 @attribute [Authorize]
 
-@using Microsoft.AspNetCore.Authorization
-@using System.Globalization
-
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject ReportService ReportService
 @inject ReportReplyService ReportReplyService
 @inject UserService UserService
 
-<div class="p-6 max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold text-gray-800">Dettagli Segnalazione</h2>
-        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full" @onclick="ExportToPdf" disabled="@(Report == null)">
-            <i class="fa-solid fa-file-pdf mr-2"></i> Esporta in PDF
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Globalization
+
+<div class="max-w-6xl mx-auto p-6 space-y-6 print:p-0 print:bg-white">
+    <div class="flex justify-between items-center">
+        <h2 class="text-3xl font-bold text-gray-800">📝 Dettagli Segnalazione</h2>
+        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full"
+                @onclick="ExportToPdf"
+                disabled="@IsLoading">
+            <i class="fa-solid fa-file-pdf mr-2"></i> Esporta PDF
         </button>
     </div>
 
     @if (IsLoading)
     {
-        <p>Caricamento in corso...</p>
+        <p>Caricamento...</p>
     }
     else if (Report == null)
     {
-        <p class="text-red-600">Segnalazione non trovata o errore durante il caricamento.</p>
+        <p class="text-red-600">Errore: segnalazione non trovata.</p>
     }
     else
     {
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="col-span-1 md:col-span-1 space-y-6">
-                <div class="bg-white rounded-lg shadow p-4 space-y-3">
-                    <div>
-                        <strong class="text-gray-600">Tipo:</strong> @(Report.Category?.Name ?? "N/D")
-                    </div>
-                    <div>
-                        <strong class="text-gray-600">Luogo:</strong> @Report.Location
-                        <div class="text-sm text-gray-500">@Report.LocationDetail</div>
-                    </div>
-                    <div>
-                        <strong class="text-gray-600">Segnalato da:</strong> @(Report.User?.Email ?? "N/D")
-                    </div>
-                    <div>
-                        <strong class="text-gray-600">Data:</strong> @Report.CreatedAt.ToString("d MMM yyyy", CultureInfo.GetCultureInfo("it-IT"))
-                    </div>
-                    <div>
-                        <strong class="text-gray-600">Stato:</strong>
-                        <span class="font-semibold status-@Report.Status">@Report.Status</span>
-                    </div>
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="md:col-span-1 space-y-4">
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div><strong class="text-gray-600">Tipo:</strong> @(Report.Category?.Name ?? "N/D")</div>
+                    <div><strong class="text-gray-600">Luogo:</strong> @Report.Location</div>
+                    <div class="text-sm text-gray-500">@Report.LocationDetail</div>
+                    <div><strong class="text-gray-600">Segnalato da:</strong> @(Report.User?.Email ?? "N/D")</div>
+                    <div><strong class="text-gray-600">Data:</strong> @Report.CreatedAt.ToString("d MMM yyyy", CultureInfo.GetCultureInfo("it-IT"))</div>
+                    <div><strong class="text-gray-600">Stato:</strong> <span class="font-semibold status-@Report.Status">@Report.Status</span></div>
                 </div>
 
                 @if (CurrentUser?.Role == UserRoleEnum.Admin)
                 {
                     <div class="bg-white p-4 rounded-lg shadow space-y-3">
-                        <h3 class="text-lg font-medium text-gray-800">Aggiungi una risposta</h3>
+                        <h3 class="text-lg font-semibold text-gray-800">Rispondi</h3>
 
                         <textarea class="w-full border border-gray-300 rounded-md p-2 text-sm"
-                                  rows="4" @bind="NewMessage" placeholder="Scrivi un commento..."></textarea>
+                                  rows="4" @bind="NewMessage" placeholder="Scrivi una risposta..."></textarea>
 
-                        <div class="flex items-center gap-3">
+                        <div>
+                            <label class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm cursor-pointer">
+                                📁 Scegli file (max 3)
+                                <InputFile class="hidden" OnChange="HandleFileSelected" multiple />
+                            </label>
+
+                            @if (UploadedImages.Count > 0)
+                            {
+                                <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                                    @foreach (var file in UploadedImages)
+                                    {
+                                        <li class="flex items-center justify-between">
+                                            <span>📎 @file.Name</span>
+                                            <button type="button" class="text-red-500 hover:text-red-700" @onclick="() => RemoveFile(file)">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+
+                        <div class="flex gap-3 items-center">
                             <select class="border border-gray-300 rounded-md px-2 py-1 text-sm" @bind="SelectedStatus">
                                 <option value="">Aggiorna stato (opzionale)</option>
                                 @foreach (var status in Enum.GetValues<ReportStatusEnum>())
@@ -66,44 +80,45 @@
                                     <option value="@status">@status</option>
                                 }
                             </select>
-
-                            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full text-sm"
+                            <button class="bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700"
                                     @onclick="SubmitReply"
-                                    disabled="@(string.IsNullOrWhiteSpace(NewMessage))">
-                                Invia risposta
+                                    disabled="@string.IsNullOrWhiteSpace(NewMessage)">
+                                Invia
                             </button>
                         </div>
                     </div>
                 }
             </div>
 
-            <div class="col-span-1 md:col-span-2">
-                <div class="bg-white rounded-lg shadow p-4 h-full max-h-[600px] overflow-y-auto">
+            <div class="md:col-span-2">
+                <div class="bg-white p-4 rounded-lg shadow">
                     <h3 class="text-xl font-medium text-gray-800 mb-4">Timeline aggiornamenti</h3>
 
                     @if (Timeline == null || Timeline.Count == 0)
                     {
-                        <p class="text-gray-500">Nessun aggiornamento disponibile.</p>
+                        <p class="text-gray-500">Nessuna risposta ancora.</p>
                     }
                     else
                     {
-                        <ul class="space-y-4">
-                            @foreach (var reply in Timeline.OrderByDescending(t => t.SentAt))
-                            {
-                                <li class="bg-gray-50 border-l-4 border-green-500 p-3 rounded">
-                                    <div class="text-sm">
-                                        <strong>@(reply?.User?.Role == UserRoleEnum.User ? "Citizen" : "City Council"):</strong> @reply?.Message
-                                    </div>
-                                    <div class="text-xs text-gray-500">
-                                        @reply?.SentAt.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo("it-IT"))
-                                        @if (reply?.NewStatus != null)
-                                        {
-                                            <span class="ml-2 italic">→ Stato aggiornato: <span class="status-@reply.NewStatus">@reply.NewStatus</span></span>
-                                        }
-                                    </div>
-                                </li>
-                            }
-                        </ul>
+                        <div class="max-h-[500px] overflow-y-auto pr-2 print-full-height">
+                            <ul class="space-y-4">
+                                @foreach (var reply in Timeline.OrderByDescending(t => t.SentAt))
+                                {
+                                    <li class="bg-gray-50 border-l-4 border-green-500 p-3 rounded space-y-1">
+                                        <div class="text-sm">
+                                            <strong>@(reply.User?.Role == UserRoleEnum.User ? "Citizen" : "City Council"):</strong> @reply.Message
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            @reply.SentAt.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo("it-IT"))
+                                            @if (reply?.NewStatus != null)
+                                            {
+                                                <span class="ml-2 italic">→ Stato: <span class="status-@reply.NewStatus">@reply.NewStatus</span></span>
+                                            }
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
                     }
                 </div>
             </div>
@@ -113,13 +128,13 @@
 
 @code {
     [Parameter] public int ReportId { get; set; }
-
     private ReportDto? Report;
     private List<ReportReply> Timeline = new();
-    private User? CurrentUser = null;
+    private User? CurrentUser;
     private string NewMessage = "";
     private ReportStatusEnum? SelectedStatus;
     private bool IsLoading = true;
+    private List<IBrowserFile> UploadedImages = new();
 
     private ReportsReplyPaginatedRequest reportsReplyPaginatedRequest = new()
     {
@@ -130,21 +145,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        IsLoading = true;
-
         try
         {
-            var userResponse = await UserService.GetMeAsync();
-            if (userResponse.StatusCode >= 200 && userResponse.StatusCode < 300)
-            {
-                CurrentUser = userResponse.User;
-            }
-            else
+            var user = await UserService.GetMeAsync();
+            if (user.StatusCode < 200 || user.StatusCode >= 300)
             {
                 Navigation.NavigateTo("/login");
                 return;
             }
 
+            CurrentUser = user.User;
             Report = await LoadReportAsync(ReportId);
 
             if (Report != null)
@@ -152,10 +162,6 @@
                 reportsReplyPaginatedRequest.ReportId = ReportId;
                 Timeline = await LoadTimelineAsync();
             }
-        }
-        catch (Exception ex)
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Errore imprevisto: " + ex.Message);
         }
         finally
         {
@@ -165,26 +171,20 @@
 
     private async Task ExportToPdf()
     {
-        if (Report == null)
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Nessun report caricato.");
-            return;
-        }
-
-        await JSRuntime.InvokeVoidAsync("alert", "Export in PDF triggered.");
+        await JSRuntime.InvokeVoidAsync("window.print");
     }
 
     private async Task SubmitReply()
     {
         if (string.IsNullOrWhiteSpace(NewMessage) || CurrentUser == null || Report == null)
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Dati mancanti per l'invio della risposta.");
+            await JSRuntime.InvokeVoidAsync("alert", "Compila tutti i campi.");
             return;
         }
 
         try
         {
-            var formData = new MultipartFormDataContent
+            MultipartFormDataContent formData = new()
             {
                 { new StringContent(ReportId.ToString()), "ReportId" },
                 { new StringContent(CurrentUser.Id.ToString()), "UserId" },
@@ -192,73 +192,60 @@
             };
 
             if (SelectedStatus != null)
-            {
                 formData.Add(new StringContent(SelectedStatus.ToString()!), "NewStatus");
+
+            foreach (var file in UploadedImages)
+            {
+                var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+                formData.Add(new StreamContent(stream), "Attachments", file.Name);
             }
 
             var result = await ReportReplyService.CreateAsync(formData);
-
             if (result.StatusCode >= 200 && result.StatusCode < 300)
             {
                 NewMessage = "";
+                UploadedImages.Clear();
                 SelectedStatus = null;
-
                 Timeline = await LoadTimelineAsync();
             }
             else
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Errore durante l'invio della risposta.");
+                await JSRuntime.InvokeVoidAsync("alert", "Errore nell'invio.");
             }
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Errore imprevisto durante l'invio: " + ex.Message);
+            await JSRuntime.InvokeVoidAsync("alert", $"Errore: {ex.Message}");
         }
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles().ToList();
+
+        foreach (var file in files)
+        {
+            if (UploadedImages.Count < 3)
+            {
+                UploadedImages.Add(file);
+            }
+        }
+    }
+
+    private void RemoveFile(IBrowserFile file)
+    {
+        UploadedImages.Remove(file);
     }
 
     private async Task<ReportDto?> LoadReportAsync(int id)
     {
-        try
-        {
-            var result = await ReportService.GetByIdAsync(id);
-
-            if (result.StatusCode >= 200 && result.StatusCode < 300)
-            {
-                return result.Report;
-            }
-            else
-            {
-                await JSRuntime.InvokeVoidAsync("alert", "Errore durante il caricamento della segnalazione.");
-                return null;
-            }
-        }
-        catch (Exception ex)
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Errore imprevisto nel caricamento: " + ex.Message);
-            return null;
-        }
+        var result = await ReportService.GetByIdAsync(id);
+        return result.StatusCode >= 200 && result.StatusCode < 300 ? result.Report : null;
     }
 
     private async Task<List<ReportReply>> LoadTimelineAsync()
     {
-        try
-        {
-            var result = await ReportReplyService.GetAllAsync(reportsReplyPaginatedRequest);
-
-            if (result.StatusCode >= 200 && result.StatusCode < 300)
-            {
-                return result.Items ?? new List<ReportReply>();
-            }
-            else
-            {
-                await JSRuntime.InvokeVoidAsync("alert", "Errore durante il caricamento della timeline.");
-                return new List<ReportReply>();
-            }
-        }
-        catch (Exception ex)
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Errore imprevisto nel caricamento della timeline: " + ex.Message);
-            return new List<ReportReply>();
-        }
+        var result = await ReportReplyService.GetAllAsync(reportsReplyPaginatedRequest);
+        return result.StatusCode >= 200 && result.StatusCode < 300 ? result.Items ?? new() : new();
     }
 }

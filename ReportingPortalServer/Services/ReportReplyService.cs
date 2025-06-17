@@ -1,6 +1,7 @@
 ﻿using Models;
 using Models.enums;
 using Models.http;
+using ReportingPortalServer.Services.AppwriteIO;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 
@@ -8,7 +9,7 @@ namespace ReportingPortalServer.Services
 {
     public interface IReportReplyService
     {
-        public ReportReplyResponse CreateReportReply(CreateReportReplyRequest request, ApplicationDbContext context, string jwt);
+        public Task<ReportReplyResponse> CreateReportReply(CreateReportReplyRequest request, ApplicationDbContext context, string jwt, IUploadFileService uploadFileService, IAppwriteClient appwriteClient);
         public ReportReplyResponse DeleteReportReply(int idRep, string jwt, ApplicationDbContext _context);
         public ReportReplyResponse UpdateReportReply(int idRep, string mess, string jwt, ApplicationDbContext _context);
         public Task<ReportRepliesPaginatedResponse> GetPaginatedReportsReplies(string jwt, ReportsReplyPaginatedRequest request, ApplicationDbContext context);
@@ -16,7 +17,7 @@ namespace ReportingPortalServer.Services
 
     public class ReportReplyService : IReportReplyService
     {
-        public ReportReplyResponse CreateReportReply(CreateReportReplyRequest request, ApplicationDbContext context, string jwt)
+        public async Task<ReportReplyResponse> CreateReportReply(CreateReportReplyRequest request, ApplicationDbContext context, string jwt, IUploadFileService uploadFileService, IAppwriteClient appwriteClient)
         {
             if (request == null)
             {
@@ -50,6 +51,33 @@ namespace ReportingPortalServer.Services
                 {
                     StatusCode = 404,
                     Message = "Report not found."
+                };
+            }
+
+            var response = await uploadFileService.CreateUploadFilesAsync(request, context, jwt, appwriteClient);
+            List<int> fileIds = [];
+            Console.WriteLine($"Upload response: {response.StatusCode} - {response.Message}");
+            if (response.StatusCode >= 200 && response.StatusCode < 300)
+            {
+                if (response.Files.Count != 0)
+                {
+                    fileIds = [.. response.Files.Select(f => f.Id)];
+                }
+                else
+                {
+                    return new ReportReplyResponse
+                    {
+                        StatusCode = 400,
+                        Message = "No files uploaded."
+                    };
+                }
+            }
+            else
+            {
+                return new ReportReplyResponse
+                {
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
                 };
             }
 

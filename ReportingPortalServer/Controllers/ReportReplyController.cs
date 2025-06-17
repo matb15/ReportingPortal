@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Models.http;
 using ReportingPortalServer.Services;
+using ReportingPortalServer.Services.AppwriteIO;
 using ReportingPortalServer.Services.Helpers;
 
 namespace ReportingPortalServer.Controllers
@@ -8,17 +9,19 @@ namespace ReportingPortalServer.Controllers
     [ApiController]
     [Route("api/[controller]")]
 
-    public class ReportReplyController(ILogger<ReportReplyController> logger, ApplicationDbContext context, IReportReplyService reportReplyService) : Controller
+    public class ReportReplyController(ILogger<ReportReplyController> logger, ApplicationDbContext context, IReportReplyService reportReplyService, IUploadFileService uploadFileService, IAppwriteClient appwriteClient) : Controller
     {
 
         private readonly ILogger<ReportReplyController> _logger = logger;
         private readonly ApplicationDbContext _context = context;
         private readonly IReportReplyService _reportReplyService = reportReplyService;
+        private readonly IUploadFileService _uploadFileService = uploadFileService;
+        private readonly IAppwriteClient _appwriteClient = appwriteClient;
 
         [HttpPost]
-        public ReportReplyResponse CreateReportReply([FromForm] CreateReportReplyRequest req)
+        public async Task<ReportReplyResponse> CreateReportReply([FromForm] CreateReportReplyRequest req)
         {
-            _logger.LogInformation("CreateReport request received");
+            _logger.LogInformation("CreateReportReply request received");
 
             if (req == null || string.IsNullOrEmpty(req.Message))
             {
@@ -39,7 +42,7 @@ namespace ReportingPortalServer.Controllers
                 };
             }
 
-            return _reportReplyService.CreateReportReply(req, _context, jwt);
+            return await _reportReplyService.CreateReportReply(req, _context, jwt, _uploadFileService, _appwriteClient);
         }
 
         [HttpDelete("{id}")]

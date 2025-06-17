@@ -1,6 +1,8 @@
-﻿using Models;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Models;
 using Models.enums;
 using Models.http;
+using ReportingPortalServer.Services.AppwriteIO;
 
 namespace ReportingPortalServer.Services.Helpers
 {
@@ -275,6 +277,61 @@ namespace ReportingPortalServer.Services.Helpers
                 ".webp" => FormatEnum.Webp,
                 ".pdf" => FormatEnum.Pdf,
                 _ => FormatEnum.Unknown
+            };
+        }
+
+        public static async Task<UploadFileResponse> HandleSingleUploadAsync(IFormFile file, IAppwriteClient appwriteClient, ApplicationDbContext context)
+        {
+            Console.WriteLine($"Handling file upload: {file.FileName}, Size: {file.Length} bytes");
+            string tempDir = Path.Combine(Path.GetTempPath(), "uploads");
+            Directory.CreateDirectory(tempDir);
+
+            string tempFilePath = Path.Combine(tempDir, Guid.NewGuid() + Path.GetExtension(file.Name));
+
+            using (FileStream stream = new(tempFilePath, FileMode.Create))
+            {
+                await file.OpenReadStream().CopyToAsync(stream);
+            }
+
+            string randomFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+
+            string appwriteFileId = await appwriteClient.UploadFileAsync("68376d5cec9c85d2b5d3", tempFilePath, randomFileName);
+
+            UploadFile uploadFile = new()
+            {
+                FileName = randomFileName,
+                FilePath = $"https://fra.cloud.appwrite.io/v1/storage/buckets/68376d5cec9c85d2b5d3/files/{appwriteFileId}/view?project=683724270008f8aac069",
+                ContentType = file.ContentType,
+                Format = Utils.GetFormatFromFileExtension(Path.GetExtension(randomFileName)),
+                Size = file.Length,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.UploadFiles.Add(uploadFile);
+            context.SaveChanges();
+
+            Console.WriteLine($"File uploaded: {uploadFile.FileName} ({uploadFile.Size} bytes)");
+
+            try
+            {
+                if (System.IO.File.Exists(tempFilePath))
+                {
+                    System.IO.File.Delete(tempFilePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                return new UploadFileResponse
+                {
+                    StatusCode = 500,
+                    Message = $"Error deleting temp file: {ex.Message}"
+                };
+            }
+
+            return new UploadFileResponse
+            {
+                StatusCode = 201,
+                File = uploadFile
             };
         }
     }
