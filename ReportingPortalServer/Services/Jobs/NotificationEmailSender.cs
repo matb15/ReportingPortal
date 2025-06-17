@@ -9,7 +9,7 @@ namespace ReportingPortalServer.Services.Jobs
         private readonly ILogger<NotificationEmailSender> _logger = logger;
 
         public string JobName => "EmailNotificationSender";
-        public TimeSpan Interval => TimeSpan.FromMinutes(5);
+        public TimeSpan Interval => TimeSpan.FromMinutes(1);
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {

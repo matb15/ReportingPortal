@@ -176,18 +176,21 @@ namespace Models.http
 
     }
 
-    public class CreateReportReplyRequest : Request
+    public class CreateReportReplyRequest
     {
         public int Id { get; set; }
         public int ReportId { get; set; }
         public int UserId { get; set; }
         public string Message { get; set; } = string.Empty;
+        public ReportStatusEnum? NewStatus { get; set; } = ReportStatusEnum.Pending;
+        public List<IFormFile>? File { get; set; } = default!;
     }
 
     public class UpdateReportReplyRequest : Request
     {
         public int ReportReplyId { get; set; }
         public string Message { get; set; } = string.Empty;
+        public ReportStatusEnum? NewStatus { get; set; } = ReportStatusEnum.Pending;
     }
 
     public class ReportsReplyPaginatedRequest : PagedRequest

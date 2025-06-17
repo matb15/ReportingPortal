@@ -1,10 +1,8 @@
 ﻿using Models;
 using Models.enums;
 using Models.http;
-using ReportingPortalServer.Services.Helpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
-using System.Security.Claims;
 
 namespace ReportingPortalServer.Services
 {
@@ -44,21 +42,51 @@ namespace ReportingPortalServer.Services
                     Message = "Invalid report reply data."
                 };
             }
+
+            Report? report = context.Reports.FirstOrDefault(r => r.Id == request.ReportId);
+            if (report == null)
+            {
+                return new ReportReplyResponse
+                {
+                    StatusCode = 404,
+                    Message = "Report not found."
+                };
+            }
+
             var reply = new ReportReply
             {
                 Id = request.Id,
                 ReportId = request.ReportId,
                 UserId = request.UserId,
                 Message = request.Message,
-                NewStatus = Models.enums.ReportStatusEnum.Pending
+                NewStatus = request.NewStatus ?? report.Status,
             };
+
+            if (request.NewStatus != report.Status)
+            {
+                Notification emailNotificaiton = new()
+                {
+                    Title = "Report Status Updated",
+                    Message = $"Your report '{report.Title}' has been updated to {reply.NewStatus}.",
+                    UserId = report.UserId,
+                    Status = NotificationStatusEnum.Unread,
+                    Channel = NotificationChannelEnum.Email
+                };
+                context.Notifications.Add(emailNotificaiton);
+
+                report.Status = request.NewStatus ?? report.Status;
+
+                context.Reports.Update(report);
+            }
+
             context.ReportReplies.Add(reply);
+
             context.SaveChanges();
+
             return new ReportReplyResponse
             {
                 StatusCode = 201,
                 Message = "Report reply created successfully.",
-                reportReply = reply 
             };
         }
         public ReportReplyResponse DeleteReportReply(int idRep, string jwt, ApplicationDbContext _context)
@@ -254,16 +282,18 @@ namespace ReportingPortalServer.Services
                     Message = "Page size cannot exceed 100."
                 });
             }
+
             IQueryable<ReportReply> query = context.ReportReplies;
             if (currentUser.Role != UserRoleEnum.Admin)
             {
                 query = query.Where(r => r.UserId == currentUser.Id);
             }
+
             int totalCount = query.Count();
-            List<ReportReply> repliesList = query
-                .Skip(request.Page * request.PageSize)
-                .Take(request.PageSize)
-                .ToList();
+            List<ReportReply> repliesList = [.. query
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)];
+
             return Task.FromResult(new ReportRepliesPaginatedResponse
             {
                 StatusCode = 200,

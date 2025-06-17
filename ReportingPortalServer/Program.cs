@@ -72,6 +72,7 @@ namespace ReportingPortalServer
             builder.Services.AddSingleton<IUserService, UserService>();
             builder.Services.AddSingleton<ICategoryService, CategoryService>();
             builder.Services.AddSingleton<IUploadFileService, UploadFileService>();
+            builder.Services.AddSingleton<IReportReplyService, ReportReplyService>();
             builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();

@@ -55,7 +55,12 @@ namespace ReportingPortalServer.Services
                 };
             }
 
-            Report? report = context.Reports.FirstOrDefault(r => r.Id == id);
+            Report? report = context.Reports
+             .Include(r => r.User)
+             .Include(r => r.Category)
+             .Include(r => r.File)
+             .FirstOrDefault(r => r.Id == id);
+
             if (report == null)
             {
                 return new ReportResponse

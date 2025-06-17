@@ -15,7 +15,7 @@ namespace ReportingPortal.Services
                 $"pageSize={request.PageSize}"
             ];
 
-            string url = $"api/report?{string.Join("&", queryParams)}";
+            string url = $"api/reportreply?{string.Join("&", queryParams)}";
 
             try
             {
@@ -48,7 +48,7 @@ namespace ReportingPortal.Services
 
         public async Task<ReportReplyResponse> GetByIdAsync(int id)
         {
-            string url = $"api/report/{id}";
+            string url = $"api/reportreply/{id}";
             try
             {
                 HttpResponseMessage response = await _http.GetAsync(url);
@@ -79,7 +79,7 @@ namespace ReportingPortal.Services
 
         public async Task<ReportReplyResponse> CreateAsync(MultipartFormDataContent model)
         {
-            string url = "api/report";
+            string url = "api/reportreply";
             try
             {
                 HttpResponseMessage response = await _http.PostAsync(url, model);
@@ -111,10 +111,10 @@ namespace ReportingPortal.Services
         public async Task<ReportReplyResponse> UpdateAsync(MultipartFormDataContent model)
         {
             //string url = $"api/report/{model.Id}";
-            string url = "api/report"; // Assuming the model contains the ID and other necessary data
+            string url = "api/reportreply"; // Assuming the model contains the ID and other necessary data
             try
             {
-                HttpResponseMessage response = await _http.PutAsJsonAsync(url, model);
+                HttpResponseMessage response = await _http.PutAsync(url, model);
                 ReportReplyResponse? content = await response.Content.ReadFromJsonAsync<ReportReplyResponse>();
                 if (content != null && response.IsSuccessStatusCode)
                 {
