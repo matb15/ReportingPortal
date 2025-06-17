@@ -482,6 +482,11 @@ namespace ReportingPortalServer.Services
                 query = query.Where(r => r.Status == request.Status.Value);
             }
 
+            if (request.CategoryId.HasValue)
+            {
+                query = query.Where(r => r.CategoryId == request.CategoryId.Value);
+            }
+
             bool hasAny = await query.AnyAsync();
             if (!hasAny)
             {

@@ -17,7 +17,6 @@ namespace Models.http
         public double MaxLng { get; set; }
         public int Zoom { get; set; }
         public int? CategoryId { get; set; } = null;
-        public int? UserId { get; set; } = null;
         public ReportStatusEnum? Status { get; set; } = null;
     }
 

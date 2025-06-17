@@ -29,8 +29,8 @@
         if (clickEnabled) {
             map.on('dblclick', (e) => this._placeTempMarker(e.latlng));
         } else {
-            map.on('moveend zoomend', () => this._fetchClusters());
-            this._fetchClusters();
+            map.on('moveend zoomend', () => this.fetchClusters());
+            this.fetchClusters();
         }
 
         setTimeout(() => map.invalidateSize(), 100);
@@ -42,7 +42,7 @@
         function delay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
-        await delay(250);
+        await delay(350);
 
         const container = document.getElementById('mapPos');
         if (!container) return;
@@ -70,17 +70,28 @@
         }
     },
 
-    _fetchClusters() {
+    fetchClusters() {
         const bounds = this._mapInstance.getBounds();
         const zoom = this._mapInstance.getZoom();
 
-        const params = new URLSearchParams({
-            minLat: bounds.getSouthWest().lat,
-            minLng: bounds.getSouthWest().lng,
-            maxLat: bounds.getNorthEast().lat,
-            maxLng: bounds.getNorthEast().lng,
-            zoom: zoom
-        });
+        const params = new URLSearchParams();
+
+        params.set("minLat", bounds.getSouthWest().lat);
+        params.set("minLng", bounds.getSouthWest().lng);
+        params.set("maxLat", bounds.getNorthEast().lat);
+        params.set("maxLng", bounds.getNorthEast().lng);
+        params.set("zoom", zoom);
+
+        const statusEl = document.getElementById("statusFilter");
+        const categoryEl = document.getElementById("categoryFilter");
+
+        if (statusEl && statusEl.value !== "All") {
+            params.set("status", statusEl.value);
+        }
+
+        if (categoryEl && categoryEl.value.toString() !== "0") {
+            params.set("categoryId", categoryEl.value);
+        }
 
         fetch(`https://localhost:7078/api/Report/cluster?${params.toString()}`, {
             method: 'GET',

@@ -7,6 +7,7 @@
 @inject IJSRuntime JSRuntime
 @inject UserService UserService
 @inject ReportService ReportService
+@inject CategoryService CategoryService
 
 <div class="p-6 space-y-6 bg-gray-100 min-h-screen">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -15,37 +16,61 @@
 
     <div class="bg-white p-4 rounded-lg shadow flex flex-wrap gap-4 items-end justify-between">
         <div>
-            <label class="text-sm font-medium text-gray-600 block">Category</label>
-            <select @bind="selectedCategory"
-                class="w-40 mt-1 border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500">
-                @foreach (var cat in categories)
-                {
-                    <option>@cat</option>
-                }
-            </select>
-        </div>
+            <label class="text-sm font-medium text-gray-600 block mb-1.5">Category</label>
+                <div class="relative">
+                    <input type="text"
+                            class="w-40 h-8 px-4 py-2 border-gray-300 border rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
+                           @bind="categoriesRequest.Search"
+                           placeholder="Search Category"
+                           @oninput="HandleCategoryInput" />
 
-        <div>
-            <label class="text-sm font-medium text-gray-600 block">District</label>
-            <select @bind="selectedDistrict"
-                class="w-40 mt-1 border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500">
-                @foreach (var dist in districts)
-                {
-                    <option>@dist</option>
-                }
-            </select>
+                    @if (isCategoryDropdownVisible && filteredCategories.Any())
+                    {
+                        <ul class="absolute z-500 bg-white border rounded-md mt-1 w-full shadow-lg max-h-60 overflow-y-auto">
+                            @foreach (var category in filteredCategories)
+                            {
+                                <li @onclick="() => SelectCategory(category)"
+                                    class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                                    @category.Name
+                                </li>
+                            }
+                        </ul>
+                    }
+                    <input type="hidden" id="categoryFilter" value="@selectedCategoryId" /> 
+                </div>
         </div>
 
         <div>
             <label class="text-sm font-medium text-gray-600 block">Status</label>
-            <select @bind="selectedStatus"
-                class="w-40 mt-1 border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500">
+            <select id="statusFilter" class="w-40 h-8  mt-1 border-gray-300 border rounded-md text-sm focus:ring-green-500 focus:border-green-500" @bind="selectedStatus">
                 @foreach (var stat in statuses)
                 {
-                    <option>@stat</option>
+                    if (stat == "All")
+                    {
+                        <option value="All">All</option>
+                    }
+                    else
+                    {
+                        var enumValue = (int)Enum.Parse(typeof(ReportStatusEnum), stat);
+                        <option value="@enumValue">@stat</option>
+                    }
                 }
             </select>
+
         </div>
+
+        <button @onclick="ToggleHeatmap"
+                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm flex items-center gap-2">
+            <i class="fa-solid fa-fire"></i>
+            Toggle Heatmap
+        </button>
+
+        <button @onclick="ResetFilters"
+                class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-full text-sm flex items-center gap-2">
+            <i class="fa-solid fa-rotate-left"></i>
+            Reset Filters
+        </button>
+
 
         <button @onclick="ApplyFiltersAsync"
                 class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm flex items-center gap-2">
@@ -239,16 +264,22 @@
 </div>
 
 @code {
+
     private string selectedCategory = "All";
-    private string selectedDistrict = "All";
     private string selectedStatus = "All";
 
-    private List<string> categories = new() { "All", "Incendio", "Furto", "Inondazione" };
-    private List<string> districts = new() { "All", "Centro", "San Paolo", "Navigli", "Isola" };
+    private List<string> categories = new() { "All" };
     private List<string> statuses = Enum.GetNames(typeof(ReportStatusEnum)).Prepend("All").ToList();
 
     private List<ReportDto> reports = new();
     private List<User> users = new();
+
+    private CategoriesPaginatedRequest categoriesRequest = new()
+    {
+        Page = 1,
+        PageSize = 10,
+        Search = string.Empty
+    };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -259,6 +290,7 @@
             await ApplyFiltersAsync();
 
             await FetchUsersAsync();
+            await FetchReportsAsync();
             StateHasChanged();
         }
     }
@@ -274,27 +306,31 @@
         users = response.Items ?? new();
     }
 
-    private async Task ApplyFiltersAsync()
+    private async Task FetchReportsAsync()
     {
-        Console.WriteLine($"Filter applied: Category={selectedCategory}, District={selectedDistrict}, Status={selectedStatus}");
-
-        var request = new ReportsPaginatedRequest
+        var response = await ReportService.GetAllAsync(new ReportsPaginatedRequest
         {
             Page = 1,
-            PageSize = 5,
-            Search = "",
-            Status = selectedStatus != "All"
-                ? Enum.TryParse<ReportStatusEnum>(selectedStatus, out var statusEnum)
-                    ? statusEnum
-                    : null
-                : null
-        };
+            PageSize = 5
+        });
 
-        var response = await ReportService.GetAllAsync(request);
         reports = response.Items ?? new();
-        StateHasChanged();
     }
 
+    private async Task FetchCategories()
+    {
+        var response = await CategoryService.GetAllAsync(categoriesRequest);
+        if (response != null && response.Items != null)
+        {
+            categories = response.Items.Select(c => c.Name).ToList();
+        }
+    }
+
+    private async Task ApplyFiltersAsync()
+    {
+
+        await JSRuntime.InvokeVoidAsync("MAP.fetchClusters");
+    }
 
     private void GoToReportDetail(int reportId)
     {
@@ -315,5 +351,73 @@
     private async Task CopyToClipboard(string text)
     {
         await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+
+    private bool isHeatmapVisible = true;
+
+    private async Task ToggleHeatmap()
+    {
+        isHeatmapVisible = !isHeatmapVisible;
+        await JSRuntime.InvokeVoidAsync("MAP.toggleHeatmap", isHeatmapVisible);
+    }
+
+    private List<Category> filteredCategories = new();
+    private bool isCategoryDropdownVisible = false;
+    private string selectedCategoryName = "";
+    private System.Timers.Timer? categoryDebounceTimer;
+    private int selectedCategoryId = 0;
+
+    protected override void OnInitialized()
+    {
+        categoryDebounceTimer = new System.Timers.Timer(300);
+        categoryDebounceTimer.AutoReset = false;
+        categoryDebounceTimer.Elapsed += async (_, _) =>
+        {
+            await InvokeAsync(async () =>
+            {
+                if (string.IsNullOrWhiteSpace(categoriesRequest.Search))
+                {
+                    isCategoryDropdownVisible = false;
+                    filteredCategories.Clear();
+                    StateHasChanged();
+                    return;
+                }
+
+                CategoriesPaginatedResponse results = await CategoryService.GetAllAsync(
+                    categoriesRequest
+                );
+
+                filteredCategories = results.Items ?? new();
+                isCategoryDropdownVisible = true;
+                StateHasChanged();
+            });
+        };
+    }
+
+    private void HandleCategoryInput(ChangeEventArgs e)
+    {
+        categoriesRequest.Search = e.Value?.ToString() ?? "";
+        isCategoryDropdownVisible = false;
+        selectedCategoryId = 0;
+        categoryDebounceTimer?.Stop();
+        categoryDebounceTimer?.Start();
+    }
+
+    private void SelectCategory(Category category)
+    {
+        categoriesRequest.Search = category.Name;
+        selectedCategoryName = category.Name;
+        selectedCategoryId = category.Id;
+        isCategoryDropdownVisible = false;
+    }
+
+    private async Task ResetFilters()
+    {
+        categoriesRequest.Search = "";
+        selectedCategoryId = 0;
+        selectedStatus = "All";
+        isCategoryDropdownVisible = false;
+
+       await ApplyFiltersAsync();
     }
 }

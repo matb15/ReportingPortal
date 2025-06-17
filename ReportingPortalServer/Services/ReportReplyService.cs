@@ -56,7 +56,7 @@ namespace ReportingPortalServer.Services
             }
 
             List<int> fileIds = [];
-            if(request.Attachments != null && request.Attachments.Count != 0)
+            if (request.Attachments != null && request.Attachments.Count != 0)
             {
                 var response = await uploadFileService.CreateUploadFilesAsync(request, context, jwt, appwriteClient);
                 if (response.StatusCode >= 200 && response.StatusCode < 300)
@@ -265,6 +265,7 @@ namespace ReportingPortalServer.Services
                     Message = "Authorization header is missing or invalid."
                 });
             }
+
             if (request.PageSize <= 0 || request.Page < 0)
             {
                 return Task.FromResult(new ReportRepliesPaginatedResponse
@@ -273,6 +274,7 @@ namespace ReportingPortalServer.Services
                     Message = "Invalid pagination parameters."
                 });
             }
+
             var handler = new JwtSecurityTokenHandler();
             if (!handler.CanReadToken(jwt))
             {
@@ -281,6 +283,7 @@ namespace ReportingPortalServer.Services
                     StatusCode = (int)HttpStatusCode.BadRequest,
                     Message = "JWT not valid."
                 });
+
             }
             var token = handler.ReadJwtToken(jwt);
             var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
@@ -292,6 +295,7 @@ namespace ReportingPortalServer.Services
                     Message = "JWT does not contain user ID."
                 });
             }
+
             var currentUser = context.Users.FirstOrDefault(u => u.Id == parsedUserId);
             if (currentUser == null)
             {
@@ -301,20 +305,15 @@ namespace ReportingPortalServer.Services
                     Message = "Authenticated user not found."
                 });
             }
-            if (request.PageSize > 100)
-            {
-                return Task.FromResult(new ReportRepliesPaginatedResponse
-                {
-                    StatusCode = 400,
-                    Message = "Page size cannot exceed 100."
-                });
-            }
+
 
             IQueryable<ReportReply> query = context.ReportReplies;
             if (currentUser.Role != UserRoleEnum.Admin)
             {
                 query = query.Where(r => r.UserId == currentUser.Id);
             }
+
+            query = query.Where(r => r.ReportId == request.ReportId);
 
             int totalCount = query.Count();
             List<ReportReply> repliesList = [.. query

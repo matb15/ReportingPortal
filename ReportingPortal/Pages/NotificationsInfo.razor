@@ -141,7 +141,7 @@
     private bool SortAscending { get; set; } = false;
 
     private int Page { get; set; } = 1;
-    private int PageSize { get; set; } = 10;
+    private int PageSize { get; set; } = 5;
     private int TotalCount { get; set; }
 
     private int StartIndex => notifications.Count == 0 ? 0 : ((Page - 1) * PageSize) + 1;

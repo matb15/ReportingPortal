@@ -12,7 +12,8 @@ namespace ReportingPortal.Services
             List<string> queryParams =
             [
                 $"page={request.Page}",
-                $"pageSize={request.PageSize}"
+                $"pageSize={request.PageSize}",
+                $"reportId={request.ReportId}",
             ];
 
             string url = $"api/reportreply?{string.Join("&", queryParams)}";
