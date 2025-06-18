@@ -48,44 +48,46 @@
                     <div><span class="text-gray-500 font-medium">Status:</span> <span class="font-semibold text-sm status-@Report.Status">@Report.Status</span></div>
                 </div>
 
-                @if (CurrentUser?.Role == UserRoleEnum.Admin)
-                {
-                    <div class="bg-white p-5 rounded-xl shadow-md space-y-4">
-                        <h3 class="text-lg font-semibold text-gray-700">Reply</h3>
-                        <textarea class="w-full border border-gray-300 rounded-md p-2 text-sm"
-                                  rows="4" @bind="NewMessage" placeholder="Write a reply..."></textarea>
 
-                        <label class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm cursor-pointer">
-                            📁 Choose files (max 3)
-                            <InputFile class="hidden" OnChange="HandleFileSelected" multiple />
-                        </label>
+                <div class="bg-white p-5 rounded-xl shadow-md space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-700">Reply</h3>
+                    <textarea class="w-full border border-gray-300 rounded-md p-2 text-sm"
+                              rows="4" @bind="NewMessage" placeholder="Write a reply..."></textarea>
 
-                        @if (UploadErrors.Count > 0)
+                    <label class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm cursor-pointer">
+                        📁 Choose files (max 3)
+                        <InputFile class="hidden" OnChange="HandleFileSelected" multiple />
+                    </label>
+
+                    @if (UploadErrors.Count > 0)
+                    {
+                        <ul class="text-red-500 text-sm mt-1">
+                            @foreach (var error in UploadErrors)
+                            {
+                                <li>@error</li>
+                            }
+                        </ul>
+                    }
+
+                    @if (UploadedImages.Count > 0)
+                    {
+                        <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                            @foreach (var file in UploadedImages)
+                            {
+                                <li class="flex justify-between items-center">
+                                    📎 @file.Name
+                                    <button type="button" class="text-red-500 hover:text-red-700" @onclick="() => RemoveFile(file)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    }
+
+
+                    <div class="flex items-center gap-3">
+                        @if (CurrentUser?.Role == UserRoleEnum.Admin)
                         {
-                            <ul class="text-red-500 text-sm mt-1">
-                                @foreach (var error in UploadErrors)
-                                {
-                                    <li>@error</li>
-                                }
-                            </ul>
-                        }
-
-                        @if (UploadedImages.Count > 0)
-                        {
-                            <ul class="mt-2 text-sm text-gray-600 space-y-1">
-                                @foreach (var file in UploadedImages)
-                                {
-                                    <li class="flex justify-between items-center">
-                                        📎 @file.Name
-                                        <button type="button" class="text-red-500 hover:text-red-700" @onclick="() => RemoveFile(file)">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </li>
-                                }
-                            </ul>
-                        }
-
-                        <div class="flex items-center gap-3">
                             <select class="border border-gray-300 rounded-md px-3 py-1 text-sm" @bind="SelectedStatus">
                                 <option value="">Update status (optional)</option>
                                 @foreach (var status in Enum.GetValues<ReportStatusEnum>())
@@ -93,14 +95,16 @@
                                     <option value="@status">@status</option>
                                 }
                             </select>
-                            <button class="bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700"
-                                    @onclick="SubmitReply"
-                                    disabled="@string.IsNullOrWhiteSpace(NewMessage)">
-                                Send
-                            </button>
-                        </div>
+                        }
+                        <button class="bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700"
+                                @onclick="SubmitReply"
+                                disabled="@string.IsNullOrWhiteSpace(NewMessage)">
+                            Send
+                        </button>
                     </div>
-                }
+
+                </div>
+
             </div>
 
             <div class="lg:col-span-2">
@@ -133,7 +137,7 @@
                                     {
                                         <div class="flex justify-between items-start">
                                             <div class="text-sm">
-                                                <strong>@(reply.User?.Role == UserRoleEnum.User ? "Citizen" : "City Council"):</strong>
+                                                <strong>@(reply.User?.Role == UserRoleEnum.User ? "Citizen" : "Operator"):</strong>
                                                 <span>@reply.Message</span>
                                             </div>
                                             @if (CurrentUser?.Role == UserRoleEnum.Admin)

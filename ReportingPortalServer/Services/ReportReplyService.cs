@@ -322,6 +322,7 @@ namespace ReportingPortalServer.Services
                 .Include(n => n.Attachment1)
                 .Include(n => n.Attachment2)
                 .Include(n => n.Attachment3)
+                .Include(n => n.User)
             ];
 
             return Task.FromResult(new ReportRepliesPaginatedResponse
