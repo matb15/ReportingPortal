@@ -210,5 +210,20 @@ namespace ReportingPortalServer.Controllers
             }
             return await _reportService.GetReportAnalytics(jwt, IsPersonal, _context);
         }
+
+        [HttpGet("reportPdf")]
+        public async Task<IActionResult> GetReportPdf()
+        {
+            _logger.LogInformation($"GetReportPdf request received");
+            string? jwt = Utils.GetJwt(HttpContext);
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return Unauthorized("Authorization header is missing or invalid.");
+            }
+
+            string randomFileName = $"{Guid.NewGuid()}.pdf";
+
+            return File(await _reportService.GenerateReportSummaryPdfAsync(jwt, _context), "application/pdf", randomFileName);
+        }
     }
 }

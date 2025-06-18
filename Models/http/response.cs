@@ -102,11 +102,16 @@ namespace Models.http
     public class ReportAnalyticsResponse : Response
     {
         public int TotalReports { get; set; } = 0;
+        public int TotalUsers { get; set; } = 0;
         public int PendingReports { get; set; } = 0;
         public int ResolvedReports { get; set; } = 0;
         public int RejectedReports { get; set; } = 0;
 
         public List<DailyReportCount> DailyReportCounts { get; set; } = [];
+        public List<DailyReportCount> DailyUserCounts { get; set; } = [];
+
+        public List<TopUserReportCount> TopUsers { get; set; } = [];
+        public List<ReportsPerCategory> ReportsPerCategory { get; set; } = [];
     }
     public class NotificationResponse : Response
     {

@@ -39,4 +39,17 @@ namespace Models.front
         public int Count { get; set; }
 
     }
+
+    public class ReportsPerCategory
+    {
+        public string Category { get; set; } = null!;
+        public int Count { get; set; }
+    }
+
+    public class TopUserReportCount
+    {
+        public string UserId { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
 }

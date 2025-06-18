@@ -219,5 +219,27 @@ namespace ReportingPortal.Services
                 };
             }
         }
+
+        public async Task<Byte[]> GetPdf()
+        {
+            string url = "api/report/reportPdf";
+            try
+            {
+                HttpResponseMessage response = await _http.GetAsync(url);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsByteArrayAsync();
+                }
+                else
+                {
+                    throw new Exception($"Failed to fetch PDF: {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to fetch PDF: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

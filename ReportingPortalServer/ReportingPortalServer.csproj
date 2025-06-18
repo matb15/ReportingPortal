@@ -23,6 +23,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="MimeTypesMap" Version="1.0.9" />
+    <PackageReference Include="QuestPDF" Version="2025.5.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
     <PackageReference Include="WebPush" Version="1.0.12" />
   </ItemGroup>
