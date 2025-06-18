@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Models.http
 {
-    public class Request : HttpRequestMessage
+    public class Request
     {
 
     }
@@ -131,14 +131,14 @@ namespace Models.http
 
     public class CreateReportRequest
     {
-        public int Id { get; set; }
+        public string? Id { get; set; } = null;
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public int CategoryId { get; set; }
+        public string CategoryId { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
         public string? LocationDetail { get; set; } = string.Empty;
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public string Latitude { get; set; } = string.Empty;
+        public string Longitude { get; set; } = string.Empty;
         public IFormFile? File { get; set; } = default!;
     }
 

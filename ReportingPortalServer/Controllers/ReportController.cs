@@ -73,28 +73,40 @@ namespace ReportingPortalServer.Controllers
         [HttpPost]
         public async Task<ReportResponse> CreateReport([FromForm] CreateReportRequest reportRequest)
         {
-            _logger.LogInformation("CreateReport request received");
-
-            if (reportRequest == null || string.IsNullOrEmpty(reportRequest.Title) || string.IsNullOrEmpty(reportRequest.Description))
+            try
             {
+                _logger.LogInformation("CreateReport request received");
+
+                if (reportRequest == null || string.IsNullOrEmpty(reportRequest.Title) || string.IsNullOrEmpty(reportRequest.Description))
+                {
+                    return new ReportResponse
+                    {
+                        StatusCode = 400,
+                        Message = "Invalid request data."
+                    };
+                }
+
+                string? jwt = Utils.GetJwt(HttpContext);
+                if (string.IsNullOrEmpty(jwt))
+                {
+                    return new ReportResponse
+                    {
+                        StatusCode = 401,
+                        Message = "Authorization header is missing or invalid."
+                    };
+                }
+
+                return await _reportService.CreateReport(reportRequest, jwt, _context, _uploadFileService, _appwriteClient);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while creating report");
                 return new ReportResponse
                 {
-                    StatusCode = 400,
-                    Message = "Invalid request data."
+                    StatusCode = 500,
+                    Message = $"An error occurred while processing your request. {ex.Message}"
                 };
             }
-
-            string? jwt = Utils.GetJwt(HttpContext);
-            if (string.IsNullOrEmpty(jwt))
-            {
-                return new ReportResponse
-                {
-                    StatusCode = 401,
-                    Message = "Authorization header is missing or invalid."
-                };
-            }
-
-            return await _reportService.CreateReport(reportRequest, jwt, _context, _uploadFileService, _appwriteClient);
         }
 
         [HttpDelete("{id}")]

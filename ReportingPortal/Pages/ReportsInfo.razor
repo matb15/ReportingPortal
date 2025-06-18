@@ -192,13 +192,13 @@
         {
             ReportBeingEdited = new()
             {
-                Id = report.Id,
+                Id = report.Id.ToString(),
                 Title = report.Title,
                 Location = report.Location,
                 Description = report.Description,
-                CategoryId = report.CategoryId,
-                Latitude = report.Latitude,
-                Longitude = report.Longitude,
+                CategoryId = report.CategoryId.ToString(),
+                Latitude = report.Latitude.ToString(),
+                Longitude = report.Longitude.ToString(),
             };
             IsEditingReport = true;
         }
@@ -215,7 +215,7 @@
         }
     }
 
-    private async Task OnReportCreated((MultipartFormDataContent content, int id) report)
+    private async Task OnReportCreated((MultipartFormDataContent content, int? id) report)
     {
         ReportResponse response = await ReportsService.CreateAsync(report.content);
         if(response.StatusCode >= 200 && response.StatusCode < 300)
@@ -385,8 +385,20 @@
         }
     }
 
-    private async Task OnReportUpdated((MultipartFormDataContent content, int id) updatedReport)
+    private async Task OnReportUpdated((MultipartFormDataContent content, int? id) updatedReport)
     {
+        if (updatedReport.id == null)
+        {
+            AlertData = new AlertModel
+            {
+                IsVisible = true,
+                Style = AlertTypeEnum.Danger,
+                Title = "Error",
+                Message = "Report ID is required for update.",
+                Position = AlertStylePositionEnum.BottomRight
+            };
+            return;
+        }
         ReportResponse response = await ReportsService.UpdateAsync(updatedReport.id, updatedReport.content);
 
         if (response.StatusCode >= 200 && response.StatusCode < 300)

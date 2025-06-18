@@ -1,6 +1,7 @@
 @using Models
 @using Models.enums
 @using NetTopologySuite.Geometries
+@using System.Globalization;
 
 @inject CategoryService CategoryService
 
@@ -45,7 +46,7 @@
                                     {
                                         <button type="button"
                                                 class="w-full border px-3 py-2 rounded-md text-sm flex flex-col items-center transition hover:bg-green-500
-                                                               @(ReportModel.CategoryId == category.Id ? "bg-green-600 text-white" : "bg-white")"
+                                                                           @(ReportModel.CategoryId == category.Id.ToString() ? "bg-green-600 text-white" : "bg-white")"
                                                 @onclick="() => SelectCategory(category)">
                                             <span class="text-xl"><i class="@category.IconClass"></i></span>
                                             <span>@category.Name</span>
@@ -96,7 +97,11 @@
                                     </div>
 
 
-                                @if (ReportModel.Id == 0)
+                                @{
+                                    int.TryParse(ReportModel?.Id, out var id);
+                                }
+
+                                @if (id == 0)
                                 {
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-1">Photos</label>
@@ -140,7 +145,7 @@
 
 @code {
     [Parameter] public EventCallback OnCancel { get; set; }
-    [Parameter] public EventCallback<(MultipartFormDataContent, int)> OnSubmit { get; set; }
+    [Parameter] public EventCallback<(MultipartFormDataContent, int?)> OnSubmit { get; set; }
     [Parameter] public CreateReportRequest ReportModel { get; set; } = new();
 
     private List<Category> Categories = new();
@@ -164,17 +169,19 @@
 
     private async Task HandleFormSubmit()
     {
-        if (ReportModel.CategoryId == 0) return;
+        if (int.Parse(ReportModel.CategoryId) == 0) return;
 
         using var content = new MultipartFormDataContent();
+
+        var culture = CultureInfo.InvariantCulture;
 
         content.Add(new StringContent(ReportModel.Title ?? ""), "Title");
         content.Add(new StringContent(ReportModel.Description ?? ""), "Description");
         content.Add(new StringContent(ReportModel.Location ?? ""), "Location");
         content.Add(new StringContent(ReportModel.LocationDetail ?? "Prova"), "LocationDetail");
         content.Add(new StringContent(ReportModel.CategoryId.ToString()), "CategoryId");
-        content.Add(new StringContent(ReportModel.Latitude.ToString()), "Latitude");
-        content.Add(new StringContent(ReportModel.Longitude.ToString()), "Longitude");
+        content.Add(new StringContent(ReportModel.Latitude.ToString(culture)), "Latitude");
+        content.Add(new StringContent(ReportModel.Longitude.ToString(culture)), "Longitude");
 
         if(UploadedPhoto != null)
         {
@@ -186,7 +193,8 @@
 
         if (OnSubmit.HasDelegate)
         {
-            await OnSubmit.InvokeAsync((content, ReportModel.Id));
+            int? id = int.TryParse(ReportModel?.Id, out var parsedId) ? parsedId : null;
+            await OnSubmit.InvokeAsync((content, id));
         }
 
         ResetForm();
@@ -253,7 +261,7 @@
 
     private bool CanSubmit => !string.IsNullOrWhiteSpace(ReportModel.Title)
     && !string.IsNullOrWhiteSpace(ReportModel.LocationDetail)
-    && ReportModel.CategoryId != 0;
+    && int.Parse(ReportModel.CategoryId) != 0;
 
     private void OpenMap()
     {
@@ -289,9 +297,7 @@
 
     private void SelectCategory(Category category)
     {
-        ReportModel.CategoryId = category.Id;
-
-        Console.WriteLine(ReportModel.CategoryId);
+        ReportModel.CategoryId = category.Id.ToString();
     }
 
     public class PhotoUpload
@@ -305,8 +311,8 @@
         if (markerData is not null)
         {
             ReportModel.Location = markerData.Address.ToString();
-            ReportModel.Longitude = markerData.Lng;
-            ReportModel.Latitude = markerData.Lat;
+            ReportModel.Longitude = markerData.Lng.ToString();
+            ReportModel.Latitude = markerData.Lat.ToString();
 
             MapVisible = false;
         }

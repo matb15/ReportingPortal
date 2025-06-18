@@ -123,7 +123,7 @@ namespace ReportingPortal.Services
             }
         }
 
-        public async Task<ReportResponse> UpdateAsync(int id, MultipartFormDataContent model)
+        public async Task<ReportResponse> UpdateAsync(int? id, MultipartFormDataContent model)
         {
             string url = $"api/report/{id}";
             try

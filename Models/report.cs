@@ -45,9 +45,9 @@ namespace Models
         public UploadFile? File { get; set; } = null;
 
         [ForeignKey(nameof(UserId))]
-        public User? User { get; set; } = default!;
+        public User? User { get; set; } = null;
 
         [ForeignKey(nameof(CategoryId))]
-        public Category? Category { get; set; } = default!;
+        public Category? Category { get; set; } = null;
     }
 }

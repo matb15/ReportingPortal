@@ -235,7 +235,7 @@
         }
     }
 
-    private async Task OnReportCreated((MultipartFormDataContent content, int id) report)
+    private async Task OnReportCreated((MultipartFormDataContent content, int? id) report)
     {
         ReportResponse response = await ReportService.CreateAsync(report.content);
         if(response.StatusCode >= 200 && response.StatusCode < 300)

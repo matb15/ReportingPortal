@@ -5,6 +5,7 @@ using Models.front;
 using Models.http;
 using ReportingPortalServer.Services.AppwriteIO;
 using ReportingPortalServer.Services.Helpers;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -207,6 +208,8 @@ namespace ReportingPortalServer.Services
         }
         public async Task<ReportResponse> CreateReport(CreateReportRequest reportRequest, string jwt, ApplicationDbContext _context, IUploadFileService uploadFileService, IAppwriteClient appwriteClient)
         {
+            var culture = new CultureInfo("it-IT");
+
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
             {
@@ -234,7 +237,45 @@ namespace ReportingPortalServer.Services
                 return new ReportResponse { StatusCode = (int)HttpStatusCode.BadRequest, Message = "Authenticated user not found." };
             }
 
+            if (!double.TryParse(reportRequest.Latitude, NumberStyles.Float, culture, out double latitude))
+            {
+                return new ReportResponse
+                {
+                    StatusCode = 400,
+                    Message = "Invalid latitude format."
+                };
+            }
+
+            if (!double.TryParse(reportRequest.Longitude, NumberStyles.Float, culture, out double longitude))
+            {
+                return new ReportResponse
+                {
+                    StatusCode = 400,
+                    Message = "Invalid longitude format."
+                };
+            }
+
+            if (!int.TryParse(reportRequest.CategoryId.ToString(), out int categoryId) || categoryId <= 0)
+            {
+                return new ReportResponse
+                {
+                    StatusCode = 400,
+                    Message = "Invalid category ID."
+                };
+            }
+
             int? fileId = null;
+
+            var categoryExists = _context.Categories.Any(c => c.Id == categoryId);
+            if (!categoryExists)
+            {
+                return new ReportResponse
+                {
+                    StatusCode = 400,
+                    Message = $"Category with ID {reportRequest.CategoryId} does not exist."
+                };
+            }
+
 
             if (reportRequest.File != null)
             {
@@ -257,10 +298,10 @@ namespace ReportingPortalServer.Services
             {
                 Title = reportRequest.Title,
                 Description = reportRequest.Description,
-                CategoryId = reportRequest.CategoryId,
+                CategoryId = categoryId,
                 Location = reportRequest.Location,
                 LocationDetail = reportRequest.LocationDetail ?? "",
-                GeoPoint = new NetTopologySuite.Geometries.Point(reportRequest.Longitude, reportRequest.Latitude)
+                GeoPoint = new NetTopologySuite.Geometries.Point(longitude, latitude)
                 {
                     SRID = 4326
                 },
@@ -269,8 +310,23 @@ namespace ReportingPortalServer.Services
                 FileId = fileId,
             };
 
-            _context.Reports.Add(report);
-            _context.SaveChanges();
+            try
+            {
+                _context.Reports.Add(report);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException?.Message ?? "No inner exception details";
+
+                return new ReportResponse
+                {
+                    StatusCode = 500,
+                    Message = $"An error occurred while processing your request. {ex.Message} Inner exception: {innerMessage}"
+                };
+            }
+
+
 
             return new ReportResponse
             {
@@ -360,6 +416,8 @@ namespace ReportingPortalServer.Services
         }
         public ReportResponse UpdateReport(int idRep, CreateReportRequest updateRequest, string jwt, ApplicationDbContext _context)
         {
+            var culture = new CultureInfo("it-IT");
+
             JwtSecurityTokenHandler handler = new();
             if (!handler.CanReadToken(jwt))
             {
@@ -406,12 +464,51 @@ namespace ReportingPortalServer.Services
                 };
             }
 
+            if (!double.TryParse(updateRequest.Latitude, NumberStyles.Float, culture, out double latitude))
+            {
+                return new ReportResponse
+                {
+                    StatusCode = 400,
+                    Message = "Invalid latitude format."
+                };
+            }
+
+            if (!double.TryParse(updateRequest.Longitude, NumberStyles.Float, culture, out double longitude))
+            {
+                return new ReportResponse
+                {
+                    StatusCode = 400,
+                    Message = "Invalid longitude format."
+                };
+            }
+
+            if (!int.TryParse(updateRequest.CategoryId.ToString(), out int categoryId) || categoryId <= 0)
+            {
+                return new ReportResponse
+                {
+                    StatusCode = 400,
+                    Message = "Invalid category ID."
+                };
+            }
+
+            int? fileId = null;
+
+            var categoryExists = _context.Categories.Any(c => c.Id == categoryId);
+            if (!categoryExists)
+            {
+                return new ReportResponse
+                {
+                    StatusCode = 400,
+                    Message = $"Category with ID {updateRequest.CategoryId} does not exist."
+                };
+            }
+
             report.Title = updateRequest.Title;
             report.Description = updateRequest.Description;
-            report.CategoryId = updateRequest.CategoryId;
+            report.CategoryId = categoryId;
             report.Location = updateRequest.Location;
             report.LocationDetail = updateRequest.LocationDetail ?? "";
-            report.GeoPoint = new NetTopologySuite.Geometries.Point(updateRequest.Longitude, updateRequest.Latitude) { SRID = 4326 };
+            report.GeoPoint = new NetTopologySuite.Geometries.Point(longitude, latitude) { SRID = 4326 };
 
             _context.Reports.Update(report);
 
