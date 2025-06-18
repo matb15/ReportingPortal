@@ -308,10 +308,6 @@ namespace ReportingPortalServer.Services
 
 
             IQueryable<ReportReply> query = context.ReportReplies;
-            if (currentUser.Role != UserRoleEnum.Admin)
-            {
-                query = query.Where(r => r.UserId == currentUser.Id);
-            }
 
             query = query.Where(r => r.ReportId == request.ReportId);
 

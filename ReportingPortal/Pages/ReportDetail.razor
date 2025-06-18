@@ -48,7 +48,7 @@
                     <div><span class="text-gray-500 font-medium">Status:</span> <span class="font-semibold text-sm status-@Report.Status">@Report.Status</span></div>
                 </div>
 
-
+                @if (CurrentUser?.Id == Report.UserId || CurrentUser?.Role == UserRoleEnum.Admin) {
                 <div class="bg-white p-5 rounded-xl shadow-md space-y-4">
                     <h3 class="text-lg font-semibold text-gray-700">Reply</h3>
                     <textarea class="w-full border border-gray-300 rounded-md p-2 text-sm"
@@ -104,8 +104,9 @@
                     </div>
 
                 </div>
-
+                }
             </div>
+            
 
             <div class="lg:col-span-2">
                 <div class="bg-white p-5 rounded-xl shadow-md">
@@ -192,7 +193,7 @@
 
     @if (!string.IsNullOrWhiteSpace(FullImageUrl))
     {
-        <div class="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50" @onclick="CloseFullImage">
+        <div class="fixed inset-0 bg-black/70 flex justify-center items-center z-1001" @onclick="CloseFullImage">
             <img src="@FullImageUrl" class="max-w-full max-h-full rounded shadow-xl border-4 border-white" />
         </div>
     }

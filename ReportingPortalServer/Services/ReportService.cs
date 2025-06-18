@@ -140,7 +140,7 @@ namespace ReportingPortalServer.Services
              .Include(r => r.File)
              .AsQueryable();
 
-            if (request.IsPersonal && currentUser.Role == UserRoleEnum.Admin)
+            if (request.IsPersonal)
             {
                 query = query.Where(r => r.UserId == currentUser.Id);
             }
