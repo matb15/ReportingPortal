@@ -81,6 +81,7 @@ namespace ReportingPortalServer
 
             builder.Services.AddScoped<IScheduledJob, NotificationEmailSender>();
             builder.Services.AddScoped<IScheduledJob, NotificationPushSender>();
+            builder.Services.AddScoped<IScheduledJob, PendingReportReminderJob>();
 
 
             var app = builder.Build();
