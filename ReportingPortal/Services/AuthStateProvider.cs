@@ -29,7 +29,9 @@ namespace ReportingPortal.Services
             ClaimsIdentity identity = new(ParseClaimsFromJwt(token), "jwt");
             ClaimsPrincipal user = new(identity);
 
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
+            var something = Task.FromResult(new AuthenticationState(user));
+
+            NotifyAuthenticationStateChanged(something);
         }
 
         public void NotifyUserLogout()

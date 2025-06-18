@@ -43,8 +43,9 @@ namespace ReportingPortal
             builder.Services.AddScoped<NotificationService>();
 
             builder.Services.AddAuthorizationCore();
-            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+
             builder.Services.AddScoped<CustomAuthStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<CustomAuthStateProvider>());
 
             builder.Services.AddBlazoredLocalStorage();
 

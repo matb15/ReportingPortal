@@ -42,7 +42,7 @@
         function delay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
-        await delay(350);
+        await delay(1000);
 
         const container = document.getElementById('mapPos');
         if (!container) return;

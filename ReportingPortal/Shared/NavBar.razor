@@ -2,6 +2,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthProvider
+@implements IDisposable
 
 <style>
     .text-link {
@@ -154,6 +155,29 @@
             Position = AlertStylePositionEnum.BottomRight,
         };
 
-        Navigation.NavigateTo("/login", forceLoad: true);
+
+        Navigation.NavigateTo("/login");
     }
+
+    private Task<AuthenticationState>? _currentAuthStateTask;
+
+    protected override void OnInitialized()
+    {
+        _currentAuthStateTask = AuthProvider.GetAuthenticationStateAsync();
+        AuthProvider.AuthenticationStateChanged += OnAuthStateChanged;
+    }
+
+    private void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        Console.WriteLine("Auth state changed, triggering navbar re-render.");
+        _currentAuthStateTask = task;
+        InvokeAsync(StateHasChanged);
+    }
+
+
+    public void Dispose()
+    {
+        AuthProvider.AuthenticationStateChanged -= OnAuthStateChanged;
+    }
+
 }

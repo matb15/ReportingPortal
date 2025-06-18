@@ -72,11 +72,11 @@
 
             if (result.User.Role == UserRoleEnum.Admin)
             {
-                Navigation.NavigateTo("/dashboard", forceLoad: true);
+                Navigation.NavigateTo("/dashboard");
             }
             else
             {
-                Navigation.NavigateTo("/home", forceLoad: true);
+                Navigation.NavigateTo("/home");
             }
         }
         else

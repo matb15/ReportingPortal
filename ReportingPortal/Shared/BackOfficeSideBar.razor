@@ -80,8 +80,8 @@
         {
             customProvider.NotifyUserLogout();
         }
-
-        Navigation.NavigateTo("/login", forceLoad: true);
+        
+        Navigation.NavigateTo("/login");
     }
 
     RenderFragment SidebarLink(string href, string icon, string text, bool exact = false) => __builder =>
