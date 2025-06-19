@@ -4,6 +4,8 @@
 @using Microsoft.AspNetCore.Authorization
 
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject CustomAuthStateProvider _authStateProvider
 
 <style>
     .map-link {
@@ -31,10 +33,11 @@
 </style>
 
 <div class="w-full relative h-[93vh]" id="map">
-    <NavLink href="/home" class="map-link">
+    <button @onclick="GoBack" class="map-link">
         <i class="fa-solid fa-compress"></i>
-    </NavLink>
+    </button>
 </div>
+
 
 
 @code {
@@ -43,6 +46,19 @@
         if (firstRender)
         {
             await JSRuntime.InvokeVoidAsync("MAP.initMap");
+        }
+    }
+
+    private async Task GoBack()
+    {
+        var user = await _authStateProvider.GetAuthenticationStateAsync();
+        if (user.User.IsInRole("Admin"))
+        {
+            NavigationManager.NavigateTo("/dashboard");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/home");
         }
     }
 }
