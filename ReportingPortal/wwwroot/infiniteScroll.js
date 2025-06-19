@@ -1,12 +1,16 @@
 ﻿window.addScrollListener = (dotnetHelper) => {
     let isThrottled = false;
 
-    const onScroll = () => {
-        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-        const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
-        const clientHeight = document.documentElement.clientHeight;
+    const container = document.getElementById('reportScrollContainer');
+    console.log(container)
+    if (!container) return;
 
-        if (scrollTop + clientHeight >= scrollHeight - 150) {
+    const onScroll = () => {
+        const scrollTop = container.scrollTop;
+        const scrollHeight = container.scrollHeight;
+        const clientHeight = container.clientHeight;
+
+        if (scrollTop + clientHeight >= scrollHeight - 100) {
             if (!isThrottled) {
                 isThrottled = true;
 
@@ -14,12 +18,12 @@
                     .finally(() => {
                         setTimeout(() => {
                             isThrottled = false;
-                        }, 1000); 
+                        }, 1000);
                     });
             }
         }
     };
 
-    window.removeEventListener('scroll', onScroll);
-    window.addEventListener('scroll', onScroll);
+    container.removeEventListener('scroll', onScroll);
+    container.addEventListener('scroll', onScroll);
 };

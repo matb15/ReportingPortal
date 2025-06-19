@@ -67,7 +67,7 @@
                     Map
                 </button>
 
-                <button @onclick="@(() => selectedTab = "reports")"
+                <button @onclick="SelectReportsTab"
                     class="@($"px-4 py-2 font-medium text-sm border-b-2 {(selectedTab == "reports" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500")}")">
                     Reports
                 </button>
@@ -319,7 +319,6 @@
     private async Task SelectMapTab()
     {
         selectedTab = "map";
-        await Task.Delay(50);
         await JSRuntime.InvokeVoidAsync("MAP.initMap");
     }
     private async Task CopyToClipboard(string? text)
@@ -333,6 +332,12 @@
     {
         isHeatmapVisible = !isHeatmapVisible;
         await JSRuntime.InvokeVoidAsync("MAP.toggleHeatmap", isHeatmapVisible);
+    }
+    private async Task SelectReportsTab()
+    {
+        selectedTab = "reports";
+        await Task.Delay(1000);
+        await JSRuntime.InvokeVoidAsync("addScrollListener", DotNetObjectReference.Create(this));
     }
 
 }

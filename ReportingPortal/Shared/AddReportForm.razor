@@ -129,9 +129,14 @@
                                             @onclick="HandleCancelClick">
                                         Cancel
                                     </button>
-                                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
-                                           >
-                                        Submit
+                                    <button type="submit"
+                                            class="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled="@IsSubmitting">
+                                        @if (IsSubmitting)
+                                        {
+                                            <span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                                        }
+                                        <span>Submit</span>
                                     </button>
                                 </div>
                             </div>
@@ -159,6 +164,7 @@
     private PhotoUpload? UploadedPhoto = null;
     private bool IsVisible = true;
     private bool MapVisible = false;
+    private bool IsSubmitting = false;
 
     private AlertModel AlertData = new();
 
@@ -169,36 +175,47 @@
 
     private async Task HandleFormSubmit()
     {
-        if (int.Parse(ReportModel.CategoryId) == 0) return;
+        if (IsSubmitting)
+            return;
 
-        using var content = new MultipartFormDataContent();
+        IsSubmitting = true;
 
-        var culture = CultureInfo.InvariantCulture;
-
-        content.Add(new StringContent(ReportModel.Title ?? ""), "Title");
-        content.Add(new StringContent(ReportModel.Description ?? ""), "Description");
-        content.Add(new StringContent(ReportModel.Location ?? ""), "Location");
-        content.Add(new StringContent(ReportModel.LocationDetail ?? "Prova"), "LocationDetail");
-        content.Add(new StringContent(ReportModel.CategoryId.ToString()), "CategoryId");
-        content.Add(new StringContent(ReportModel.Latitude.ToString(culture)), "Latitude");
-        content.Add(new StringContent(ReportModel.Longitude.ToString(culture)), "Longitude");
-
-        if(UploadedPhoto != null)
+        try
         {
-            var fileContent = new StreamContent(UploadedPhoto.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)); // 10MB limit
-            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(UploadedPhoto.File.ContentType);
+            if (int.Parse(ReportModel.CategoryId) == 0) return;
 
-            content.Add(fileContent, "File", UploadedPhoto.File.Name);
+            using var content = new MultipartFormDataContent();
+            var culture = CultureInfo.InvariantCulture;
+
+            content.Add(new StringContent(ReportModel.Title ?? ""), "Title");
+            content.Add(new StringContent(ReportModel.Description ?? ""), "Description");
+            content.Add(new StringContent(ReportModel.Location ?? ""), "Location");
+            content.Add(new StringContent(ReportModel.LocationDetail ?? "Prova"), "LocationDetail");
+            content.Add(new StringContent(ReportModel.CategoryId.ToString()), "CategoryId");
+            content.Add(new StringContent(ReportModel.Latitude.ToString(culture)), "Latitude");
+            content.Add(new StringContent(ReportModel.Longitude.ToString(culture)), "Longitude");
+
+            if (UploadedPhoto != null)
+            {
+                var fileContent = new StreamContent(UploadedPhoto.File.OpenReadStream(10 * 1024 * 1024));
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(UploadedPhoto.File.ContentType);
+                content.Add(fileContent, "File", UploadedPhoto.File.Name);
+            }
+
+            if (OnSubmit.HasDelegate)
+            {
+                int? id = int.TryParse(ReportModel?.Id, out var parsedId) ? parsedId : null;
+                await OnSubmit.InvokeAsync((content, id));
+            }
+
+            ResetForm();
         }
-
-        if (OnSubmit.HasDelegate)
+        finally
         {
-            int? id = int.TryParse(ReportModel?.Id, out var parsedId) ? parsedId : null;
-            await OnSubmit.InvokeAsync((content, id));
+            IsSubmitting = false;
         }
-
-        ResetForm();
     }
+
 
     private async Task HandleCancelClick()
     {

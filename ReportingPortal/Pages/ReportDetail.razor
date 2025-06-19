@@ -276,6 +276,7 @@
         if (firstRender && !_mapInitialized)
         {
             _mapInitialized = true;
+            await Task.Delay(1000);
             await JSRuntime.InvokeVoidAsync("MAP.initMapSingle", Report.Latitude, Report.Longitude);
         }
     }
