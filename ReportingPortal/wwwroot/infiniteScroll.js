@@ -10,6 +10,9 @@
         const scrollHeight = container.scrollHeight;
         const clientHeight = container.clientHeight;
 
+        console.log(scrollTop + clientHeight >= scrollHeight - 100)
+        console.log(scrollTop + clientHeight)
+        console.log(scrollHeight - 100)
         if (scrollTop + clientHeight >= scrollHeight - 100) {
             if (!isThrottled) {
                 isThrottled = true;
