@@ -94,7 +94,7 @@
             params.set("categoryId", categoryEl.value);
         }
 
-        fetch(`http://reportingportals-001-site1.qtempurl.com/api/Report/cluster?${params.toString()}`, {
+        fetch(`https://localhost:7078/api/Report/cluster?${params.toString()}`, { /*reportingportals- 001 - site1.qtempurl.com*/
             method: 'GET',
             headers: { 'Accept': 'application/json' }
         })
@@ -148,15 +148,8 @@
     },
 
     toggleHeatmap(show) {
-        if (!this.heatLayer) return;
-
-        if (show) {
-            this.showHeat = true;
-            this._mapInstance.addLayer(this.heatLayer);
-        } else {
-            this.showHeat = false;
-            this._mapInstance.removeLayer(this.heatLayer);
-        }
+        this.showHeat = show;
+        this.fetchClusters(); // will recreate heatLayer if showHeat is true
     },
 
     _createClusterMarker(items) {
