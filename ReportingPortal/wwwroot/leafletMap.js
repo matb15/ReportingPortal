@@ -3,6 +3,7 @@
     _tempMarker: null,
     markersLayer: null,
     heatLayer: null,
+    showHeat: true,
 
     initMap(clickEnabled = false) {
         const container = document.getElementById('map');
@@ -29,8 +30,8 @@
         if (clickEnabled) {
             map.on('dblclick', (e) => this._placeTempMarker(e.latlng));
         } else {
-            map.on('moveend zoomend', () => this.fetchClusters());
-            this.fetchClusters();
+            map.on('moveend zoomend', () => this.fetchClusters(clickEnabled));
+            this.fetchClusters(clickEnabled);
         }
 
         setTimeout(() => map.invalidateSize(), 100);
@@ -70,7 +71,7 @@
         }
     },
 
-    fetchClusters() {
+    fetchClusters(clickEnabled) {
         const bounds = this._mapInstance.getBounds();
         const zoom = this._mapInstance.getZoom();
 
@@ -130,7 +131,7 @@
             }
         });
 
-        if (heatPoints.length > 0) {
+        if (heatPoints.length > 0 && this.showHeat) {
             this.heatLayer = L.heatLayer(heatPoints, {
                 radius: 30,
                 blur: 10,
@@ -150,8 +151,10 @@
         if (!this.heatLayer) return;
 
         if (show) {
+            this.showHeat = true;
             this._mapInstance.addLayer(this.heatLayer);
         } else {
+            this.showHeat = false;
             this._mapInstance.removeLayer(this.heatLayer);
         }
     },
