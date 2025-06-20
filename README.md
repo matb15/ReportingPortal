@@ -1,4 +1,3 @@
-```md
 # 📘 Documentazione del Progetto
 
 ## 🚀 Tecnologie Utilizzate
