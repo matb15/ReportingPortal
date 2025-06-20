@@ -1,112 +1,115 @@
-Documentazione del Progetto
-🚀 Tecnologie Utilizzate
-Frontend (Blazor WASM - PWA):
+Ecco la tua documentazione con formattazione **Markdown (MD style)** pronta per essere usata in un `README.md`:
 
-Blazor WebAssembly con supporto offline (Progressive Web App)
+```md
+# 📘 Documentazione del Progetto
 
-Leaflet.js (integrazione via JS interop)
+## 🚀 Tecnologie Utilizzate
 
-JWT per autenticazione custom
+### Frontend (Blazor WASM - PWA)
+- Blazor WebAssembly con supporto offline (Progressive Web App)
+- Leaflet.js (integrazione via JS interop)
+- JWT per autenticazione custom
 
-Backend (ASP.NET Core):
+### Backend (ASP.NET Core)
+- Appwrite per storage immagini
+- ASP.NET Core Web API
+- Entity Framework Core per accesso e migrazioni database
+- Swagger per documentazione API
+- Job scheduler interno per notifiche e task ricorrenti
+- PDF export come `byte[]` da endpoint API
 
-Appwrite per storage immagini
+---
 
-ASP.NET Core Web API
+## 🖼️ Frontend – Blazor WebAssembly (PWA)
 
-Entity Framework Core per accesso e migrazioni database
+### 📁 Struttura
+```
 
-Swagger per documentazione API
+Pages/       → Pagine Blazor
+Shared/      → Componenti riutilizzabili
+Services/    → Servizi per API REST (HttpClient)
+wwwroot/     → Manifest e configurazione PWA
 
-Job scheduler interno per notifiche e task ricorrenti
+```
 
-PDF export come byte[] da endpoint API
+### 🔐 Autenticazione Custom (JWT)
+- JWT salvato nel `localStorage`
+- `CustomAuthProvider` implementa `AuthenticationStateProvider`
+- **Login:** chiamata API backend, salvataggio token
+- **HttpClient:** configurato per includere automaticamente JWT nelle richieste
+- **Logout:** rimozione token e reset dello stato utente
 
-🖼️ Frontend – Blazor WebAssembly (PWA)
-Struttura
-Pages/ – Pagine Blazor
+### 🗺️ Integrazione Leaflet.js
+- Integrazione tramite JavaScript interop (`IJSRuntime`)
+- Leaflet incluso da `wwwroot/js/leaflet.js`
+- Le richieste verso servizi mappa protetti usano header JWT
 
-Shared/ – Componenti riutilizzabili
+---
 
-Services/ – Servizi per API REST (HttpClient)
+## 🔙 Backend – ASP.NET Core
 
-wwwroot/ – Manifest e configurazione PWA
+### 📁 Struttura
+```
 
-Autenticazione Custom (JWT)
-JWT salvato nel localStorage
+Controllers/     → API REST organizzate per dominio (auth, report, mappe)
+Services/        → Logica applicativa (notifiche, PDF, Appwrite, ecc.)
+Services/Jobs/   → Job schedulati (email, push, controlli periodici)
 
-CustomAuthProvider implementa AuthenticationStateProvider
+````
 
-Login → chiamata API backend, salvataggio token
+### 📄 Controller REST + Swagger
+- Tutti i controller protetti da `[Authorize]`
+- Documentazione API disponibile via Swagger (`/swagger`)
 
-Token incluso in ogni richiesta con HttpClient configurato
+---
 
-Logout → rimozione token, reset stato utente
+## 🛠️ Job Scheduler & Task Periodici
 
-Integrazione Leaflet.js
-Integrazione tramite JavaScript interop
+Sistema di scheduling integrato (o con Hangfire):
 
-Leaflet.js incluso via wwwroot/js/leaflet.js
+- ✅ **Check Report** – Dopo 7 giorni, verifica lo stato e invia notifica
+- 🔔 **Push Notifications** – Invio notifiche verso client (PWA/mobile)
+- 📧 **Email Notification** – Email automatica per report/aggiornamenti
 
-Chiamate runtime JS via IJSRuntime
+---
 
-Le richieste ai tile/layer protetti vengono autorizzate via JWT
+## 🧾 PDF Export
 
-🔙 Backend – ASP.NET Core
-Struttura
-Controllers/ – REST API organizzate per ambito (autenticazione, report, mappe)
+- Servizio genera PDF dinamici (report, mappe)
+- Endpoint API restituisce `byte[]` con header `application/pdf`
+- Frontend usa:
+```csharp
+JSRuntime.InvokeVoidAsync("saveAs", ...)
+````
 
-Services/ – Logica applicativa (notifiche, PDF, Appwrite, etc.)
+---
 
-Services/Jobs/ – Task periodici schedulati (notifiche push/email, controlli automatici)
+## 🖼️ Appwrite – Gestione Bucket Immagini
 
-Controller REST + Swagger
-Controller protetti con [Authorize] e JWT bearer
+* Upload immagini da backend via SDK o chiamata REST
+* URL ottenuto e salvato in database
+* Frontend mostra immagine via URL (pubblico o firmato)
 
-🛠️ Job Scheduler & Task Periodici
-Sistema di job interno o Hangfire
+---
 
-Esempi di task:
+## 🧱 Database & Entity Framework
 
-Check report: dopo 7 giorni, verifica status e invia notifica se necessario
+* Database: SQL Server / PostgreSQL
+* Utilizzo di **Entity Framework Core**
+* Migrazioni gestite via CLI:
 
-Push Notifications: invio notifiche a utenti mobile/PWA
-
-Email Notification: email automatica per aggiornamenti/report
-
-🧾 PDF Export
-Servizio che genera file PDF dinamici (report, mappe, ecc.)
-
-Endpoint API restituisce direttamente i byte[]
-
-Frontend salva o apre il file con JSRuntime.InvokeVoidAsync("saveAs", ...)
-
-🖼️ Appwrite – Gestione Bucket Immagini
-Upload immagine effettuato via servizio backend (Appwrite SDK o REST)
-
-URL restituito e salvato in DB
-
-Frontend visualizza immagine pubblica o tramite URL firmato
-
-🧱 Database & Entity Framework
-Database relazionale (SQL Server / PostgreSQL)
-
-EF Core per accesso dati e migrazioni (dotnet ef)
-
-Repository pattern per isolamento logica accesso dati
-
-Comandi:
-
-bash
-Copy
-Edit
+```bash
 dotnet ef migrations add NomeMigrazione
 dotnet ef database update
+```
 
-📦 Avvio del Progetto
-bash
-Copy
-Edit
+* Architettura a repository per separare accesso ai dati dalla logica
+
+---
+
+## 📦 Avvio del Progetto
+
+```bash
 # Backend
 cd backend
 dotnet restore
@@ -117,5 +120,9 @@ cd frontend
 dotnet restore
 dotnet run
 
-# oppure build PWA
+# Oppure build della PWA
 dotnet publish -c Release
+```
+
+
+
