@@ -323,6 +323,7 @@
     private async Task SelectMapTab()
     {
         selectedTab = "map";
+        await Task.Delay(500);
         await JSRuntime.InvokeVoidAsync("MAP.initMap");
     }
     private async Task CopyToClipboard(string? text)
