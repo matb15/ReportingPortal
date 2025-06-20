@@ -1,5 +1,3 @@
-Ecco la tua documentazione con formattazione **Markdown (MD style)** pronta per essere usata in un `README.md`:
-
 ```md
 # 📘 Documentazione del Progetto
 
