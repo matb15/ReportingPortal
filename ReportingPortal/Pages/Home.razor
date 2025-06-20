@@ -56,11 +56,12 @@
 <div class="p-4 bg-gray-50 space-y-4">
     @if (showAddReportForm)
     {
-         <AddReportForm OnCancel="HideAddReportForm" OnSubmit="OnReportCreated" />
-     }
+        <AddReportForm OnCancel="HideAddReportForm" OnSubmit="OnReportCreated" />
+    }
     else
     {
-        <div class="flex items-center border-b border-gray-200 pb-2">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-2 gap-4">
+            <!-- Tabs -->
             <div class="flex space-x-2">
                 <button @onclick="SelectMapTab"
                     class="@($"px-4 py-2 font-medium text-sm border-b-2 {(selectedTab == "map" ? "border-[#66c61c] text-[#66c61c]" : "border-transparent text-gray-500")}")">
@@ -73,22 +74,25 @@
                 </button>
             </div>
 
-            <button @onclick="ToggleHeatmap"
-                    class="absolute top-4 right-4 z-[5001] bg-white text-gray-800 px-3 py-1.5 border border-gray-300 rounded-md shadow hover:bg-gray-100 text-sm">
-                @(isHeatmapVisible ? "Hide Heatmap" : "Show Heatmap")
-            </button>
+            <!-- Right-side buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 sm:gap-2 w-full sm:w-auto sm:justify-end">
+                <button @onclick="ToggleHeatmap"
+                    class="inline-flex items-center justify-center bg-[#66c61c] text-white px-4 py-2 rounded-md shadow hover:bg-[#57ac16] transition w-full sm:w-auto">
+                    @(isHeatmapVisible ? "Hide Heatmap" : "Show Heatmap")
+                </button>
 
-
-            <button @onclick="ShowAddReportForm"
-                class="ml-auto inline-flex items-center gap-2 bg-[#66c61c] text-white px-4 py-2 rounded-md shadow hover:bg-[#57ac16] transition"
-                title="Create a new report" aria-label="Create new report">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                New Report
-            </button>
+                <button @onclick="ShowAddReportForm"
+                    class="inline-flex items-center justify-center bg-[#66c61c] text-white px-4 py-2 rounded-md shadow hover:bg-[#57ac16] transition w-full sm:w-auto"
+                    title="Create a new report" aria-label="Create new report">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Report
+                </button>
+            </div>
         </div>
+
 
 
         @if (selectedTab == "map")
