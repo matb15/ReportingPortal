@@ -94,7 +94,7 @@
             params.set("categoryId", categoryEl.value);
         }
 
-        fetch(`http://reportingportals-001-site1.qtempurl.com/api/Report/cluster?${params.toString()}`, {
+        fetch(`https://reportingportals-001-site1.qtempurl.com/api/Report/cluster?${params.toString()}`, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
         })
