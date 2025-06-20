@@ -1,6 +1,6 @@
 {
-    "name": "PWA Push Notification",
-    "short_name": "Push",
+    "name": "ReportingPortal",
+    "short_name": "Reporting",
     "icons": [
         {
             "src": "/logo.png",
